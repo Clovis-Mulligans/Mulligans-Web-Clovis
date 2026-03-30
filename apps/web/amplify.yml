@@ -4,15 +4,15 @@ applications:
       phases:
         preBuild:
           commands:
-            - npm install --legacy-peer-deps
+            - cd ../.. && npm install --legacy-peer-deps && cd apps/web
         build:
           commands:
-            - npm run build --workspace=apps/web
+            - cd ../.. && npm run build --workspace=apps/web
       artifacts:
-        baseDirectory: apps/web/.next
+        baseDirectory: .next
         files:
           - '**/*'
       cache:
         paths:
-          - node_modules/**/*
+          - ../../node_modules/**/*
     appRoot: apps/web
