@@ -23,28 +23,6 @@ export type {
   ReviewProStoreApplicationData,
 } from './types/proStore';
 
-// Endpoints — Pro Store
-export {
-  submitProStoreApplication,
-  getApplicationStatus,
-} from './endpoints/proStore';
-
-// Endpoints — Admin
-export {
-  getProStoreApplications,
-  getProStoreApplication,
-  reviewProStoreApplication,
-} from './endpoints/admin';
-
-// Types — Listings (endpoints)
-export type {
-  GetMyListingsParams,
-  GetMyListingsResponse,
-  CreateListingData,
-  UpdateListingData,
-  BulkUpdateData,
-} from './endpoints/listings';
-
 // Endpoints — Listings
 export {
   getMyListings,
@@ -57,3 +35,23 @@ export {
   bulkUpdateListings,
   bulkDeleteListings,
 } from './endpoints/listings';
+export type {
+  GetMyListingsParams,
+  GetMyListingsResponse,
+  CreateListingData,
+  UpdateListingData,
+  BulkUpdateData,
+} from './endpoints/listings';
+
+// Endpoints — Pro Store
+export {
+  submitProStoreApplication,
+  getApplicationStatus,
+} from './endpoints/proStore';
+
+// Endpoints — Admin
+export {
+  getProStoreApplications,
+  getProStoreApplication,
+  reviewProStoreApplication,
+} from './endpoints/admin';

@@ -9,7 +9,6 @@ import {
   bulkDeleteListings,
   deleteListing,
   type ListingWithImages,
-  type ListingStatus,
   type GetMyListingsParams,
   type GetMyListingsResponse,
   type BulkUpdateData,
@@ -532,11 +531,11 @@ export default function InventoryPage() {
         page,
         limit: ITEMS_PER_PAGE,
         search: debouncedSearch || undefined,
-        status: statusFilter !== 'all' ? statusFilter as ListingStatus : undefined,
+        status: statusFilter !== 'all' ? statusFilter : undefined,
         category: categoryFilter || undefined,
         condition: conditionFilter || undefined,
-        minPrice: minPrice ? parseFloat(minPrice) : undefined,
-maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
+        minPrice: minPrice ? minPrice : undefined,
+        maxPrice: maxPrice ? maxPrice : undefined,
       };
       const response: GetMyListingsResponse = await getMyListings(params);
       setListings(response.listings);
@@ -663,7 +662,7 @@ maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
     try {
       const bulkData: BulkUpdateData =
         data.mode === 'set'
-          ? { ids: Array.from(selectedIds), price: parseFloat(data.value) }
+          ? { ids: Array.from(selectedIds), price: data.value }
           : { ids: Array.from(selectedIds), price_adjustment_percent: parseFloat(data.value) };
       await bulkUpdateListings(bulkData);
       setSelectedIds(new Set());
@@ -682,13 +681,13 @@ maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
       let bulkData: BulkUpdateData;
       if (data.mode === 'sale') {
         if (data.priceMode === 'fixed') {
-          bulkData = { ids: Array.from(selectedIds), price: parseFloat(data.value) };
+          bulkData = { ids: Array.from(selectedIds), price: data.value };
         } else {
           bulkData = { ids: Array.from(selectedIds), price_adjustment_percent: -Math.abs(parseFloat(data.value)) };
         }
       } else {
         if (data.priceMode === 'fixed') {
-          bulkData = { ids: Array.from(selectedIds), price: parseFloat(data.value), original_price: undefined };
+          bulkData = { ids: Array.from(selectedIds), price: data.value, original_price: undefined };
         } else {
           bulkData = { ids: Array.from(selectedIds), price_adjustment_percent: -Math.abs(parseFloat(data.value)) };
         }
