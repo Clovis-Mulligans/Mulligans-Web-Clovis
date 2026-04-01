@@ -9,7 +9,7 @@ export async function submitProStoreApplication(
   data: SubmitProStoreApplicationData
 ): Promise<ProStoreApplication> {
   return apiClient.post<ProStoreApplication>(
-    '/api/pro-store/applications',
+    '/api/pro-store/apply',
     data
   );
 }
@@ -17,6 +17,6 @@ export async function submitProStoreApplication(
 /** Get the current user's application status */
 export async function getApplicationStatus(): Promise<ProStoreApplication | null> {
   return apiClient.get<ProStoreApplication | null>(
-    '/api/pro-store/applications/me'
+    '/api/pro-store/application-status'
   );
 }
