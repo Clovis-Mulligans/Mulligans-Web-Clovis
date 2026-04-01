@@ -23,6 +23,27 @@ export type {
   ReviewProStoreApplicationData,
 } from './types/proStore';
 
+// Types — Order
+export type {
+  OrderStatus,
+  SoldOrder,
+  PurchasedOrder,
+  OrderDetail,
+  OrderParty,
+  OrderReview,
+  OrderDispute,
+  OrderReturn,
+  OrderCounts,
+} from './types/order';
+
+// Types — Offer
+export type {
+  OfferStatus,
+  ReceivedOffer,
+  MadeOffer,
+  OfferCounts,
+} from './types/offer';
+
 // Endpoints — Pro Store
 export {
   submitProStoreApplication,
@@ -57,3 +78,39 @@ export {
   bulkUpdateListings,
   bulkDeleteListings,
 } from './endpoints/listings';
+
+// Types — Orders (endpoints)
+export type {
+  GetMySalesParams,
+  GetMyPurchasesParams,
+  MarkAsShippedData,
+} from './endpoints/orders';
+
+// Endpoints — Orders
+export {
+  getMySales,
+  getMyPurchases,
+  getOrder,
+  markAsShipped,
+  confirmReceipt,
+  getOrderCounts,
+} from './endpoints/orders';
+
+// Types — Offers (endpoints)
+export type {
+  CounterOfferData,
+} from './endpoints/offers';
+
+// Endpoints — Offers
+export {
+  getReceivedOffers,
+  getMyOffers,
+  acceptOffer,
+  declineOffer,
+  counterOffer,
+  acceptCounter,
+  declineCounter,
+  withdrawOffer,
+  getOfferCounts,
+  sendOfferToWatchers,
+} from './endpoints/offers';
