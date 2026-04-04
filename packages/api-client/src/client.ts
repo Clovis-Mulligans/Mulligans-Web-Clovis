@@ -1,5 +1,3 @@
-import { fetchAuthSession } from 'aws-amplify/auth';
-
 export class ApiError extends Error {
   constructor(
     public status: number,
@@ -26,13 +24,20 @@ function getBaseUrl(): string {
   }
 }
 
+// Token provider — injected by the app at startup
+let tokenProvider: (() => Promise<string | null>) | null = null;
+
+export function setTokenProvider(provider: () => Promise<string | null>): void {
+  tokenProvider = provider;
+}
+
 async function getAuthToken(): Promise<string | null> {
-  try {
-    const session = await fetchAuthSession();
-    return session.tokens?.idToken?.toString() ?? null;
-  } catch {
-    return null;
+  if (tokenProvider) return tokenProvider();
+  // Fallback to localStorage for backwards compatibility
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('mulligans_auth_token');
   }
+  return null;
 }
 
 async function request<T>(
@@ -42,19 +47,15 @@ async function request<T>(
   const { body, params, headers: customHeaders, ...rest } = options;
 
   const baseUrl = getBaseUrl();
-
   let url = `${baseUrl}${path}`;
+
   if (params) {
     const searchParams = new URLSearchParams();
     for (const [key, value] of Object.entries(params)) {
-      if (value !== undefined) {
-        searchParams.set(key, String(value));
-      }
+      if (value !== undefined) searchParams.set(key, String(value));
     }
     const queryString = searchParams.toString();
-    if (queryString) {
-      url += `?${queryString}`;
-    }
+    if (queryString) url += `?${queryString}`;
   }
 
   const headers: Record<string, string> = {
@@ -63,9 +64,7 @@ async function request<T>(
   };
 
   const token = await getAuthToken();
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
+  if (token) headers['Authorization'] = `Bearer ${token}`;
 
   const response = await fetch(url, {
     ...rest,
@@ -75,38 +74,35 @@ async function request<T>(
 
   if (!response.ok) {
     let data: unknown;
-    try {
-      data = await response.json();
-    } catch {
-      // Response body not JSON
-    }
+    try { data = await response.json(); } catch { /* not JSON */ }
     throw new ApiError(response.status, response.statusText, data);
   }
 
-  if (response.status === 204) {
-    return undefined as T;
-  }
-
+  if (response.status === 204) return undefined as T;
   return response.json();
 }
 
 export const apiClient = {
   get: <T>(path: string, options?: RequestOptions) =>
     request<T>(path, { ...options, method: 'GET' }),
-
   post: <T>(path: string, body?: unknown, options?: RequestOptions) =>
     request<T>(path, { ...options, method: 'POST', body }),
-
   put: <T>(path: string, body?: unknown, options?: RequestOptions) =>
     request<T>(path, { ...options, method: 'PUT', body }),
-
   patch: <T>(path: string, body?: unknown, options?: RequestOptions) =>
     request<T>(path, { ...options, method: 'PATCH', body }),
-
   delete: <T>(path: string, options?: RequestOptions) =>
     request<T>(path, { ...options, method: 'DELETE' }),
 };
 
-// Legacy helpers — kept for compatibility but no longer used for storage
-export function setAuthToken(_token: string): void {}
-export function clearAuthToken(): void {}
+export function setAuthToken(token: string): void {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('mulligans_auth_token', token);
+  }
+}
+
+export function clearAuthToken(): void {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('mulligans_auth_token');
+  }
+}

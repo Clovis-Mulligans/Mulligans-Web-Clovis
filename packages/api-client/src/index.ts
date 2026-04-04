@@ -1,5 +1,6 @@
 // Client
 export { apiClient, ApiError, setAuthToken, clearAuthToken } from './client';
+export { setTokenProvider } from './client';
 
 // Types — User
 export type { User, UserProfile } from './types/user';

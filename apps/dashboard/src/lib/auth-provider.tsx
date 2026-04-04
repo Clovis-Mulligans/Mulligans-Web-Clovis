@@ -2,6 +2,8 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { getCurrentUser, getSession } from './auth';
+import { setTokenProvider } from '@mulligans/api-client';
+import { fetchAuthSession } from 'aws-amplify/auth';
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -27,6 +29,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isLoading: true,
     userId: null,
     isProStore: null,
+  });
+
+  // Wire Amplify session into the API client token provider
+  setTokenProvider(async () => {
+    try {
+      const session = await fetchAuthSession();
+      return session.tokens?.idToken?.toString() ?? null;
+    } catch {
+      return null;
+    }
   });
 
   useEffect(() => {
