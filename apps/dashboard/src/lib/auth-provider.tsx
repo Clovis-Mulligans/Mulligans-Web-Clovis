@@ -22,6 +22,14 @@ export function useAuth() {
   return useContext(AuthContext);
 }
 
+// Set up token provider once at module level — not inside component
+setTokenProvider(async () => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('mulligans_auth_token');
+  }
+  return null;
+});
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AuthState>({
     isAuthenticated: false,
