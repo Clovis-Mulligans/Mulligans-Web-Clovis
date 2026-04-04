@@ -1,3 +1,5 @@
+import { fetchAuthSession } from 'aws-amplify/auth';
+
 export class ApiError extends Error {
   constructor(
     public status: number,
@@ -14,17 +16,20 @@ interface RequestOptions extends Omit<RequestInit, 'body'> {
   params?: Record<string, string | number | boolean | undefined>;
 }
 
+declare const process: { env: { NEXT_PUBLIC_API_URL?: string } };
+
 function getBaseUrl(): string {
-  if (typeof window !== 'undefined') {
+  try {
     return process.env.NEXT_PUBLIC_API_URL || 'https://api.mulligans.uk.com';
+  } catch {
+    return 'https://api.mulligans.uk.com';
   }
-  return process.env.NEXT_PUBLIC_API_URL || 'https://api.mulligans.uk.com';
 }
 
-function getAuthToken(): string | null {
-  if (typeof window === 'undefined') return null;
+async function getAuthToken(): Promise<string | null> {
   try {
-    return localStorage.getItem('mulligans_auth_token');
+    const session = await fetchAuthSession();
+    return session.tokens?.idToken?.toString() ?? null;
   } catch {
     return null;
   }
@@ -57,7 +62,7 @@ async function request<T>(
     ...(customHeaders as Record<string, string>),
   };
 
-  const token = getAuthToken();
+  const token = await getAuthToken();
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
@@ -102,16 +107,6 @@ export const apiClient = {
     request<T>(path, { ...options, method: 'DELETE' }),
 };
 
-/** Set the auth token (call after Cognito sign-in) */
-export function setAuthToken(token: string): void {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('mulligans_auth_token', token);
-  }
-}
-
-/** Clear the auth token (call on sign-out) */
-export function clearAuthToken(): void {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('mulligans_auth_token');
-  }
-}
+// Legacy helpers — kept for compatibility but no longer used for storage
+export function setAuthToken(_token: string): void {}
+export function clearAuthToken(): void {}
