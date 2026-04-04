@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { getCurrentUser, getSession } from './auth';
+import { getCurrentUser } from './auth';
 import { setTokenProvider } from '@mulligans/api-client';
 
 interface AuthState {
@@ -51,11 +51,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const user = await getCurrentUser();
         if (user) {
-          const session = await getSession();
-          const token = session?.tokens?.idToken?.toString();
-          if (token && typeof window !== 'undefined') {
-            localStorage.setItem('mulligans_auth_token', token);
-          }
           setState({
             isAuthenticated: true,
             isLoading: false,
