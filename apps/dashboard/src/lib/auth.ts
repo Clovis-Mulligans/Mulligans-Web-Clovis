@@ -36,6 +36,13 @@ Amplify.configure({
 });
 
 export async function signIn(email: string, password: string) {
+  // Sign out any existing session first to prevent "already signed in" error
+  try {
+    await amplifySignOut();
+  } catch {
+    // No existing session — that's fine
+  }
+  
   const result = await amplifySignIn({
     username: email,
     password,
