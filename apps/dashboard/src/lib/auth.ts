@@ -52,24 +52,40 @@ cognitoUserPoolsTokenProvider.setKeyValueStorage(
 );
 
 export async function signIn(email: string, password: string) {
-  // Sign out any existing session first to prevent "already signed in" error
+  // Sign out any existing session first
   try {
     await amplifySignOut();
   } catch {
     // No existing session — that's fine
   }
-  
+
+  // Authenticate with Cognito via Amplify
   const result = await amplifySignIn({
     username: email,
     password,
   });
+
   if (result.isSignedIn) {
-    const session = await fetchAuthSession();
-    const token = session.tokens?.idToken?.toString();
+    // Exchange for backend custom JWT
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.mulligans.uk.com';
+    const response = await fetch(`${apiUrl}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to get backend token');
+    }
+
+    const data = await response.json();
+    const token = data.accessToken;
+
     if (token && typeof window !== 'undefined') {
       localStorage.setItem('mulligans_auth_token', token);
     }
   }
+
   return result;
 }
 

@@ -3,7 +3,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { getCurrentUser, getSession } from './auth';
 import { setTokenProvider } from '@mulligans/api-client';
-import { fetchAuthSession } from 'aws-amplify/auth';
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -31,14 +30,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isProStore: null,
   });
 
-  // Wire Amplify session into the API client token provider
+  // Read backend custom JWT from localStorage
   setTokenProvider(async () => {
-    try {
-      const session = await fetchAuthSession();
-      return session.tokens?.idToken?.toString() ?? null;
-    } catch {
-      return null;
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('mulligans_auth_token');
     }
+    return null;
   });
 
   useEffect(() => {
