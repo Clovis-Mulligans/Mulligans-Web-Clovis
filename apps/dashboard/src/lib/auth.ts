@@ -1,6 +1,8 @@
 'use client';
 
 import { Amplify } from 'aws-amplify';
+import { cognitoUserPoolsTokenProvider } from 'aws-amplify/auth/cognito';
+import { CookieStorage } from 'aws-amplify/utils';
 import {
   signIn as amplifySignIn,
   signOut as amplifySignOut,
@@ -28,12 +30,26 @@ Amplify.configure({
               ? `${window.location.origin}/login`
               : 'http://localhost:3001/login',
           ],
-          responseType: 'code', // PKCE flow
+          responseType: 'code',
         },
       },
     },
   },
 });
+
+// Configure Amplify to use cookie storage instead of localStorage
+// This allows the middleware to read tokens server-side
+cognitoUserPoolsTokenProvider.setKeyValueStorage(
+  new CookieStorage({
+    domain: typeof window !== 'undefined'
+      ? window.location.hostname
+      : 'dashboard.mulligans.uk.com',
+    path: '/',
+    expires: 30,
+    sameSite: 'strict',
+    secure: process.env.NODE_ENV === 'production',
+  })
+);
 
 export async function signIn(email: string, password: string) {
   // Sign out any existing session first to prevent "already signed in" error
