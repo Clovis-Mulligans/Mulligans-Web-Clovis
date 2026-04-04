@@ -16,23 +16,26 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+  e.preventDefault();
+  setError('');
+  setLoading(true);
 
-    try {
-      const result = await signIn(email, password);
-      if (result.isSignedIn) {
-        router.push(redirect);
-      }
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Invalid email or password'
-      );
-    } finally {
-      setLoading(false);
+  try {
+    const result = await signIn(email, password);
+    if (result.isSignedIn) {
+      // Force a full page navigation to trigger auth re-check
+      window.location.href = redirect;
+    } else {
+      setError('Sign in incomplete. Please try again.');
     }
+  } catch (err) {
+    setError(
+      err instanceof Error ? err.message : 'Invalid email or password'
+    );
+  } finally {
+    setLoading(false);
   }
+}
 
   return (
     <div className="w-full max-w-md space-y-8">
