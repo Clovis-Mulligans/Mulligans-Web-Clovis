@@ -114,3 +114,29 @@ export {
   getOfferCounts,
   sendOfferToWatchers,
 } from './endpoints/offers';
+
+// Types — Message
+export type {
+  Conversation,
+  ConversationDetail,
+  Message,
+  MessageCounts,
+  SendMessagePayload,
+  SocketMessage,
+} from './types/message';
+
+// Types — Messages (endpoints)
+export type {
+  GetMessagesResponse,
+} from './endpoints/messages';
+
+// Endpoints — Messages
+export {
+  getConversations,
+  getConversation,
+  getMessages,
+  sendMessage,
+  markConversationRead,
+  markAllRead,
+  getMessageCounts,
+} from './endpoints/messages';
