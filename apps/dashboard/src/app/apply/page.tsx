@@ -1,17 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import {
-  MulligansLogo,
-  Button,
-  Input,
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  Badge,
-} from '@mulligans/ui';
+import { MulligansLogo } from '@mulligans/ui';
 import {
   submitProStoreApplication,
   getApplicationStatus,
@@ -22,23 +12,42 @@ import {
 } from '@mulligans/api-client';
 import { useAuth } from '@/lib/auth-provider';
 
+// ─── Constants ───────────────────────────────────────────────
+
 const SELLER_TYPES: { value: SellerType; label: string }[] = [
-  { value: 'pro_shop', label: 'Pro Shop' },
-  { value: 'online_retailer', label: 'Online Retailer' },
+  { value: 'pro_shop', label: 'Independent Pro Shop' },
+  { value: 'online_retailer', label: 'Online Golf Store' },
   { value: 'brand', label: 'Brand' },
 ];
 
 const LISTING_RANGES: { value: EstimatedListings; label: string }[] = [
-  { value: '1-50', label: '1-50' },
-  { value: '51-200', label: '51-200' },
-  { value: '201-500', label: '201-500' },
-  { value: '500+', label: '500+' },
+  { value: '1-50', label: '1-10' },
+  { value: '51-200', label: '10-50' },
+  { value: '201-500', label: '50-200' },
+  { value: '500+', label: '200+' },
 ];
 
+// ─── Store Name Validation ───────────────────────────────────
+
+function validateStoreName(name: string): string | null {
+  if (name.length < 3) return 'Store name must be at least 3 characters';
+  if (name.length > 50) return 'Store name must be 50 characters or less';
+  if (!/^[a-zA-Z0-9\s'-]+$/.test(name)) return 'Only letters, numbers, hyphens, apostrophes and spaces';
+  if (/[-']{2}/.test(name)) return 'No consecutive hyphens or apostrophes';
+  if (/^[-']/.test(name) || /[-']$/.test(name)) return 'Cannot start or end with a hyphen or apostrophe';
+  return null;
+}
+
+// ─── Input Styles ────────────────────────────────────────────
+
+const inputClass = "w-full rounded-lg border border-[#E0E0D8] bg-white px-3 text-sm text-[#0D0D0D] placeholder-[#ADADAD] focus:border-[#1DC690] focus:outline-none focus:ring-2 focus:ring-[#1DC690]/10";
+const selectClass = "w-full rounded-lg border border-[#E0E0D8] bg-white px-3 text-sm text-[#0D0D0D] focus:border-[#1DC690] focus:outline-none focus:ring-2 focus:ring-[#1DC690]/10 appearance-none";
+
+// ─── Main Page ───────────────────────────────────────────────
+
 export default function ApplyPage() {
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const [existingApplication, setExistingApplication] =
-    useState<ProStoreApplication | null>(null);
+  const { isAuthenticated, isLoading: authLoading, isProStore } = useAuth();
+  const [existingApp, setExistingApp] = useState<ProStoreApplication | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -57,24 +66,23 @@ export default function ApplyPage() {
     existing_store_url: '',
   });
 
+  const [nameError, setNameError] = useState<string | null>(null);
+
   useEffect(() => {
     async function checkExisting() {
-      if (!isAuthenticated) {
-        setLoading(false);
-        return;
-      }
+      if (!isAuthenticated) { setLoading(false); return; }
+      // Redirect approved pro stores to dashboard
+      if (isProStore) { window.location.href = '/'; return; }
       try {
         const app = await getApplicationStatus();
-        setExistingApplication(app);
+        setExistingApp(app);
       } catch {
         // No existing application
       }
       setLoading(false);
     }
-    if (!authLoading) {
-      checkExisting();
-    }
-  }, [isAuthenticated, authLoading]);
+    if (!authLoading) checkExisting();
+  }, [isAuthenticated, authLoading, isProStore]);
 
   function updateForm(field: string, value: string | boolean) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -83,350 +91,209 @@ export default function ApplyPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
-    setSubmitting(true);
 
+    // Validate store name
+    const nameErr = validateStoreName(form.business_name);
+    if (nameErr) { setNameError(nameErr); return; }
+
+    // Validate description length
+    if (form.description.length < 50) { setError('Please provide at least 50 characters describing your store'); return; }
+
+    setSubmitting(true);
     try {
       const app = await submitProStoreApplication(form);
-      setExistingApplication(app);
+      setExistingApp(app);
       setSuccess(true);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Failed to submit application'
-      );
+      setError(err instanceof Error ? err.message : 'Failed to submit application');
     } finally {
       setSubmitting(false);
     }
   }
 
-  const statusColors: Record<string, 'default' | 'warning' | 'destructive' | 'secondary'> = {
-    pending: 'warning',
-    approved: 'default',
-    rejected: 'destructive',
-    info_requested: 'secondary',
-  };
-
+  // ── Loading ──────────────────────────────────────────────
   if (authLoading || loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#06070A]">
-        <p className="text-gray-400">Loading...</p>
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#1DC690] border-t-transparent" />
       </div>
     );
   }
 
-  // Show application status if one exists
-  if (existingApplication) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#06070A] px-4">
-        <div className="w-full max-w-lg space-y-6">
-          <div className="flex flex-col items-center space-y-4">
-            <MulligansLogo width={220} height={44} />
-          </div>
-
-          <Card className="bg-gray-900 border-gray-800">
-            <CardHeader>
-              <CardTitle className="text-white">Application Status</CardTitle>
-              <CardDescription className="text-gray-400">
-                Your pro store application for{' '}
-                <strong className="text-white">
-                  {existingApplication.business_name}
-                </strong>
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-400">Status:</span>
-                <Badge variant={statusColors[existingApplication.status]}>
-                  {existingApplication.status.replace('_', ' ').toUpperCase()}
-                </Badge>
-              </div>
-
-              {existingApplication.status === 'approved' && (
-                <div className="rounded-md bg-[#1DC690]/10 border border-[#1DC690]/20 p-4">
-                  <p className="text-sm text-[#1DC690]">
-                    Your application has been approved! You can now access the
-                    Pro Store Dashboard.
-                  </p>
-                  <Button
-                    variant="primary"
-                    className="mt-3"
-                    onClick={() => (window.location.href = '/')}
-                  >
-                    Go to Dashboard
-                  </Button>
-                </div>
-              )}
-
-              {existingApplication.status === 'pending' && (
-                <p className="text-sm text-gray-400">
-                  Your application is being reviewed. We&apos;ll notify you by
-                  email once a decision has been made.
-                </p>
-              )}
-
-              {existingApplication.status === 'rejected' && (
-                <p className="text-sm text-red-400">
-                  Unfortunately your application was not approved at this time.
-                  Please contact support for more information.
-                </p>
-              )}
-
-              {existingApplication.status === 'info_requested' && (
-                <p className="text-sm text-[#278AB0]">
-                  We need some additional information. Please check your email
-                  for details.
-                </p>
-              )}
-
-              <p className="text-xs text-gray-500">
-                Applied:{' '}
-                {new Date(existingApplication.created_at).toLocaleDateString()}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
+  // ── Not Logged In ────────────────────────────────────────
   if (!isAuthenticated) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#06070A] px-4">
-        <div className="w-full max-w-md space-y-6 text-center">
-          <MulligansLogo width={220} height={44} />
-          <h1 className="text-xl font-semibold text-white">
-            Become a Pro Store
-          </h1>
-          <p className="text-gray-400">
-            You need to sign in to your Mulligans account before applying.
-          </p>
-          <Button
-            variant="primary"
-            onClick={() => (window.location.href = '/login?redirect=/apply')}
-          >
-            Sign In to Apply
-          </Button>
+      <div className="flex min-h-screen flex-col items-center justify-center bg-[#06070A] px-4">
+        <MulligansLogo width={180} height={36} />
+        <div className="mt-8 w-full max-w-[520px] rounded-2xl bg-white p-8 text-center" style={{ boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#F4F4F0]">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ADADAD" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <h2 className="text-[#0D0D0D]" style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '1.2rem' }}>Sign In to Apply</h2>
+          <p className="mt-2 text-[#6B6B6B]" style={{ fontSize: '0.9rem' }}>You need a Mulligans account to apply for a Pro Store</p>
+          <button onClick={() => (window.location.href = '/login?redirect=/apply')} className="mt-6 w-full rounded-lg py-3 text-sm font-bold text-white" style={{ backgroundColor: '#1DC690', fontFamily: 'Montserrat, sans-serif', fontWeight: 600, height: '48px' }}>
+            Sign In
+          </button>
+          <p className="mt-3 text-sm text-[#6B6B6B]">Don&apos;t have an account? <a href="https://mulligans.uk.com" className="text-[#1DC690] hover:underline">Create one</a></p>
         </div>
+        <p className="mt-6 text-sm text-[#6B6B6B]">Already a pro store? <a href="/login" className="text-[#1DC690] hover:underline">Sign in to your dashboard →</a></p>
       </div>
     );
   }
 
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-[#06070A] px-4 py-12">
-      <div className="w-full max-w-2xl space-y-6">
-        <div className="flex flex-col items-center space-y-4">
-          <MulligansLogo width={220} height={44} />
-          <h1 className="text-2xl font-bold text-white">
-            Apply for a Pro Store
-          </h1>
-          <p className="text-gray-400 text-center max-w-md">
-            Pro stores get desktop-grade tools to manage inventory, orders,
-            offers, and analytics. Zero seller fees.
-          </p>
-        </div>
-
-        {success && (
-          <div className="rounded-md bg-[#1DC690]/10 border border-[#1DC690]/20 p-4 text-center">
-            <p className="text-sm text-[#1DC690]">
-              Application submitted successfully! We&apos;ll review it and get
-              back to you shortly.
-            </p>
+  // ── Already Applied (pending/under review) ───────────────
+  if (existingApp && !success && existingApp.status !== 'rejected') {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-[#06070A] px-4">
+        <MulligansLogo width={180} height={36} />
+        <div className="mt-8 w-full max-w-[520px] rounded-2xl bg-white p-8 text-center" style={{ boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full" style={{ backgroundColor: 'rgba(245,158,11,0.15)' }}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           </div>
+          <h2 className="text-[#0D0D0D]" style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '1.2rem' }}>Application Under Review</h2>
+          <p className="mt-2 text-[#6B6B6B]" style={{ fontSize: '0.9rem' }}>We received your application and are reviewing it. We&apos;ll be in touch within 2-3 business days.</p>
+          <p className="mt-4 text-[#ADADAD]" style={{ fontSize: '0.82rem' }}>Submitted on {new Date(existingApp.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+          <a href="https://mulligans.uk.com" className="mt-6 inline-block text-sm text-[#6B6B6B] hover:underline">Visit Mulligans Marketplace →</a>
+        </div>
+        <p className="mt-6 text-sm text-[#6B6B6B]">Already a pro store? <a href="/login" className="text-[#1DC690] hover:underline">Sign in to your dashboard →</a></p>
+      </div>
+    );
+  }
+
+  // ── Submission Success ───────────────────────────────────
+  if (success) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-[#06070A] px-4">
+        <MulligansLogo width={180} height={36} />
+        <div className="mt-8 w-full max-w-[520px] rounded-2xl bg-white p-8 text-center" style={{ boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full" style={{ backgroundColor: 'rgba(29,198,144,0.15)' }}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1DC690" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <h2 className="text-[#0D0D0D]" style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '1.2rem' }}>Application Submitted!</h2>
+          <p className="mt-2 text-[#6B6B6B]" style={{ fontSize: '0.9rem' }}>Thank you for applying. We&apos;ll review your application and be in touch within 2-3 business days.</p>
+          <a href="https://mulligans.uk.com" className="mt-6 inline-block text-sm text-[#6B6B6B] hover:underline">Visit Mulligans Marketplace →</a>
+        </div>
+        <p className="mt-6 text-sm text-[#6B6B6B]">Already a pro store? <a href="/login" className="text-[#1DC690] hover:underline">Sign in to your dashboard →</a></p>
+      </div>
+    );
+  }
+
+  // ── Application Form ─────────────────────────────────────
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center bg-[#06070A] px-4 py-12">
+      <MulligansLogo width={180} height={36} />
+      <h1 className="mt-6 text-white text-center" style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '1.5rem' }}>Become a Verified Pro Store</h1>
+      <p className="mt-2 text-center text-[#9CA3AF] max-w-[420px]" style={{ fontSize: '0.9rem' }}>Join our network of trusted golf retailers and reach thousands of golfers across the UK</p>
+
+      <div className="mt-8 w-full max-w-[520px] rounded-2xl bg-white p-8" style={{ boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+        <h2 className="text-[#0D0D0D]" style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: '1.1rem' }}>Pro Store Application</h2>
+        <p className="mt-1 text-[#6B6B6B]" style={{ fontSize: '0.85rem' }}>Tell us about your business</p>
+
+        {error && (
+          <div className="mt-4 rounded-lg bg-red-50 p-3 text-sm" style={{ color: '#E53E3E' }}>{error}</div>
         )}
 
-        <Card className="bg-gray-900 border-gray-800">
-          <CardContent className="pt-6">
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {error && (
-                <div className="rounded-md bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-400">
-                  {error}
-                </div>
-              )}
+        <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+          {/* Store Name */}
+          <div>
+            <label className="block mb-1.5 text-[#0D0D0D]" style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 500, fontSize: '0.88rem' }}>
+              Store / Business Name <span style={{ color: '#E53E3E' }}>*</span>
+            </label>
+            <input
+              type="text"
+              value={form.business_name}
+              onChange={(e) => { updateForm('business_name', e.target.value); setNameError(validateStoreName(e.target.value)); }}
+              maxLength={50}
+              required
+              placeholder="Your Golf Pro Shop"
+              className={inputClass}
+              style={{ fontFamily: 'Montserrat, sans-serif', height: '44px' }}
+            />
+            {nameError && form.business_name.length > 0 && <p className="mt-1" style={{ color: '#E53E3E', fontSize: '0.78rem' }}>{nameError}</p>}
+          </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-300">
-                    Business Name *
-                  </label>
-                  <Input
-                    value={form.business_name}
-                    onChange={(e) =>
-                      updateForm('business_name', e.target.value)
-                    }
-                    placeholder="Your Golf Pro Shop"
-                    required
-                    className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
-                  />
-                </div>
+          {/* Business Website */}
+          <div>
+            <label className="block mb-1.5 text-[#0D0D0D]" style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 500, fontSize: '0.88rem' }}>Business Website</label>
+            <input type="url" value={form.website} onChange={(e) => updateForm('website', e.target.value)} placeholder="https://yourshop.com" className={inputClass} style={{ fontFamily: 'Montserrat, sans-serif', height: '44px' }} />
+            <p className="mt-1 text-[#6B6B6B]" style={{ fontSize: '0.78rem' }}>Optional but recommended</p>
+          </div>
 
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-300">
-                    Business Email *
-                  </label>
-                  <Input
-                    type="email"
-                    value={form.business_email}
-                    onChange={(e) =>
-                      updateForm('business_email', e.target.value)
-                    }
-                    placeholder="contact@yourshop.com"
-                    required
-                    className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
-                  />
-                </div>
+          {/* Business Type */}
+          <div>
+            <label className="block mb-1.5 text-[#0D0D0D]" style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 500, fontSize: '0.88rem' }}>
+              Business Type <span style={{ color: '#E53E3E' }}>*</span>
+            </label>
+            <select value={form.seller_type} onChange={(e) => updateForm('seller_type', e.target.value)} required className={selectClass} style={{ fontFamily: 'Montserrat, sans-serif', height: '44px' }}>
+              <option value="" disabled>Select your business type...</option>
+              {SELLER_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+            </select>
+          </div>
 
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-300">
-                    Business Phone *
-                  </label>
-                  <Input
-                    type="tel"
-                    value={form.business_phone}
-                    onChange={(e) =>
-                      updateForm('business_phone', e.target.value)
-                    }
-                    placeholder="+44 7700 900000"
-                    required
-                    className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
-                  />
-                </div>
+          {/* Description */}
+          <div>
+            <label className="block mb-1.5 text-[#0D0D0D]" style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 500, fontSize: '0.88rem' }}>
+              Tell us about your store <span style={{ color: '#E53E3E' }}>*</span>
+              <span className="ml-2 text-[#6B6B6B]" style={{ fontWeight: 400, fontSize: '0.78rem' }}>({form.description.length}/500)</span>
+            </label>
+            <textarea
+              value={form.description}
+              onChange={(e) => updateForm('description', e.target.value.slice(0, 500))}
+              rows={4}
+              maxLength={500}
+              required
+              placeholder="Describe your store, the brands you carry, your location, and why you'd like to join Mulligans..."
+              className={`${inputClass} py-2.5`}
+              style={{ fontFamily: 'Montserrat, sans-serif', height: 'auto', resize: 'vertical' }}
+            />
+            {form.description.length > 0 && form.description.length < 50 && (
+              <p className="mt-1" style={{ color: '#F59E0B', fontSize: '0.78rem' }}>Minimum 50 characters ({50 - form.description.length} more needed)</p>
+            )}
+          </div>
 
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-300">
-                    Website *
-                  </label>
-                  <Input
-                    type="url"
-                    value={form.website}
-                    onChange={(e) => updateForm('website', e.target.value)}
-                    placeholder="https://yourshop.com"
-                    required
-                    className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
-                  />
-                </div>
-              </div>
+          {/* Expected Listings */}
+          <div>
+            <label className="block mb-1.5 text-[#0D0D0D]" style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 500, fontSize: '0.88rem' }}>
+              Expected number of listings <span style={{ color: '#E53E3E' }}>*</span>
+            </label>
+            <select value={form.estimated_listings} onChange={(e) => updateForm('estimated_listings', e.target.value)} required className={selectClass} style={{ fontFamily: 'Montserrat, sans-serif', height: '44px' }}>
+              {LISTING_RANGES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
+            </select>
+          </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-300">
-                    Seller Type *
-                  </label>
-                  <select
-                    value={form.seller_type}
-                    onChange={(e) =>
-                      updateForm('seller_type', e.target.value)
-                    }
-                    required
-                    className="flex h-10 w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#1DC690] focus:border-transparent"
-                  >
-                    {SELLER_TYPES.map((t) => (
-                      <option key={t.value} value={t.value}>
-                        {t.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+          {/* Hidden fields the backend requires but we don't show prominently */}
+          <input type="hidden" value={form.business_email} />
+          <input type="hidden" value={form.business_phone} />
 
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-300">
-                    Estimated Listings *
-                  </label>
-                  <select
-                    value={form.estimated_listings}
-                    onChange={(e) =>
-                      updateForm('estimated_listings', e.target.value)
-                    }
-                    required
-                    className="flex h-10 w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#1DC690] focus:border-transparent"
-                  >
-                    {LISTING_RANGES.map((r) => (
-                      <option key={r.value} value={r.value}>
-                        {r.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+          {/* Business email + phone (backend requires them) */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block mb-1.5 text-[#0D0D0D]" style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 500, fontSize: '0.88rem' }}>
+                Business Email <span style={{ color: '#E53E3E' }}>*</span>
+              </label>
+              <input type="email" value={form.business_email} onChange={(e) => updateForm('business_email', e.target.value)} required placeholder="contact@shop.com" className={inputClass} style={{ fontFamily: 'Montserrat, sans-serif', height: '44px' }} />
+            </div>
+            <div>
+              <label className="block mb-1.5 text-[#0D0D0D]" style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 500, fontSize: '0.88rem' }}>
+                Business Phone <span style={{ color: '#E53E3E' }}>*</span>
+              </label>
+              <input type="tel" value={form.business_phone} onChange={(e) => updateForm('business_phone', e.target.value)} required placeholder="+44 7700 900000" className={inputClass} style={{ fontFamily: 'Montserrat, sans-serif', height: '44px' }} />
+            </div>
+          </div>
 
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-300">
-                  About Your Business *{' '}
-                  <span className="text-gray-500">
-                    ({form.description.length}/500)
-                  </span>
-                </label>
-                <textarea
-                  value={form.description}
-                  onChange={(e) =>
-                    updateForm('description', e.target.value.slice(0, 500))
-                  }
-                  placeholder="Tell us about your business, what you sell, and why you'd like to join Mulligans as a pro store..."
-                  required
-                  rows={4}
-                  maxLength={500}
-                  className="flex w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1DC690] focus:border-transparent resize-none"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-300">
-                  Instagram Handle{' '}
-                  <span className="text-gray-500">(optional)</span>
-                </label>
-                <Input
-                  value={form.instagram_handle}
-                  onChange={(e) =>
-                    updateForm('instagram_handle', e.target.value)
-                  }
-                  placeholder="@yourgolfshop"
-                  className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
-                />
-              </div>
-
-              <div className="space-y-3">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={form.has_existing_store}
-                    onChange={(e) =>
-                      updateForm('has_existing_store', e.target.checked)
-                    }
-                    className="h-4 w-4 rounded border-gray-600 bg-gray-800 text-[#1DC690] focus:ring-[#1DC690]"
-                  />
-                  <span className="text-sm text-gray-300">
-                    I have an existing online store
-                  </span>
-                </label>
-
-                {form.has_existing_store && (
-                  <div className="space-y-2 ml-7">
-                    <label className="block text-sm font-medium text-gray-300">
-                      Existing Store URL
-                    </label>
-                    <Input
-                      type="url"
-                      value={form.existing_store_url}
-                      onChange={(e) =>
-                        updateForm('existing_store_url', e.target.value)
-                      }
-                      placeholder="https://www.yourexistingstore.com"
-                      className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
-                    />
-                  </div>
-                )}
-              </div>
-
-              <Button
-                type="submit"
-                variant="primary"
-                className="w-full"
-                disabled={submitting}
-              >
-                {submitting ? 'Submitting...' : 'Submit Application'}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+          {/* Submit */}
+          <button type="submit" disabled={submitting} className="w-full rounded-lg text-sm font-semibold text-white transition-colors hover:opacity-90 disabled:opacity-50" style={{ backgroundColor: '#1DC690', fontFamily: 'Montserrat, sans-serif', fontWeight: 600, height: '48px' }}>
+            {submitting ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                Submitting...
+              </span>
+            ) : 'Submit Application'}
+          </button>
+        </form>
       </div>
+
+      <p className="mt-6 text-sm text-[#6B6B6B]">Already a pro store? <a href="/login" className="text-[#1DC690] hover:underline">Sign in to your dashboard →</a></p>
     </div>
   );
 }

@@ -174,3 +174,16 @@ export type { AnalyticsRawData } from './endpoints/analytics';
 
 // Endpoints — Analytics
 export { fetchAnalyticsData } from './endpoints/analytics';
+
+// Types — Settings
+export type {
+  ProStoreSettings,
+  UpdateSettingsData,
+} from './types/settings';
+
+// Endpoints — Settings
+export {
+  getSettings,
+  updateSettings,
+  uploadAvatar,
+} from './endpoints/settings';
