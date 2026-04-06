@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 
 const CATEGORIES = [
   { label: 'All', slug: '' },
@@ -17,7 +17,6 @@ const CATEGORIES = [
 
 export function CategoryNav() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
 
   const activeSlug = pathname.startsWith('/category/')
     ? pathname.split('/category/')[1]?.split('/')[0] || ''
