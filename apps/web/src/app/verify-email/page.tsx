@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.mulligans.uk.com';
 
-export default function VerifyEmailPage() {
+function VerifyEmailPage() {
   const searchParams = useSearchParams();
   const email = searchParams.get('email') || '';
   const [resending, setResending] = useState(false);
@@ -64,5 +64,13 @@ export default function VerifyEmailPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function VerifyEmailPageWrapper() {
+  return (
+    <Suspense>
+      <VerifyEmailPage />
+    </Suspense>
   );
 }
