@@ -2,7 +2,6 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 
 // Condition badge colours — matches mobile app exactly
 const CONDITION_COLOURS: Record<number, { bg: string; label: string }> = {
@@ -60,14 +59,11 @@ export function ListingCard({ listing }: ListingCardProps) {
       {/* Image */}
       <div className="relative" style={{ aspectRatio: '3/4', backgroundColor: '#F4F4F0' }}>
         {image ? (
-          <Image
-            src={image}
-            alt={listing.title}
-            fill
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-            className="object-cover transition-transform duration-150 group-hover:scale-[1.02]"
-            quality={80}
-          />
+          <img
+  src={image}
+  alt={listing.title}
+  className="absolute inset-0 w-full h-full object-cover transition-transform duration-150 group-hover:scale-[1.02]"
+/>
         ) : (
           <div className="flex h-full w-full items-center justify-center text-4xl" style={{ color: '#ADADAD' }}>
             🏌️
