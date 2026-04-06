@@ -1,7 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
 import { ListingCard, type ListingCardData } from '@/components/ListingCard';
-import { CardSkeletonGrid } from '@/components/LoadingSkeleton';
 import { CategoryNav } from '@/components/CategoryNav';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.mulligans.uk.com';
@@ -49,7 +48,6 @@ export default async function HomePage() {
     <>
       <CategoryNav />
 
-      {/* Hero — shown for all visitors (auth check would need client component; keeping simple for SSR) */}
       <section
         className="relative overflow-hidden"
         style={{ background: 'linear-gradient(135deg, #1C4670 0%, #1DC690 100%)' }}
@@ -77,7 +75,7 @@ export default async function HomePage() {
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/search"
-                className="inline-flex items-center rounded-[10px] px-6 py-3 text-sm font-bold transition-colors hover:bg-[#1DC690] hover:text-white"
+                className="inline-flex items-center rounded-[10px] px-6 py-3 text-sm font-bold transition-colors hover:opacity-90"
                 style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, backgroundColor: '#FFFFFF', color: '#1DC690' }}
               >
                 Browse Listings
@@ -94,7 +92,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Trust Bar */}
       <section className="bg-white" style={{ borderBottom: '1px solid #E0E0D8' }}>
         <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-center gap-6 px-4 py-4 sm:gap-10 sm:px-6 lg:px-8">
           {[
@@ -112,7 +109,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Featured Listings */}
       <section className="mx-auto max-w-[1280px] px-4 py-10 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-6">
           <h2 style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '1.4rem', color: '#0D0D0D' }}>
@@ -142,7 +138,6 @@ export default async function HomePage() {
         )}
       </section>
 
-      {/* Shop by Category */}
       <section className="mx-auto max-w-[1280px] px-4 py-10 sm:px-6 lg:px-8">
         <h2 className="mb-6" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '1.4rem', color: '#0D0D0D' }}>
           Shop by Category
@@ -164,7 +159,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Recently Listed */}
       {recent.length > 0 && (
         <section className="mx-auto max-w-[1280px] px-4 py-10 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-6">
@@ -176,7 +170,7 @@ export default async function HomePage() {
               className="text-sm transition-colors hover:underline"
               style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, color: '#1DC690' }}
             >
-              View All →
+              View All
             </Link>
           </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 sm:gap-4">
@@ -187,7 +181,6 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* Chip AI Banner */}
       <section className="mx-auto max-w-[1280px] px-4 py-6 sm:px-6 lg:px-8">
         <div
           className="flex flex-col items-start justify-between gap-4 rounded-xl p-6 sm:flex-row sm:items-center"
@@ -197,19 +190,19 @@ export default async function HomePage() {
             <span style={{ color: '#1DC690', fontSize: '1.4rem' }}>✦</span>
             <div>
               <p className="text-white" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '1.1rem' }}>
-                Ask Chip — your free AI golf fitting advisor
+                Ask Chip - your free AI golf fitting advisor
               </p>
               <p className="text-white mt-1" style={{ fontFamily: 'var(--font-sans)', fontSize: '0.85rem', opacity: 0.85 }}>
                 Get personalised club recommendations based on your game.
               </p>
             </div>
           </div>
-          href="https://mulligans.uk.com/download"
-  className="inline-flex items-center rounded-[10px] px-5 py-2.5 text-sm font-bold transition-colors hover:opacity-90 flex-shrink-0"
-  style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, backgroundColor: '#FFFFFF', color: '#1C4670' }}
->
-  Try Chip →
-</a>
+          <span
+            className="inline-flex items-center rounded-[10px] px-5 py-2.5 text-sm font-bold transition-colors hover:opacity-90 flex-shrink-0 cursor-pointer"
+            style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, backgroundColor: '#FFFFFF', color: '#1C4670' }}
+          >
+            Try Chip
+          </span>
         </div>
       </section>
     </>
