@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 
-export function Navbar() {
+function NavbarContent() {
   const { user, isAuthenticated, isLoading, signOut } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [query, setQuery] = useState('');
@@ -229,5 +229,13 @@ export function Navbar() {
         </div>
       )}
     </>
+  );
+}
+
+export function Navbar() {
+  return (
+    <Suspense>
+      <NavbarContent />
+    </Suspense>
   );
 }
