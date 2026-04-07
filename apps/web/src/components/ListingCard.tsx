@@ -11,10 +11,10 @@ export interface ListingCardData {
   id: string;
   title: string;
   price: number | string;
-  category?: string | null;
-  subcategory?: string | null;
-  brand?: string | null;
-  model?: string | null;
+  category?: string;
+  subcategory?: string;
+  brand?: string;
+  model?: string;
   condition_overall?: number | null;
   status?: string;
   images?: { image_url: string; display_order?: number }[];
