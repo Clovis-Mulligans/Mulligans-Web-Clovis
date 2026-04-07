@@ -10,9 +10,12 @@ interface GalleryImage {
 interface ImageGalleryProps {
   images: GalleryImage[];
   title: string;
+  showFavourite?: boolean;
+  isFavourited?: boolean;
+  onFavouriteClick?: () => void;
 }
 
-export function ImageGallery({ images, title }: ImageGalleryProps) {
+export function ImageGallery({ images, title, showFavourite = false, isFavourited = false, onFavouriteClick }: ImageGalleryProps) {
   const sorted = [...images].sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -29,10 +32,22 @@ export function ImageGallery({ images, title }: ImageGalleryProps) {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
+  const favouriteButton = showFavourite && onFavouriteClick ? (
+    <button
+      onClick={(e) => { e.stopPropagation(); onFavouriteClick(); }}
+      className="absolute bottom-3 right-3 z-10 flex items-center justify-center rounded-full"
+      style={{ width: '40px', height: '40px', backgroundColor: 'rgba(0,0,0,0.45)' }}
+      aria-label={isFavourited ? 'Remove from favourites' : 'Add to favourites'}
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill={isFavourited ? '#1DC690' : 'none'} stroke={isFavourited ? '#1DC690' : '#FFFFFF'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+    </button>
+  ) : null;
+
   if (sorted.length === 0) {
     return (
-      <div className="flex items-center justify-center rounded-xl text-5xl" style={{ aspectRatio: '1/1', backgroundColor: '#F4F4F0', color: '#ADADAD' }}>
+      <div className="relative flex items-center justify-center rounded-xl text-5xl" style={{ aspectRatio: '4/3', backgroundColor: '#F4F4F0', color: '#ADADAD' }}>
         🏌️
+        {favouriteButton}
       </div>
     );
   }
@@ -41,9 +56,12 @@ export function ImageGallery({ images, title }: ImageGalleryProps) {
     <>
       {/* Desktop: main + thumbnails */}
       <div className="hidden lg:block">
-        <button onClick={() => setLightboxOpen(true)} className="w-full rounded-xl overflow-hidden cursor-zoom-in" style={{ aspectRatio: '1/1', backgroundColor: '#F4F4F0' }}>
-          <img src={sorted[activeIndex].image_url} alt={title} className="w-full h-full object-cover" />
-        </button>
+        <div className="relative">
+          <button onClick={() => setLightboxOpen(true)} className="w-full rounded-xl overflow-hidden cursor-zoom-in" style={{ aspectRatio: '4/3', backgroundColor: '#F4F4F0' }}>
+            <img src={sorted[activeIndex].image_url} alt={title} className="w-full h-full object-cover" />
+          </button>
+          {favouriteButton}
+        </div>
         {sorted.length > 1 && (
           <div className="mt-3 flex gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
             {sorted.slice(0, 6).map((img, i) => (
@@ -57,12 +75,15 @@ export function ImageGallery({ images, title }: ImageGalleryProps) {
 
       {/* Mobile: horizontal scroll */}
       <div className="lg:hidden">
-        <div className="flex overflow-x-auto snap-x snap-mandatory" style={{ scrollbarWidth: 'none' }}>
-          {sorted.map((img, i) => (
-            <div key={i} className="w-full flex-shrink-0 snap-center" style={{ aspectRatio: '1/1' }}>
-              <img src={img.image_url} alt={`${title} ${i + 1}`} className="w-full h-full object-cover" />
-            </div>
-          ))}
+        <div className="relative">
+          <div className="flex overflow-x-auto snap-x snap-mandatory" style={{ scrollbarWidth: 'none' }}>
+            {sorted.map((img, i) => (
+              <div key={i} className="w-full flex-shrink-0 snap-center" style={{ aspectRatio: '4/3' }}>
+                <img src={img.image_url} alt={`${title} ${i + 1}`} className="w-full h-full object-cover" />
+              </div>
+            ))}
+          </div>
+          {favouriteButton}
         </div>
         {sorted.length > 1 && (
           <div className="flex justify-center gap-1.5 mt-3">
