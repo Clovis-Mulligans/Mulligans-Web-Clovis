@@ -46,7 +46,8 @@ export function ListingCard({ listing }: ListingCardProps) {
   const isSold = listing.status === 'sold';
   const condition = listing.condition_overall ? CONDITION_COLOURS[listing.condition_overall] : null;
   const isVerified = listing.users?.is_verified_seller;
-  const price = Number(listing.price);
+  const rawPrice = Number(listing.price);
+const price = rawPrice * 1.075 + 0.99;
 
   const specParts: string[] = [];
   if (listing.brand) specParts.push(listing.brand);

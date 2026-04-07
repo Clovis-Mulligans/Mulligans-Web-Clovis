@@ -41,15 +41,16 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
   const [toast, setToast] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
 
-  const price = Number(listing.price);
-  const originalPrice = listing.original_price ? Number(listing.original_price) : null;
-  const isSold = listing.status === 'sold';
-  const isActive = listing.status === 'active';
-  const condition = listing.condition_overall ? CONDITION_COLOURS[listing.condition_overall] : null;
-  const seller = listing.seller || listing.users;
-  const sizeQuantities = listing.specifications?.sizeQuantities as Record<string, number> | undefined;
-  const hasSizes = sizeQuantities && Object.keys(sizeQuantities).length > 0;
-  const isOwnListing = user?.id === listing.seller_id;
+ const rawPrice = Number(listing.price);
+const originalPrice = listing.original_price ? Number(listing.original_price) : null;
+const isSold = listing.status === 'sold';
+const isActive = listing.status === 'active';
+const condition = listing.condition_overall ? CONDITION_COLOURS[listing.condition_overall] : null;
+const seller = listing.seller || listing.users;
+const sizeQuantities = listing.specifications?.sizeQuantities as Record<string, number> | undefined;
+const hasSizes = sizeQuantities && Object.keys(sizeQuantities).length > 0;
+const isOwnListing = user?.id === listing.seller_id;
+const price = isOwnListing ? rawPrice : rawPrice * 1.075 + 0.99;
 
   const breadcrumbs = [
     { label: listing.category, href: `/category/${(listing.category || '').toLowerCase().replace(/[^a-z]+/g, '-')}` },
