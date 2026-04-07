@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { addFavourite, removeFavourite, checkFavourite } from '@mulligans/api-client';
 import { CONDITION_COLOURS } from '@/lib/constants';
 
+// RC1: All optional fields include | null
 export interface ListingCardData {
   id: string;
   title: string;
@@ -22,6 +23,8 @@ export interface ListingCardData {
     id: string;
     display_name?: string | null;
     is_verified_seller?: boolean;
+    is_pro_store?: boolean;         // FIX 2: Step A
+    pro_store_name?: string | null; // FIX 2: Step A
   };
 }
 
@@ -33,14 +36,17 @@ export function ListingCard({ listing }: ListingCardProps) {
   const { isAuthenticated } = useAuth();
   const router = useRouter();
   const [isFavourited, setIsFavourited] = useState(false);
-  const mountedRef = useRef(true);
+  const mountedRef = useRef(true); // RC3: mountedRef present
 
   const image = listing.images?.sort((a, b) => (a.display_order || 0) - (b.display_order || 0))[0]?.image_url;
   const isSold = listing.status === 'sold';
   const condition = listing.condition_overall ? CONDITION_COLOURS[listing.condition_overall] : null;
   const isVerified = listing.users?.is_verified_seller;
+  const isProStore = listing.users?.is_pro_store ?? false; // FIX 2: Step B
+
+  // RC2: Buyer-inclusive pricing
   const rawPrice = Number(listing.price);
-const price = rawPrice * 1.075 + 0.99;
+  const price = rawPrice * 1.075 + 0.99;
 
   const specParts: string[] = [];
   if (listing.brand) specParts.push(listing.brand);
@@ -48,7 +54,7 @@ const price = rawPrice * 1.075 + 0.99;
   if (specParts.length === 0 && listing.subcategory) specParts.push(listing.subcategory);
   const specLine = specParts.join(' · ');
 
-  // Check favourite status on mount — fixed: never revert on non-auth errors
+  // RC3: Check favourite status on mount — cancelled flag present
   useEffect(() => {
     mountedRef.current = true;
     if (!isAuthenticated || !listing.id) return;
@@ -61,8 +67,7 @@ const price = rawPrice * 1.075 + 0.99;
           setIsFavourited(res.is_favourite);
         }
       } catch {
-        // Silently default to false on any error (404, network, etc.)
-        // Do NOT change isFavourited — leave it at its current state
+        // Silently default — do NOT change isFavourited
       }
     })();
 
@@ -79,7 +84,6 @@ const price = rawPrice * 1.075 + 0.99;
       return;
     }
 
-    // Optimistic update
     const wasFavourited = isFavourited;
     setIsFavourited(!wasFavourited);
 
@@ -90,7 +94,7 @@ const price = rawPrice * 1.075 + 0.99;
         await addFavourite(listing.id);
       }
     } catch (err: any) {
-      // Only revert on auth errors (401/403) — keep optimistic state for all other errors
+      // RC3: Only revert on 401/403
       if (err?.status === 401 || err?.status === 403) {
         setIsFavourited(wasFavourited);
       }
@@ -102,7 +106,13 @@ const price = rawPrice * 1.075 + 0.99;
     <Link
       href={`/listings/${listing.id}`}
       className="group block rounded-xl bg-white overflow-hidden transition-all duration-150 hover:-translate-y-0.5"
-      style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.08)', minWidth: '180px' }}
+      style={{
+        // FIX 2: Step C — gold border for pro store listings
+        boxShadow: isProStore
+          ? '0 0 0 2px #C9A84C, 0 2px 8px rgba(201,168,76,0.25)'
+          : '0 1px 4px rgba(0,0,0,0.08)',
+        minWidth: '180px',
+      }}
     >
       <div className="relative" style={{ aspectRatio: '3/4', backgroundColor: '#F4F4F0' }}>
         {image ? (
@@ -120,6 +130,13 @@ const price = rawPrice * 1.075 + 0.99;
         {isVerified && !isSold && (
           <div className="absolute top-2 left-2 flex items-center justify-center w-6 h-6 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.9)' }}>
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#1DC690" stroke="#1DC690" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+        )}
+
+        {/* FIX 2: Step D — Pro Store badge */}
+        {isProStore && !isSold && (
+          <div className="absolute top-2 right-2 flex items-center gap-1 rounded-full px-2 py-0.5" style={{ backgroundColor: '#C9A84C', fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '0.65rem', color: '#FFFFFF', letterSpacing: '0.5px' }}>
+            PRO
           </div>
         )}
 

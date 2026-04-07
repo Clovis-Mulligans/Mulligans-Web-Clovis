@@ -70,8 +70,9 @@ export function Navbar() {
         style={{ borderBottom: '1px solid #E0E0D8', boxShadow: scrolled ? '0 2px 12px rgba(0,0,0,0.1)' : 'none' }}
       >
         <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between px-4 sm:px-6 lg:px-8">
+          {/* FIX 1: Logo image replacing text span */}
           <Link href="/" className="flex-shrink-0" aria-label="Mulligans Home">
-            <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '1.4rem', color: '#1DC690', letterSpacing: '2px' }}>MULLIGANS</span>
+            <img src="https://mulligans-golf-images-mvp.s3.eu-west-2.amazonaws.com/email-assets/mulligans-logo.png" alt="Mulligans" style={{ height: '36px', width: 'auto' }} />
           </Link>
 
           <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-[560px] mx-8">
