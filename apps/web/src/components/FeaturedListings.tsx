@@ -32,7 +32,7 @@ export function FeaturedListings() {
       const proStoreListings = all.filter((l) => (l as any).users?.is_pro_store === true);
 
       // Shuffle and limit to 8
-      setListings(shuffleArray(proStoreListings).slice(0, 8));
+      setListings(shuffleArray(proStoreListings).slice(0, 15));
     } catch {
       setListings([]);
     } finally {

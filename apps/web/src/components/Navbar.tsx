@@ -72,7 +72,7 @@ export function Navbar() {
         <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between px-4 sm:px-6 lg:px-8">
           {/* FIX 1: Logo image replacing text span */}
           <Link href="/" className="flex-shrink-0" aria-label="Mulligans Home">
-            <img src="https://mulligans-golf-images-mvp.s3.eu-west-2.amazonaws.com/email-assets/mulligans-logo.png" alt="Mulligans" style={{ height: '36px', width: 'auto' }} />
+            <img src="https://mulligans-golf-images-mvp.s3.eu-west-2.amazonaws.com/email-assets/Asset+41x+transparent.png" alt="Mulligans" style={{ height: '36px', width: 'auto' }} />
           </Link>
 
           <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-[560px] mx-8">
