@@ -46,7 +46,7 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
   const isSold = listing.status === 'sold';
   const isActive = listing.status === 'active';
   const condition = listing.condition_overall ? CONDITION_COLOURS[listing.condition_overall] : null;
-  const seller = listing.users;
+  const seller = listing.seller || listing.users;
   const sizeQuantities = listing.specifications?.sizeQuantities as Record<string, number> | undefined;
   const hasSizes = sizeQuantities && Object.keys(sizeQuantities).length > 0;
   const isOwnListing = user?.id === listing.seller_id;
@@ -103,7 +103,8 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
           </div>
 
           {/* Right: Info + actions */}
-          <div className="lg:w-[45%] lg:sticky lg:top-[80px] lg:self-start lg:max-h-[calc(100vh-100px)] lg:overflow-y-auto">
+          <div className="lg:w-[45%] lg:sticky lg:top-[80px] lg:self-start lg:max-h-[calc(100vh-100px)] lg:overflow-y-auto rounded-xl bg-white p-6" style={{ border: '1px solid #E0E0D8' }}>
+            <h1 className="mb-4" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '1.4rem', color: '#0D0D0D', lineHeight: 1.3 }}>{listing.title}</h1>
             {/* Price block */}
             <div className="mb-4">
               <div className="flex items-baseline justify-between">

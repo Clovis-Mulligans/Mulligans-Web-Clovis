@@ -31,7 +31,7 @@ export function ImageGallery({ images, title }: ImageGalleryProps) {
 
   if (sorted.length === 0) {
     return (
-      <div className="flex items-center justify-center rounded-xl text-5xl" style={{ aspectRatio: '4/3', backgroundColor: '#F4F4F0', color: '#ADADAD' }}>
+      <div className="flex items-center justify-center rounded-xl text-5xl" style={{ aspectRatio: '1/1', backgroundColor: '#F4F4F0', color: '#ADADAD' }}>
         🏌️
       </div>
     );
@@ -41,7 +41,7 @@ export function ImageGallery({ images, title }: ImageGalleryProps) {
     <>
       {/* Desktop: main + thumbnails */}
       <div className="hidden lg:block">
-        <button onClick={() => setLightboxOpen(true)} className="w-full rounded-xl overflow-hidden cursor-zoom-in" style={{ aspectRatio: '4/3', backgroundColor: '#F4F4F0' }}>
+        <button onClick={() => setLightboxOpen(true)} className="w-full rounded-xl overflow-hidden cursor-zoom-in" style={{ aspectRatio: '1/1', backgroundColor: '#F4F4F0' }}>
           <img src={sorted[activeIndex].image_url} alt={title} className="w-full h-full object-cover" />
         </button>
         {sorted.length > 1 && (
@@ -59,7 +59,7 @@ export function ImageGallery({ images, title }: ImageGalleryProps) {
       <div className="lg:hidden">
         <div className="flex overflow-x-auto snap-x snap-mandatory" style={{ scrollbarWidth: 'none' }}>
           {sorted.map((img, i) => (
-            <div key={i} className="w-full flex-shrink-0 snap-center" style={{ aspectRatio: '4/3' }}>
+            <div key={i} className="w-full flex-shrink-0 snap-center" style={{ aspectRatio: '1/1' }}>
               <img src={img.image_url} alt={`${title} ${i + 1}`} className="w-full h-full object-cover" />
             </div>
           ))}
