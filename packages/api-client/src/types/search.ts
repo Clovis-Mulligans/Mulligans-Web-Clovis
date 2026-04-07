@@ -29,7 +29,11 @@ export interface SearchParams {
 
 export interface SearchResponse {
   listings: ListingWithSeller[];
-  pagination: {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  pagination?: {
     total: number;
     page: number;
     limit: number;
