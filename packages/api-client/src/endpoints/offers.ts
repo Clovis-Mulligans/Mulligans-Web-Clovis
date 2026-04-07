@@ -66,3 +66,14 @@ export function sendOfferToWatchers(
   // TODO: Backend endpoint needed — POST /api/offers/send-to-watchers or similar
   return Promise.reject(new Error('Send Offer to Watchers endpoint not yet implemented in backend'));
 }
+
+/** POST /api/offers — create a new offer on a listing */
+export function createOffer(data: { listing_id: string; offer_amount: number }) {
+  return apiClient.post<{ offer: ReceivedOffer }>('/api/offers', data);
+}
+
+/** GET /api/offers/:id — get single offer detail */
+export function getOffer(id: string) {
+  return apiClient.get<{ offer: ReceivedOffer }>(`/api/offers/${id}`);
+}
+

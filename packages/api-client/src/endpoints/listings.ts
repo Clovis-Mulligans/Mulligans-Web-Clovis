@@ -1,5 +1,6 @@
 import { apiClient } from '../client';
 import type { Listing, ListingWithImages, ListingStatus } from '../types/listing';
+import type { ListingWithSeller } from '../types/search';
 
 // --- Request/Response Types ---
 
@@ -187,3 +188,15 @@ export async function bulkDeleteListings(
     ids,
   });
 }
+
+/** GET /api/listings/seller/:sellerId — public seller listings */
+export function getSellerListings(
+  sellerId: string,
+  params?: { page?: number; limit?: number; category?: string }
+) {
+  return apiClient.get<{ listings: ListingWithSeller[]; total: number }>(
+    `/api/listings/seller/${sellerId}`,
+    { params: params as Record<string, string | number | boolean | undefined> }
+  );
+}
+

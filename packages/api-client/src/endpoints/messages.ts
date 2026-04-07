@@ -63,3 +63,8 @@ export function markAllRead() {
 export function getMessageCounts() {
   return apiClient.get<MessageCounts>('/api/messages/unread-count');
 }
+
+/** POST /api/messages/conversations — create or get existing conversation */
+export function createConversation(data: { listing_id: string; seller_id: string }) {
+  return apiClient.post<{ conversation: ConversationDetail }>('/api/messages/conversations', data);
+}

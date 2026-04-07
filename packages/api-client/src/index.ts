@@ -187,3 +187,98 @@ export {
   updateSettings,
   uploadAvatar,
 } from './endpoints/settings';
+
+// Types — Auth
+export type {
+  LoginData,
+  LoginResponse,
+  RegisterData,
+  RegisterResponse,
+  ForgotPasswordData,
+  ResetPasswordData,
+  VerifyEmailData,
+  ResendVerificationData,
+  ChangePasswordData,
+  AuthProfileResponse,
+} from './types/auth';
+
+// Endpoints — Auth
+export {
+  login,
+  register,
+  verifyEmail,
+  resendVerification,
+  forgotPassword,
+  resetPassword,
+  changePassword,
+  getAuthProfile,
+} from './endpoints/auth';
+
+// Types — Search
+export type {
+  ListingWithSeller,
+  SearchParams,
+  SearchResponse,
+  SearchSuggestion,
+  SearchSuggestionsResponse,
+} from './types/search';
+
+// Endpoints — Search
+export {
+  searchListings,
+  getSearchSuggestions,
+  getFeaturedListings,
+} from './endpoints/search';
+
+// Types — Public User
+export type {
+  PublicProfile,
+  PublicProfileResponse,
+} from './types/userPublic';
+
+// Endpoints — Users
+export {
+  getPublicProfile,
+  updateMyProfile,
+} from './endpoints/users';
+
+// Types — Cart
+export type {
+  CartItem,
+  CartResponse,
+  AddToCartData,
+} from './types/cart';
+
+// Endpoints — Cart
+export {
+  getCart,
+  getCartCount,
+  addToCart,
+  removeFromCart,
+  updateCartQuantity,
+  clearCart,
+} from './endpoints/cart';
+
+// Types — Favourite
+export type {
+  Favourite,
+  FavouritesResponse,
+  FavouriteCheckResponse,
+} from './types/favourite';
+
+// Endpoints — Favourites
+export {
+  getFavourites,
+  addFavourite,
+  removeFavourite,
+  checkFavourite,
+} from './endpoints/favourites';
+
+// Endpoints — Offers (additions)
+export { createOffer, getOffer } from './endpoints/offers';
+
+// Endpoints — Messages (additions)
+export { createConversation } from './endpoints/messages';
+
+// Endpoints — Listings (additions)
+export { getSellerListings } from './endpoints/listings';
