@@ -23,6 +23,10 @@ export const metadata: Metadata = {
     type: 'website',
     url: 'https://mulligans.uk.com',
   },
+  icons: {
+    icon: 'https://mulligans-golf-images-mvp.s3.eu-west-2.amazonaws.com/email-assets/Asset+21x+transparent.png',
+    apple: 'https://mulligans-golf-images-mvp.s3.eu-west-2.amazonaws.com/email-assets/Asset+21x+transparent.png',
+  },
 };
 
 export default function RootLayout({
