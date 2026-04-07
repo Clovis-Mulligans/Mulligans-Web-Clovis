@@ -36,61 +36,60 @@ export default async function HomePage() {
     <>
       <CategoryNav />
 
-      {/* Hero — Depop-style two column */}
+      {/* Hero */}
       <section className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1C4670 0%, #1DC690 100%)' }}>
-        <div className="mx-auto max-w-[1280px] px-4 py-10 sm:px-6 sm:py-14 lg:px-8 lg:py-16">
-          <div className="flex flex-col lg:flex-row items-center gap-10">
+        <div className="mx-auto max-w-[1280px] px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
+          <div className="flex flex-col lg:flex-row items-center gap-8">
 
             {/* Left: text + stats */}
             <div className="flex-1 max-w-lg">
-              <p className="text-white uppercase" style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '0.85rem', letterSpacing: '0.1em', opacity: 0.9 }}>
+              <p className="text-white uppercase" style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '0.8rem', letterSpacing: '0.12em', opacity: 0.85 }}>
                 The UK&apos;s Golf Marketplace
               </p>
-              <h1 className="mt-3 text-white" style={{ fontFamily: 'var(--font-sans)', fontWeight: 800, fontSize: 'clamp(2rem, 5vw, 2.8rem)', lineHeight: 1.2 }}>
-                Buy Smart. Sell Easy. Play Better.
+              <h1 className="mt-2 text-white" style={{ fontFamily: 'var(--font-sans)', fontWeight: 800, fontSize: 'clamp(1.8rem, 4vw, 2.6rem)', lineHeight: 1.15 }}>
+                Buy Smart. Sell Easy.<br />Play Better.
               </h1>
-              <p className="mt-4 text-white" style={{ fontFamily: 'var(--font-sans)', fontSize: '0.95rem', opacity: 0.85, lineHeight: 1.6 }}>
+              <p className="mt-3 text-white" style={{ fontFamily: 'var(--font-sans)', fontSize: '0.9rem', opacity: 0.8, lineHeight: 1.6 }}>
                 Find golf clubs, clothing, and accessories from verified sellers across the UK. Every purchase protected.
               </p>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Link href="/search" className="inline-flex items-center rounded-[10px] px-6 py-3 text-sm font-bold transition-colors hover:opacity-90" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, backgroundColor: '#FFFFFF', color: '#1DC690' }}>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link href="/search" className="inline-flex items-center rounded-[10px] px-5 py-2.5 text-sm font-bold transition-colors hover:opacity-90" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, backgroundColor: '#FFFFFF', color: '#1DC690' }}>
                   Browse Listings
                 </Link>
-                <Link href="/signup" className="inline-flex items-center rounded-[10px] px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-white/10" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, border: '1.5px solid rgba(255,255,255,0.6)' }}>
+                <Link href="/signup" className="inline-flex items-center rounded-[10px] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-white/10" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, border: '1.5px solid rgba(255,255,255,0.5)' }}>
                   Start Selling
                 </Link>
               </div>
 
               {/* Stat boxes */}
-              <div className="mt-10 grid grid-cols-2 gap-3">
+              <div className="mt-6 grid grid-cols-2 gap-2">
                 {[
-                  { icon: '🛡', title: 'Buy Safely', sub: 'Buyer Protection Pro' },
-                  { icon: '✓', title: 'Verified Sellers', sub: 'Every seller checked' },
-                  { icon: '📦', title: 'Insured Shipping', sub: 'On all orders' },
-                  { icon: '£', title: 'Zero Seller Fees', sub: 'Free to list & sell' },
+                  { title: 'Buy Safely', sub: 'Buyer Protection Pro' },
+                  { title: 'Verified Sellers', sub: 'Every seller checked' },
+                  { title: 'Insured Shipping', sub: 'On all orders' },
+                  { title: 'Zero Seller Fees', sub: 'Free to list & sell' },
                 ].map((stat) => (
-                  <div key={stat.title} className="rounded-xl p-4" style={{ backgroundColor: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)' }}>
-                    <span style={{ fontSize: '1.2rem' }}>{stat.icon}</span>
-                    <p className="mt-1 text-white" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '0.88rem' }}>{stat.title}</p>
-                    <p className="text-white" style={{ fontFamily: 'var(--font-sans)', fontWeight: 400, fontSize: '0.78rem', opacity: 0.8 }}>{stat.sub}</p>
+                  <div key={stat.title} className="rounded-lg px-3 py-2.5" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
+                    <p className="text-white" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '0.82rem' }}>{stat.title}</p>
+                    <p className="text-white" style={{ fontFamily: 'var(--font-sans)', fontWeight: 400, fontSize: '0.72rem', opacity: 0.75 }}>{stat.sub}</p>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Right: stacked rotated images */}
-            <div className="relative flex-shrink-0 w-[340px] h-[280px] hidden lg:block">
-              {/* Back left — club-specs */}
-              <div className="absolute" style={{ left: '0px', top: '20px', transform: 'rotate(-8deg)', zIndex: 1 }}>
-                <img src="/onboarding/club-specs.png" alt="Club specs" className="rounded-2xl shadow-2xl" style={{ width: '180px', height: '180px', objectFit: 'cover', backgroundColor: 'rgba(255,255,255,0.15)' }} />
+            {/* Right: stacked images */}
+            <div className="relative hidden lg:flex items-center justify-center flex-shrink-0" style={{ width: '420px', height: '260px' }}>
+              {/* Left image — club-specs */}
+              <div className="absolute rounded-2xl overflow-hidden shadow-2xl" style={{ left: '20px', top: '30px', width: '160px', height: '160px', transform: 'rotate(-6deg)', zIndex: 1, backgroundColor: '#FFFFFF' }}>
+                <img src="/onboarding/club-specs.png" alt="Club specs" className="w-full h-full" style={{ objectFit: 'contain', padding: '12px' }} />
               </div>
-              {/* Front centre — protection-pro */}
-              <div className="absolute" style={{ left: '80px', top: '0px', transform: 'rotate(0deg)', zIndex: 3 }}>
-                <img src="/onboarding/protection-pro.png" alt="Buyer Protection" className="rounded-2xl shadow-2xl" style={{ width: '200px', height: '200px', objectFit: 'cover', backgroundColor: 'rgba(255,255,255,0.15)' }} />
+              {/* Centre image — protection-pro (front) */}
+              <div className="absolute rounded-2xl overflow-hidden shadow-2xl" style={{ left: '130px', top: '10px', width: '180px', height: '180px', transform: 'rotate(0deg)', zIndex: 3, backgroundColor: '#FFFFFF' }}>
+                <img src="/onboarding/protection-pro.png" alt="Buyer Protection" className="w-full h-full" style={{ objectFit: 'contain', padding: '12px' }} />
               </div>
-              {/* Back right — marketplace */}
-              <div className="absolute" style={{ left: '160px', top: '25px', transform: 'rotate(7deg)', zIndex: 2 }}>
-                <img src="/onboarding/marketplace.png" alt="Marketplace" className="rounded-2xl shadow-2xl" style={{ width: '180px', height: '180px', objectFit: 'cover', backgroundColor: 'rgba(255,255,255,0.15)' }} />
+              {/* Right image — marketplace */}
+              <div className="absolute rounded-2xl overflow-hidden shadow-2xl" style={{ left: '250px', top: '35px', width: '160px', height: '160px', transform: 'rotate(5deg)', zIndex: 2, backgroundColor: '#FFFFFF' }}>
+                <img src="/onboarding/marketplace.png" alt="Marketplace" className="w-full h-full" style={{ objectFit: 'contain', padding: '12px' }} />
               </div>
             </div>
 
