@@ -18,13 +18,14 @@ export interface ListingCardData {
   model?: string | null;
   condition_overall?: number | null;
   status?: string;
-  images?: { image_url: string; display_order?: number }[];
+  // FIX 2: Added id? to image interface for sort tiebreaker
+  images?: { id?: string; image_url: string; display_order?: number }[];
   users?: {
     id: string;
     display_name?: string | null;
     is_verified_seller?: boolean;
-    is_pro_store?: boolean;         // FIX 2: Step A
-    pro_store_name?: string | null; // FIX 2: Step A
+    is_pro_store?: boolean;
+    pro_store_name?: string | null;
   };
 }
 
@@ -38,11 +39,15 @@ export function ListingCard({ listing }: ListingCardProps) {
   const [isFavourited, setIsFavourited] = useState(false);
   const mountedRef = useRef(true); // RC3: mountedRef present
 
-  const image = listing.images?.sort((a, b) => (a.display_order || 0) - (b.display_order || 0))[0]?.image_url;
+  // FIX 2: Image sort with id tiebreaker for deterministic ordering
+  const image = listing.images?.sort((a, b) =>
+    (a.display_order || 0) - (b.display_order || 0) ||
+    (a.id || '').localeCompare(b.id || '')
+  )[0]?.image_url;
   const isSold = listing.status === 'sold';
   const condition = listing.condition_overall ? CONDITION_COLOURS[listing.condition_overall] : null;
   const isVerified = listing.users?.is_verified_seller;
-  const isProStore = listing.users?.is_pro_store ?? false; // FIX 2: Step B
+  const isProStore = listing.users?.is_pro_store ?? false;
 
   // RC2: Buyer-inclusive pricing
   const rawPrice = Number(listing.price);
@@ -107,7 +112,6 @@ export function ListingCard({ listing }: ListingCardProps) {
       href={`/listings/${listing.id}`}
       className="group block rounded-xl bg-white overflow-hidden transition-all duration-150 hover:-translate-y-0.5"
       style={{
-        // FIX 2: Step C — gold border for pro store listings
         boxShadow: isProStore
           ? '0 0 0 2px #C9A84C, 0 2px 8px rgba(201,168,76,0.25)'
           : '0 1px 4px rgba(0,0,0,0.08)',
@@ -133,7 +137,6 @@ export function ListingCard({ listing }: ListingCardProps) {
           </div>
         )}
 
-        {/* FIX 2: Step D — Pro Store badge */}
         {isProStore && !isSold && (
           <div className="absolute top-2 right-2 flex items-center gap-1 rounded-full px-2 py-0.5" style={{ backgroundColor: '#C9A84C', fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '0.65rem', color: '#FFFFFF', letterSpacing: '0.5px' }}>
             PRO

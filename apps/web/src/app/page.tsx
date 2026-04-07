@@ -38,7 +38,7 @@ export default async function HomePage() {
 
       {/* Hero */}
       <section className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1C4670 0%, #1DC690 100%)' }}>
-        <div className="mx-auto max-w-[1280px] px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
+        <div className="mx-auto max-w-[1280px] px-4 py-10 sm:px-6 sm:py-14 lg:px-8 lg:py-18">
           <div className="max-w-xl">
             <p className="text-white uppercase" style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '0.85rem', letterSpacing: '0.1em', opacity: 0.9 }}>
               The UK&apos;s Golf Marketplace
