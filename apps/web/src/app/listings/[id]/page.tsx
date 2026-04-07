@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   const listing = await fetchListing(params.id);
   if (!listing) return { title: 'Listing Not Found | Mulligans' };
 
-  const price = Number(listing.price);
+  const price = Number(listing.price); // raw price for meta tags
   const description = listing.description?.slice(0, 160) || `${listing.title} on Mulligans`;
   const image = listing.images?.[0]?.image_url;
 

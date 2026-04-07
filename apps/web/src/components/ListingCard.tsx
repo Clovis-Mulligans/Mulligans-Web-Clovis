@@ -1,28 +1,20 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import { addFavourite, removeFavourite, checkFavourite, ApiError } from '@mulligans/api-client';
-
-// Condition badge colours — matches mobile app exactly
-const CONDITION_COLOURS: Record<number, { bg: string; label: string }> = {
-  5: { bg: '#10B981', label: 'New' },
-  4: { bg: '#8B5CF6', label: 'Excellent' },
-  3: { bg: '#3B82F6', label: 'Very Good' },
-  2: { bg: '#F59E0B', label: 'Good' },
-  1: { bg: '#EF4444', label: 'Poor' },
-};
+import { addFavourite, removeFavourite, checkFavourite } from '@mulligans/api-client';
+import { CONDITION_COLOURS } from '@/lib/constants';
 
 export interface ListingCardData {
   id: string;
   title: string;
   price: number | string;
-  category?: string | null;
-subcategory?: string | null;
-brand?: string | null;
-model?: string | null;
+  category?: string;
+  subcategory?: string;
+  brand?: string;
+  model?: string;
   condition_overall?: number | null;
   status?: string;
   images?: { image_url: string; display_order?: number }[];
@@ -41,6 +33,7 @@ export function ListingCard({ listing }: ListingCardProps) {
   const { isAuthenticated } = useAuth();
   const router = useRouter();
   const [isFavourited, setIsFavourited] = useState(false);
+  const mountedRef = useRef(true);
 
   const image = listing.images?.sort((a, b) => (a.display_order || 0) - (b.display_order || 0))[0]?.image_url;
   const isSold = listing.status === 'sold';
@@ -55,12 +48,25 @@ const price = rawPrice * 1.075 + 0.99;
   if (specParts.length === 0 && listing.subcategory) specParts.push(listing.subcategory);
   const specLine = specParts.join(' · ');
 
-  // Check favourite status on mount
+  // Check favourite status on mount — fixed: never revert on non-auth errors
   useEffect(() => {
+    mountedRef.current = true;
     if (!isAuthenticated || !listing.id) return;
-    checkFavourite(listing.id)
-      .then((res) => setIsFavourited(res.is_favourite))
-      .catch(() => {});
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await checkFavourite(listing.id);
+        if (!cancelled && mountedRef.current) {
+          setIsFavourited(res.is_favourite);
+        }
+      } catch {
+        // Silently default to false on any error (404, network, etc.)
+        // Do NOT change isFavourited — leave it at its current state
+      }
+    })();
+
+    return () => { cancelled = true; mountedRef.current = false; };
   }, [isAuthenticated, listing.id]);
 
   const handleFavouriteClick = async (e: React.MouseEvent) => {
@@ -68,7 +74,8 @@ const price = rawPrice * 1.075 + 0.99;
     e.stopPropagation();
 
     if (!isAuthenticated) {
-      router.push(`/login?redirect=/listings/${listing.id}`);
+      const redirect = `/listings/${listing.id}`;
+      router.push(`/login?redirect=${redirect}`);
       return;
     }
 
@@ -82,9 +89,11 @@ const price = rawPrice * 1.075 + 0.99;
       } else {
         await addFavourite(listing.id);
       }
-    } catch (err) {
-      // Revert on error
-      setIsFavourited(wasFavourited);
+    } catch (err: any) {
+      // Only revert on auth errors (401/403) — keep optimistic state for all other errors
+      if (err?.status === 401 || err?.status === 403) {
+        setIsFavourited(wasFavourited);
+      }
       console.error('Favourite toggle failed:', err);
     }
   };
