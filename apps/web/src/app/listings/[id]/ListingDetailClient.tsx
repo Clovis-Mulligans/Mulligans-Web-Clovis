@@ -243,7 +243,7 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
                 listing.brand ? ['Brand', listing.brand] : null,
                 listing.model ? ['Model', listing.model] : null,
                 ...specs.map(([k, v]) => [k.replace(/([A-Z])/g, ' $1').replace(/^./, (s: string) => s.toUpperCase()), String(v)]),
-              ].filter(Boolean).map(([label, value], i) => (
+              ].filter((item): item is [string, string] => Array.isArray(item) && item.length === 2).map(([label, value], i) => (
                 <div key={i} className="flex justify-between px-4 py-3 text-sm" style={{ borderBottom: '1px solid #E0E0D8', fontFamily: 'var(--font-sans)' }}>
                   <span style={{ color: '#6B6B6B' }}>{label}</span>
                   <span className="font-semibold" style={{ color: '#0D0D0D' }}>{value}</span>
