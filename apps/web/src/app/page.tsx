@@ -36,32 +36,69 @@ export default async function HomePage() {
     <>
       <CategoryNav />
 
-      {/* Hero */}
+      {/* Hero — Depop-style two column */}
       <section className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1C4670 0%, #1DC690 100%)' }}>
-        <div className="mx-auto max-w-[1280px] px-4 py-10 sm:px-6 sm:py-14 lg:px-8 lg:py-18">
-          <div className="max-w-xl">
-            <p className="text-white uppercase" style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '0.85rem', letterSpacing: '0.1em', opacity: 0.9 }}>
-              The UK&apos;s Golf Marketplace
-            </p>
-            <h1 className="mt-3 text-white" style={{ fontFamily: 'var(--font-sans)', fontWeight: 800, fontSize: 'clamp(2rem, 5vw, 2.8rem)', lineHeight: 1.2 }}>
-              Buy Smart. Sell Easy. Play Better.
-            </h1>
-            <p className="mt-4 text-white" style={{ fontFamily: 'var(--font-sans)', fontSize: '0.95rem', opacity: 0.85, lineHeight: 1.6 }}>
-              Find golf clubs, clothing, and accessories from verified sellers across the UK. Every purchase protected.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/search" className="inline-flex items-center rounded-[10px] px-6 py-3 text-sm font-bold transition-colors hover:bg-[#1DC690] hover:text-white" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, backgroundColor: '#FFFFFF', color: '#1DC690' }}>
-                Browse Listings
-              </Link>
-              <Link href="/signup" className="inline-flex items-center rounded-[10px] px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-white/10" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, border: '1.5px solid rgba(255,255,255,0.6)' }}>
-                Start Selling
-              </Link>
+        <div className="mx-auto max-w-[1280px] px-4 py-10 sm:px-6 sm:py-14 lg:px-8 lg:py-16">
+          <div className="flex flex-col lg:flex-row items-center gap-10">
+
+            {/* Left: text + stats */}
+            <div className="flex-1 max-w-lg">
+              <p className="text-white uppercase" style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '0.85rem', letterSpacing: '0.1em', opacity: 0.9 }}>
+                The UK&apos;s Golf Marketplace
+              </p>
+              <h1 className="mt-3 text-white" style={{ fontFamily: 'var(--font-sans)', fontWeight: 800, fontSize: 'clamp(2rem, 5vw, 2.8rem)', lineHeight: 1.2 }}>
+                Buy Smart. Sell Easy. Play Better.
+              </h1>
+              <p className="mt-4 text-white" style={{ fontFamily: 'var(--font-sans)', fontSize: '0.95rem', opacity: 0.85, lineHeight: 1.6 }}>
+                Find golf clubs, clothing, and accessories from verified sellers across the UK. Every purchase protected.
+              </p>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link href="/search" className="inline-flex items-center rounded-[10px] px-6 py-3 text-sm font-bold transition-colors hover:opacity-90" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, backgroundColor: '#FFFFFF', color: '#1DC690' }}>
+                  Browse Listings
+                </Link>
+                <Link href="/signup" className="inline-flex items-center rounded-[10px] px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-white/10" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, border: '1.5px solid rgba(255,255,255,0.6)' }}>
+                  Start Selling
+                </Link>
+              </div>
+
+              {/* Stat boxes */}
+              <div className="mt-10 grid grid-cols-2 gap-3">
+                {[
+                  { icon: '🛡', title: 'Buy Safely', sub: 'Buyer Protection Pro' },
+                  { icon: '✓', title: 'Verified Sellers', sub: 'Every seller checked' },
+                  { icon: '📦', title: 'Insured Shipping', sub: 'On all orders' },
+                  { icon: '£', title: 'Zero Seller Fees', sub: 'Free to list & sell' },
+                ].map((stat) => (
+                  <div key={stat.title} className="rounded-xl p-4" style={{ backgroundColor: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)' }}>
+                    <span style={{ fontSize: '1.2rem' }}>{stat.icon}</span>
+                    <p className="mt-1 text-white" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '0.88rem' }}>{stat.title}</p>
+                    <p className="text-white" style={{ fontFamily: 'var(--font-sans)', fontWeight: 400, fontSize: '0.78rem', opacity: 0.8 }}>{stat.sub}</p>
+                  </div>
+                ))}
+              </div>
             </div>
+
+            {/* Right: stacked rotated images */}
+            <div className="relative flex-shrink-0 w-[340px] h-[280px] hidden lg:block">
+              {/* Back left — club-specs */}
+              <div className="absolute" style={{ left: '0px', top: '20px', transform: 'rotate(-8deg)', zIndex: 1 }}>
+                <img src="/onboarding/club-specs.png" alt="Club specs" className="rounded-2xl shadow-2xl" style={{ width: '180px', height: '180px', objectFit: 'cover', backgroundColor: 'rgba(255,255,255,0.15)' }} />
+              </div>
+              {/* Front centre — protection-pro */}
+              <div className="absolute" style={{ left: '80px', top: '0px', transform: 'rotate(0deg)', zIndex: 3 }}>
+                <img src="/onboarding/protection-pro.png" alt="Buyer Protection" className="rounded-2xl shadow-2xl" style={{ width: '200px', height: '200px', objectFit: 'cover', backgroundColor: 'rgba(255,255,255,0.15)' }} />
+              </div>
+              {/* Back right — marketplace */}
+              <div className="absolute" style={{ left: '160px', top: '25px', transform: 'rotate(7deg)', zIndex: 2 }}>
+                <img src="/onboarding/marketplace.png" alt="Marketplace" className="rounded-2xl shadow-2xl" style={{ width: '180px', height: '180px', objectFit: 'cover', backgroundColor: 'rgba(255,255,255,0.15)' }} />
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
 
-      {/* Trust Bar with SVG icons */}
+      {/* Trust Bar */}
       <section className="bg-white" style={{ borderBottom: '1px solid #E0E0D8' }}>
         <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-center gap-6 px-4 py-4 sm:gap-10 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2">
