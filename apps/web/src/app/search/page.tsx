@@ -9,6 +9,7 @@ import { CardSkeletonGrid } from '@/components/LoadingSkeleton';
 import { Breadcrumb } from '@/components/Breadcrumb';
 import { FilterSidebar } from '@/components/FilterSidebar';
 import { CategoryNav } from '@/components/CategoryNav';
+import { CATEGORY_SLUG_TO_DB } from '@/lib/constants'; // FIX 2
 
 function SearchContent() {
   const searchParams = useSearchParams();
@@ -40,9 +41,15 @@ function SearchContent() {
 
     try {
       const filterParams = getFilterParams();
+
+      // FIX 2: Convert category slug to exact DB name
+      const rawCategory = filterParams.category;
+      const dbCategory = rawCategory ? (CATEGORY_SLUG_TO_DB[rawCategory] || rawCategory) : undefined;
+
       const res = await searchListings({
         query: query || undefined,
         ...filterParams,
+        category: dbCategory, // Use DB name, not slug
         minPrice: filterParams.minPrice ? Number(filterParams.minPrice) : undefined,
         maxPrice: filterParams.maxPrice ? Number(filterParams.maxPrice) : undefined,
         condition: filterParams.condition ? Number(filterParams.condition) : undefined,
@@ -51,8 +58,10 @@ function SearchContent() {
       });
       const newListings = res.listings || [];
       setListings(append ? (prev) => [...prev, ...newListings] : newListings);
-      setTotal(res.total || 0);
-setHasMore(pageNum < (res.totalPages || 0));
+
+      // FIX 3: Handle both response shapes safely
+      setTotal(res.pagination?.total || (res as any).total || 0);
+      setHasMore(pageNum < (res.pagination?.pages || (res as any).totalPages || 0));
     } catch (err) {
       console.error('Search error:', err);
     } finally {

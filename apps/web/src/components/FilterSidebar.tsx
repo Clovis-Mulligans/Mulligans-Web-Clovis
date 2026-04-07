@@ -1,8 +1,20 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
+import { CATEGORY_SLUG_TO_DB } from '@/lib/constants';
 
-const CATEGORIES = ['Clubs', 'Clothing', 'Shoes', 'Accessories', 'Balls', 'Training Aids', 'Shafts & Grips'];
+// FIX 4: Category pills — display labels mapped to exact DB names
+const CATEGORY_FILTERS = [
+  { display: 'Clubs', db: 'Clubs' },
+  { display: 'Clothing', db: 'Clothing' },
+  { display: 'Shoes', db: 'Shoes' },
+  { display: 'Accessories', db: 'Accessories' },
+  { display: 'Balls', db: 'Balls' },
+  { display: 'Training Aids', db: 'Training Aids' },
+  { display: 'Shafts & Grips', db: 'Shafts, Grips & Heads' },
+  { display: 'Everything Else', db: 'Everything Else' },
+];
+
 const CONDITION_OPTIONS = [
   { value: 1, label: 'Poor', bg: '#EF4444' },
   { value: 2, label: 'Good', bg: '#F59E0B' },
@@ -10,10 +22,27 @@ const CONDITION_OPTIONS = [
   { value: 4, label: 'Excellent', bg: '#8B5CF6' },
   { value: 5, label: 'New', bg: '#10B981' },
 ];
+
 const SHAFT_FLEX = ['Regular', 'Stiff', 'X-Stiff', 'Senior', 'Lady'];
 const DEXTERITY = ['Right-handed', 'Left-handed'];
-const CLUB_SUBS = ['Drivers', 'Fairway Woods', 'Hybrids', 'Irons', 'Wedges', 'Putters'];
+
+// FIX 4: Complete subcategory lists from mobile app (categories.ts)
+const CLUB_SUBS = ['Drivers', 'Fairway Woods', 'Hybrids', 'Irons', 'Wedges', 'Putters', 'Chippers', 'Complete Sets', 'Other'];
+
+const CLOTHING_SUBS = ['Jackets', 'Polo Shirts', 'Trousers', 'Shorts', 'Hoodies', 'Knitwear', 'Gilets', 'Mid-Layers', 'Waterproofs', 'Hats & Caps', 'Sunglasses', 'Gloves', 'Other'];
+
+const SHOES_SUBS = ['Golf Shoes', 'Other'];
+
+const ACCESSORIES_SUBS = ['Bags', 'Headcovers', 'Tees', 'Rangefinders', 'Launch Monitors', 'GPS Devices', 'Towels', 'Golf Trolleys', 'Other'];
+
+const BALLS_SUBS = ['New', 'Used/Lake', 'Other'];
+
+const TRAINING_AIDS_SUBS = ['Swing Trainer', 'Putting Aid', 'Net', 'Mat', 'GPS Watch', 'Other'];
+
+const SHAFTS_SUBS = ['Shafts', 'Grips', 'Heads', 'Other'];
+
 const CLOTHING_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+const SHOE_SIZES = ['6', '6.5', '7', '7.5', '8', '8.5', '9', '9.5', '10', '10.5', '11', '11.5', '12', '13'];
 const GENDER = ['Men', 'Women', 'Unisex'];
 
 interface FilterSidebarProps {
@@ -31,16 +60,31 @@ function Pill({ label, active, onClick }: { label: string; active: boolean; onCl
   );
 }
 
+function getSubcategoriesForCategory(category: string | undefined): string[] {
+  if (!category) return [];
+  switch (category) {
+    case 'Clubs': return CLUB_SUBS;
+    case 'Clothing': return CLOTHING_SUBS;
+    case 'Shoes': return SHOES_SUBS;
+    case 'Accessories': return ACCESSORIES_SUBS;
+    case 'Balls': return BALLS_SUBS;
+    case 'Training Aids': return TRAINING_AIDS_SUBS;
+    case 'Shafts, Grips & Heads': return SHAFTS_SUBS;
+    default: return [];
+  }
+}
+
 export function FilterSidebar({ params, onFilterChange, onClearAll, showCategoryFilter = true }: FilterSidebarProps) {
   const category = params.category;
-  const isClubs = category === 'Clubs' || category === 'clubs';
-  const isShafts = category === 'Shafts & Grips' || category === 'shafts-grips';
-  const isClothing = category === 'Clothing' || category === 'clothing';
-  const isShoes = category === 'Shoes' || category === 'shoes';
+  const isClubs = category === 'Clubs';
+  const isShafts = category === 'Shafts, Grips & Heads';
+  const isClothing = category === 'Clothing';
+  const isShoes = category === 'Shoes';
   const showClubFilters = isClubs || isShafts;
   const showSizeFilters = isClothing || isShoes;
 
-  const hasAnyFilter = Object.values(params).some((v) => v !== undefined);
+  const subcategories = getSubcategoriesForCategory(category);
+  const hasAnyFilter = Object.entries(params).some(([k, v]) => v !== undefined && k !== 'category');
 
   return (
     <aside className="space-y-5">
@@ -52,14 +96,24 @@ export function FilterSidebar({ params, onFilterChange, onClearAll, showCategory
         )}
       </div>
 
-      {/* Category */}
+      {/* Category — FIX 4: display labels, pass DB names */}
       {showCategoryFilter && (
         <div>
           <label className="block mb-2" style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '0.85rem', color: '#0D0D0D' }}>Category</label>
           <div className="flex flex-wrap gap-1.5">
-            {CATEGORIES.map((c) => (
-              <Pill key={c} label={c} active={params.category === c} onClick={() => onFilterChange('category', params.category === c ? undefined : c)} />
+            {CATEGORY_FILTERS.map((c) => (
+              <Pill key={c.db} label={c.display} active={params.category === c.db} onClick={() => onFilterChange('category', params.category === c.db ? undefined : c.db)} />
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Subcategory — shown when a category is selected and has subcategories */}
+      {subcategories.length > 0 && (
+        <div>
+          <label className="block mb-2" style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '0.85rem', color: '#0D0D0D' }}>Subcategory</label>
+          <div className="flex flex-wrap gap-1.5">
+            {subcategories.map((s) => <Pill key={s} label={s} active={params.subcategory === s} onClick={() => onFilterChange('subcategory', params.subcategory === s ? undefined : s)} />)}
           </div>
         </div>
       )}
@@ -113,14 +167,6 @@ export function FilterSidebar({ params, onFilterChange, onClearAll, showCategory
               {DEXTERITY.map((d) => <Pill key={d} label={d} active={params.dexterity === d} onClick={() => onFilterChange('dexterity', params.dexterity === d ? undefined : d)} />)}
             </div>
           </div>
-          {isClubs && (
-            <div>
-              <label className="block mb-2" style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '0.85rem', color: '#0D0D0D' }}>Subcategory</label>
-              <div className="flex flex-wrap gap-1.5">
-                {CLUB_SUBS.map((s) => <Pill key={s} label={s} active={params.subcategory === s} onClick={() => onFilterChange('subcategory', params.subcategory === s ? undefined : s)} />)}
-              </div>
-            </div>
-          )}
         </>
       )}
 
@@ -130,7 +176,7 @@ export function FilterSidebar({ params, onFilterChange, onClearAll, showCategory
           <div>
             <label className="block mb-2" style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '0.85rem', color: '#0D0D0D' }}>Size</label>
             <div className="flex flex-wrap gap-1.5">
-              {CLOTHING_SIZES.map((s) => <Pill key={s} label={s} active={params.size === s} onClick={() => onFilterChange('size', params.size === s ? undefined : s)} />)}
+              {(isShoes ? SHOE_SIZES : CLOTHING_SIZES).map((s) => <Pill key={s} label={s} active={params.size === s} onClick={() => onFilterChange('size', params.size === s ? undefined : s)} />)}
             </div>
           </div>
           <div>

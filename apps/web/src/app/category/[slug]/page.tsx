@@ -9,24 +9,19 @@ import { CardSkeletonGrid } from '@/components/LoadingSkeleton';
 import { Breadcrumb } from '@/components/Breadcrumb';
 import { FilterSidebar } from '@/components/FilterSidebar';
 import { CategoryNav } from '@/components/CategoryNav';
-
-const SLUG_TO_CATEGORY: Record<string, string> = {
-  'clubs': 'Clubs',
-  'clothing': 'Clothing',
-  'shoes': 'Shoes',
-  'accessories': 'Accessories',
-  'balls': 'Balls',
-  'training-aids': 'Training Aids',
-  'shafts-grips': 'Shafts, Grips & Heads',
-  'everything-else': 'Everything Else',
-};
+import { CATEGORY_SLUG_TO_DB } from '@/lib/constants'; // FIX 2: shared constant
 
 function CategoryContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
   const slug = params.slug as string;
-  const categoryName = SLUG_TO_CATEGORY[slug] || slug;
+
+  // FIX 2: Use shared constant for slug→DB mapping
+  const categoryName = CATEGORY_SLUG_TO_DB[slug] || slug;
+
+  // Display label (friendly name for headings)
+  const displayLabel = categoryName === 'Shafts, Grips & Heads' ? 'Shafts & Grips' : categoryName;
 
   const [listings, setListings] = useState<ListingWithSeller[]>([]);
   const [total, setTotal] = useState(0);
@@ -55,7 +50,7 @@ function CategoryContent() {
     try {
       const filterParams = getFilterParams();
       const res = await searchListings({
-        category: categoryName,
+        category: categoryName, // FIX 2: exact DB name
         subcategory: filterParams.subcategory,
         minPrice: filterParams.minPrice ? Number(filterParams.minPrice) : undefined,
         maxPrice: filterParams.maxPrice ? Number(filterParams.maxPrice) : undefined,
@@ -70,8 +65,9 @@ function CategoryContent() {
       });
       const newListings = res.listings || [];
       setListings(append ? (prev) => [...prev, ...newListings] : newListings);
-      setTotal(res.pagination?.total || 0);
-      setHasMore(pageNum < (res.pagination?.pages || 0));
+      // FIX 3: Handle both response shapes
+      setTotal(res.pagination?.total || (res as any).total || 0);
+      setHasMore(pageNum < (res.pagination?.pages || (res as any).totalPages || 0));
     } catch (err) {
       console.error('Category search error:', err);
     } finally {
@@ -117,7 +113,7 @@ function CategoryContent() {
     <>
       <CategoryNav />
       <div className="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8">
-        <Breadcrumb items={[{ label: categoryName }]} />
+        <Breadcrumb items={[{ label: displayLabel }]} />
 
         <div className="flex gap-6">
           <div className="hidden lg:block w-60 flex-shrink-0 sticky top-[128px] self-start max-h-[calc(100vh-144px)] overflow-y-auto pr-2" style={{ scrollbarWidth: 'thin' }}>
@@ -126,7 +122,7 @@ function CategoryContent() {
 
           <div className="flex-1 min-w-0 pb-12">
             <div className="flex items-center justify-between mb-4">
-              <h1 style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '1.4rem', color: '#0D0D0D' }}>{categoryName}</h1>
+              <h1 style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '1.4rem', color: '#0D0D0D' }}>{displayLabel}</h1>
               <div className="flex items-center gap-2">
                 <button onClick={() => setShowMobileFilters(true)} className="lg:hidden flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm" style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, border: '1px solid #E0E0D8', color: '#0D0D0D' }}>
                   Filters {activeFilterCount > 0 && <span className="flex items-center justify-center rounded-full text-white text-xs" style={{ backgroundColor: '#1DC690', width: '18px', height: '18px', fontWeight: 700 }}>{activeFilterCount}</span>}
@@ -149,7 +145,7 @@ function CategoryContent() {
             ) : listings.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-center">
                 <span className="text-5xl mb-4">🏌️</span>
-                <p className="font-semibold text-[#0D0D0D]" style={{ fontFamily: 'var(--font-sans)' }}>No listings in {categoryName}</p>
+                <p className="font-semibold text-[#0D0D0D]" style={{ fontFamily: 'var(--font-sans)' }}>No listings in {displayLabel}</p>
                 <p className="mt-1 text-sm text-[#6B6B6B]" style={{ fontFamily: 'var(--font-sans)' }}>Check back soon or try another category</p>
               </div>
             ) : (

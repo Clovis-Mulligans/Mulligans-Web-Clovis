@@ -6,15 +6,16 @@ import { ListingCard, type ListingCardData } from '@/components/ListingCard';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.mulligans.uk.com';
 
+// FIX 1: Category icons updated from emojis to PNG images
 const CATEGORIES = [
-  { label: 'Clubs', slug: 'clubs', icon: '🏌️' },
-  { label: 'Clothing', slug: 'clothing', icon: '👕' },
-  { label: 'Shoes', slug: 'shoes', icon: '👟' },
-  { label: 'Accessories', slug: 'accessories', icon: '🎒' },
-  { label: 'Balls', slug: 'balls', icon: '⛳' },
-  { label: 'Training Aids', slug: 'training-aids', icon: '🏋️' },
-  { label: 'Shafts & Grips', slug: 'shafts-grips', icon: '🔧' },
-  { label: 'Everything Else', slug: 'everything-else', icon: '📦' },
+  { label: 'Clubs', slug: 'clubs', icon: '/icons/search-icons/Clubs.png' },
+  { label: 'Clothing', slug: 'clothing', icon: '/icons/search-icons/Clothing.png' },
+  { label: 'Shoes', slug: 'shoes', icon: '/icons/search-icons/Shoes.png' },
+  { label: 'Accessories', slug: 'accessories', icon: '/icons/search-icons/Accessories.png' },
+  { label: 'Balls', slug: 'balls', icon: '/icons/search-icons/Balls.png' },
+  { label: 'Training Aids', slug: 'training-aids', icon: '/icons/search-icons/Training Aids.png' },
+  { label: 'Shafts & Grips', slug: 'shafts-grips', icon: '/icons/search-icons/Shaft Grips and Heads.png' },
+  { label: 'Everything Else', slug: 'everything-else', icon: '/icons/search-icons/Everything else.png' },
 ];
 
 async function getRecentListings(): Promise<ListingCardData[]> {
@@ -60,7 +61,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* FIX 4: Trust Bar with proper SVG icons */}
+      {/* Trust Bar with SVG icons */}
       <section className="bg-white" style={{ borderBottom: '1px solid #E0E0D8' }}>
         <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-center gap-6 px-4 py-4 sm:gap-10 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2">
@@ -78,10 +79,10 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* FIX 3: Featured Listings — client component with pro store filter + shuffle */}
+      {/* Featured Listings (client component) */}
       <FeaturedListings />
 
-      {/* Shop by Category */}
+      {/* Shop by Category — FIX 1: PNG icons */}
       <section className="mx-auto max-w-[1280px] px-4 py-10 sm:px-6 lg:px-8">
         <h2 className="mb-6" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '1.4rem', color: '#0D0D0D' }}>
           Shop by Category
@@ -89,7 +90,7 @@ export default async function HomePage() {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 sm:gap-4">
           {CATEGORIES.map((cat) => (
             <Link key={cat.slug} href={`/category/${cat.slug}`} className="group flex flex-col items-center justify-center rounded-xl bg-white p-6 transition-all duration-150 hover:border-[#1DC690]" style={{ border: '1px solid #E0E0D8', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
-              <span className="text-3xl mb-2 transition-transform duration-150 group-hover:scale-110">{cat.icon}</span>
+              <img src={cat.icon} alt={cat.label} style={{ width: '48px', height: '48px', objectFit: 'contain', marginBottom: '8px' }} className="transition-transform duration-150 group-hover:scale-110" />
               <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '0.9rem', color: '#0D0D0D' }}>{cat.label}</span>
             </Link>
           ))}
