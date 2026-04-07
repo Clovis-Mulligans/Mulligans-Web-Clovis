@@ -39,11 +39,12 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [showConditionExplainer, setShowConditionExplainer] = useState(false);
   const [isFavourited, setIsFavourited] = useState(false);
+  const [showBuyerProtection, setShowBuyerProtection] = useState(false); // FIX 5
 
-  // REGRESSION CHECK 3: isOwnListing BEFORE price
+  // REGRESSION CHECK 2: isOwnListing BEFORE price
   const isOwnListing = user?.id === listing.seller_id;
 
-  // REGRESSION CHECK 3: buyer-inclusive pricing
+  // REGRESSION CHECK 2: buyer-inclusive pricing
   const rawPrice = Number(listing.price);
   const price = isOwnListing ? rawPrice : rawPrice * 1.075 + 0.99;
 
@@ -52,18 +53,17 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
   const isActive = listing.status === 'active';
   const condition = listing.condition_overall ? CONDITION_COLOURS[listing.condition_overall] : null;
 
-  // REGRESSION CHECK 4: seller key
+  // REGRESSION CHECK 3: seller key
   const seller = listing.seller || listing.users;
 
   const sizeQuantities = listing.specifications?.sizeQuantities as Record<string, number> | undefined;
   const hasSizes = sizeQuantities && Object.keys(sizeQuantities).length > 0;
   const shippingCost = listing.shipping_cost ? Number(listing.shipping_cost) : null;
-  const buyerProtectionFee = rawPrice * 0.075 + 0.99;
   const parcelLabel = listing.parcel_size
     ? listing.parcel_size.replace('_', ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())
     : 'Shipping';
 
-  // REGRESSION CHECK 5: category null guard
+  // REGRESSION CHECK 4: category null guard
   const breadcrumbs = [
     { label: listing.category || 'All', href: `/category/${(listing.category || '').toLowerCase().replace(/[^a-z]+/g, '-')}` },
     ...(listing.subcategory ? [{ label: listing.subcategory }] : []),
@@ -118,7 +118,7 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
     setShowOffer(true);
   };
 
-  // REGRESSION CHECK 6: specs filter with proper type guard
+  // REGRESSION CHECK 5: specs filter with proper type guard
   const specs = listing.specifications
     ? Object.entries(listing.specifications).filter(([k]) => k !== 'sizeQuantities' && k !== 'model')
     : [];
@@ -137,7 +137,7 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
         <Breadcrumb items={breadcrumbs} />
 
         <div className="flex flex-col lg:flex-row gap-8 pb-12">
-          {/* ─── Left: Images ──────────────────────────── */}
+          {/* ─── Left: Images + Description (FIX 3) ──── */}
           <div className="lg:w-[55%]">
             <ImageGallery
               images={listing.images || []}
@@ -146,6 +146,16 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
               isFavourited={isFavourited}
               onFavouriteClick={handleFavouriteToggle}
             />
+
+            {/* FIX 3: Description moved here from below fold */}
+            {listing.description && (
+              <div className="mt-4">
+                <h2 style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '1.1rem', color: '#0D0D0D' }}>Description</h2>
+                <div className="mt-2 rounded-xl bg-white" style={{ border: '1px solid #E0E0D8', padding: '20px 24px' }}>
+                  <p className="whitespace-pre-wrap" style={{ fontFamily: 'var(--font-sans)', fontWeight: 400, fontSize: '0.9rem', color: '#0D0D0D', lineHeight: 1.7 }}>{listing.description}</p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* ─── Right: White card ─────────────────────── */}
@@ -157,7 +167,7 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
                 {listing.title}
               </h1>
 
-              {/* SECTION B — PRICE BLOCK */}
+              {/* SECTION B — PRICE BLOCK (FIX 4: price table removed) */}
               <div className="flex items-baseline justify-between">
                 <div className="flex items-baseline gap-3">
                   <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 800, fontSize: '2.2rem', color: isSold ? '#ADADAD' : '#1DC690' }}>
@@ -178,32 +188,39 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
                 <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.78rem', color: '#ADADAD' }}>Listed {getAge(listing.created_at)}</span>
               </div>
 
-              {/* Price breakdown table — non-own, non-sold only */}
-              {!isOwnListing && !isSold && (
-                <div className="mt-3 rounded-[10px]" style={{ border: '1px solid #E0E0D8', padding: '12px 16px' }}>
-                  {[
-                    { label: 'Item price', value: `£${rawPrice.toFixed(2)}`, color: '#0D0D0D' },
-                    { label: 'Postage', value: shippingCost ? `£${shippingCost.toFixed(2)}` : 'Free', color: '#0D0D0D' },
-                    { label: 'Buyer Protection', value: `£${buyerProtectionFee.toFixed(2)}`, color: '#1DC690' },
-                  ].map((row, i) => (
-                    <div key={i} className="flex justify-between" style={{ padding: '6px 0', borderBottom: i < 2 ? '1px solid #F4F4F0' : 'none' }}>
-                      <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 500, fontSize: '0.82rem', color: '#6B6B6B' }}>{row.label}</span>
-                      <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '0.82rem', color: row.color }}>{row.value}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
               {/* Divider */}
               <div style={{ borderBottom: '1px solid #E0E0D8', margin: '16px 0' }} />
 
-              {/* SECTION C — TRUST SIGNALS (static, always visible) */}
-              <div className="rounded-[10px] mb-2" style={{ backgroundColor: 'rgba(29,198,144,0.06)', border: '1px solid rgba(29,198,144,0.2)', padding: '12px 14px' }}>
-                <div className="flex items-center gap-2">
+              {/* SECTION C — TRUST SIGNALS */}
+
+              {/* FIX 5: Buyer Protection as expandable card */}
+              <div className="mb-2 rounded-[10px] overflow-hidden" style={{ border: '1px solid rgba(29,198,144,0.2)' }}>
+                <button
+                  onClick={() => setShowBuyerProtection(!showBuyerProtection)}
+                  className="w-full flex items-center gap-2 text-left"
+                  style={{ backgroundColor: 'rgba(29,198,144,0.06)', padding: '12px 14px' }}
+                >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1DC690" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>
-                  <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '0.85rem', color: '#0D0D0D' }}>Protected by Mulligans Buyer Protection</span>
+                  <span className="flex-1" style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '0.85rem', color: '#0D0D0D' }}>Protected by Mulligans Buyer Protection Pro</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ADADAD" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 transition-transform duration-200" style={{ transform: showBuyerProtection ? 'rotate(180deg)' : 'rotate(0deg)' }}><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div className="overflow-hidden transition-all duration-200 ease-in-out" style={{ maxHeight: showBuyerProtection ? '400px' : '0px', opacity: showBuyerProtection ? 1 : 0 }}>
+                  <div style={{ padding: '14px 16px', borderTop: '1px solid #E0E0D8' }}>
+                    <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '0.85rem', color: '#0D0D0D', marginBottom: '8px' }}>Buyer Protection Fee</p>
+                    <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 400, fontSize: '0.82rem', color: '#6B6B6B', lineHeight: 1.6 }}>
+                      Our Buyer Protection is added for a fee to every purchase made with every purchase on Mulligans. Buyer Protection includes our Refund Policy.
+                    </p>
+                    <p className="mt-2" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '0.85rem', color: '#1DC690' }}>7.5% + £0.99</p>
+
+                    <p className="mt-3" style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '0.85rem', color: '#0D0D0D', marginBottom: '6px' }}>Secure Payment (Escrow)</p>
+                    <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 400, fontSize: '0.82rem', color: '#6B6B6B', lineHeight: 1.6 }}>Your payment is held securely until:</p>
+                    <ul className="mt-1 space-y-1" style={{ fontFamily: 'var(--font-sans)', fontSize: '0.82rem', color: '#6B6B6B', paddingLeft: '16px', listStyleType: 'disc' }}>
+                      <li>The seller ships the item</li>
+                      <li>You receive it</li>
+                      <li>You confirm everything is as expected</li>
+                    </ul>
+                  </div>
                 </div>
-                <p className="mt-1" style={{ fontFamily: 'var(--font-sans)', fontWeight: 400, fontSize: '0.78rem', color: '#6B6B6B' }}>Full refund if item doesn&apos;t arrive or isn&apos;t as described.</p>
               </div>
 
               {shippingCost !== null && (
@@ -216,10 +233,14 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
                 </div>
               )}
 
+              {/* FIX 6: Accepts Offers as prominent card */}
               {listing.is_negotiable && (
-                <div className="flex items-center gap-2 mb-2" style={{ padding: '4px 0' }}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#278AB0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                  <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '0.85rem', color: '#278AB0' }}>This seller accepts offers</span>
+                <div className="rounded-[10px] mb-2" style={{ backgroundColor: 'rgba(39,138,176,0.06)', border: '1px solid rgba(39,138,176,0.2)', padding: '12px 14px' }}>
+                  <div className="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#278AB0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '0.85rem', color: '#278AB0' }}>Accepts Offers</span>
+                  </div>
+                  <p className="mt-1" style={{ fontFamily: 'var(--font-sans)', fontWeight: 400, fontSize: '0.78rem', color: '#6B6B6B' }}>Make an offer below the asking price — the seller can accept, decline, or counter.</p>
                 </div>
               )}
 
@@ -314,7 +335,6 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
                     </button>
                   </div>
 
-                  {/* Inline condition explainer accordion */}
                   {showConditionExplainer && (
                     <div className="mt-2 rounded-[10px]" style={{ border: '1px solid #E0E0D8', padding: '12px' }}>
                       {Object.entries(CONDITION_COLOURS).reverse().map(([grade, { bg, label, description }]) => (
@@ -330,7 +350,6 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
                     </div>
                   )}
 
-                  {/* Sub-grades for clubs */}
                   {listing.condition_head != null && listing.condition_shaft != null && listing.condition_grip != null && (
                     <div className="mt-3 grid grid-cols-3 gap-2 text-center" style={{ fontFamily: 'var(--font-sans)' }}>
                       {[
@@ -354,16 +373,7 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
           </div>{/* end right column */}
         </div>
 
-        {/* ─── BELOW FOLD ─────────────────────────────────── */}
-
-        {listing.description && (
-          <section className="mb-8">
-            <h2 className="mb-3" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '1.1rem', color: '#0D0D0D' }}>Description</h2>
-            <div className="rounded-xl bg-white" style={{ border: '1px solid #E0E0D8', padding: '20px 24px' }}>
-              <p className="whitespace-pre-wrap" style={{ fontFamily: 'var(--font-sans)', fontWeight: 400, fontSize: '0.9rem', color: '#0D0D0D', lineHeight: 1.7 }}>{listing.description}</p>
-            </div>
-          </section>
-        )}
+        {/* ─── BELOW FOLD (FIX 3: description removed from here) ── */}
 
         {specRows.length > 0 && (
           <section className="mb-8">

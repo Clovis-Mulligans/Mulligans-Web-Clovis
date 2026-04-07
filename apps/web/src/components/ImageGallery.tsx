@@ -43,9 +43,10 @@ export function ImageGallery({ images, title, showFavourite = false, isFavourite
     </button>
   ) : null;
 
+  {/* FIX 1: aspect ratio changed from 4/3 to 3/4 */}
   if (sorted.length === 0) {
     return (
-      <div className="relative flex items-center justify-center rounded-xl text-5xl" style={{ aspectRatio: '4/3', backgroundColor: '#F4F4F0', color: '#ADADAD' }}>
+      <div className="relative flex items-center justify-center rounded-xl text-5xl" style={{ aspectRatio: '3/4', backgroundColor: '#F4F4F0', color: '#ADADAD' }}>
         🏌️
         {favouriteButton}
       </div>
@@ -57,10 +58,37 @@ export function ImageGallery({ images, title, showFavourite = false, isFavourite
       {/* Desktop: main + thumbnails */}
       <div className="hidden lg:block">
         <div className="relative">
-          <button onClick={() => setLightboxOpen(true)} className="w-full rounded-xl overflow-hidden cursor-zoom-in" style={{ aspectRatio: '4/3', backgroundColor: '#F4F4F0' }}>
+          {/* FIX 1: aspect ratio 3/4 */}
+          <button onClick={() => setLightboxOpen(true)} className="w-full rounded-xl overflow-hidden cursor-zoom-in" style={{ aspectRatio: '3/4', backgroundColor: '#F4F4F0' }}>
             <img src={sorted[activeIndex].image_url} alt={title} className="w-full h-full object-cover" />
           </button>
           {favouriteButton}
+
+          {/* FIX 2: Navigation arrows on desktop */}
+          {sorted.length > 1 && (
+            <>
+              <button
+                className="absolute left-3 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center rounded-full transition-colors"
+                style={{ width: '40px', height: '40px', backgroundColor: 'rgba(0,0,0,0.45)' }}
+                onClick={(e) => { e.stopPropagation(); setActiveIndex((i) => i > 0 ? i - 1 : sorted.length - 1); }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'rgba(0,0,0,0.65)'; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'rgba(0,0,0,0.45)'; }}
+                aria-label="Previous image"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+              </button>
+              <button
+                className="absolute right-3 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center rounded-full transition-colors"
+                style={{ width: '40px', height: '40px', backgroundColor: 'rgba(0,0,0,0.45)' }}
+                onClick={(e) => { e.stopPropagation(); setActiveIndex((i) => i < sorted.length - 1 ? i + 1 : 0); }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'rgba(0,0,0,0.65)'; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'rgba(0,0,0,0.45)'; }}
+                aria-label="Next image"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            </>
+          )}
         </div>
         {sorted.length > 1 && (
           <div className="mt-3 flex gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
@@ -73,12 +101,13 @@ export function ImageGallery({ images, title, showFavourite = false, isFavourite
         )}
       </div>
 
-      {/* Mobile: horizontal scroll */}
+      {/* Mobile: horizontal scroll — no arrows (has native scroll) */}
       <div className="lg:hidden">
         <div className="relative">
           <div className="flex overflow-x-auto snap-x snap-mandatory" style={{ scrollbarWidth: 'none' }}>
             {sorted.map((img, i) => (
-              <div key={i} className="w-full flex-shrink-0 snap-center" style={{ aspectRatio: '4/3' }}>
+              /* FIX 1: aspect ratio 3/4 */
+              <div key={i} className="w-full flex-shrink-0 snap-center" style={{ aspectRatio: '3/4' }}>
                 <img src={img.image_url} alt={`${title} ${i + 1}`} className="w-full h-full object-cover" />
               </div>
             ))}
