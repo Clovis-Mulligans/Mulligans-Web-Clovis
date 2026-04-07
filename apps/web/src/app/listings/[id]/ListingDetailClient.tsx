@@ -52,7 +52,7 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
   const isOwnListing = user?.id === listing.seller_id;
 
   const breadcrumbs = [
-    { label: listing.category, href: `/category/${listing.category.toLowerCase().replace(/[^a-z]+/g, '-')}` },
+    { label: listing.category, href: `/category/${(listing.category || '').toLowerCase().replace(/[^a-z]+/g, '-')}` },
     ...(listing.subcategory ? [{ label: listing.subcategory }] : []),
   ];
 
