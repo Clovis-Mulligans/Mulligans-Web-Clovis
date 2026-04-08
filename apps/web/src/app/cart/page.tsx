@@ -136,7 +136,7 @@ export default function CartPage() {
                       <span className="font-bold truncate" style={{ fontFamily: 'var(--font-sans)', fontSize: '0.9rem', color: '#0D0D0D' }}>{seller.seller_name || 'Seller'}</span>
                       {seller.seller_is_verified_seller_seller && <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#1DC690" stroke="#1DC690" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>}
                     </div>
-                    {seller.seller_rating > 0 && <span className="text-xs" style={{ color: '#6B6B6B' }}>⭐ {seller.seller_rating.toFixed(1)}</span>}
+                    {seller.seller_rating > 0 && <span className="text-xs" style={{ color: '#6B6B6B' }}>⭐ {Number(seller.seller_rating).toFixed(1)}</span>}
                   </div>
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ADADAD" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
                 </Link>
