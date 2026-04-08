@@ -47,7 +47,7 @@ export default async function HomePage() {
                 The UK&apos;s Golf Marketplace
               </p>
               <h1 className="mt-2 text-white" style={{ fontFamily: 'var(--font-sans)', fontWeight: 800, fontSize: 'clamp(1.8rem, 4vw, 2.6rem)', lineHeight: 1.15 }}>
-                Buy Smart. Sell Easy.<br />Play Better.
+                Buy <span style={{ color: '#1DC690' }}>Smart.</span> Sell <span style={{ color: '#1DC690' }}>Easy.</span><br />Play <span style={{ color: '#1DC690' }}>Better.</span>
               </h1>
               <p className="mt-3 text-white" style={{ fontFamily: 'var(--font-sans)', fontSize: '0.9rem', opacity: 0.8, lineHeight: 1.6 }}>
                 Find golf clubs, clothing, and accessories from verified sellers across the UK. Every purchase protected.
@@ -78,7 +78,7 @@ export default async function HomePage() {
             </div>
 
             {/* Right: stacked images */}
-            <div className="relative hidden lg:flex items-center justify-center flex-shrink-0" style={{ width: '480px', height: '280px' }}>
+            <div className="relative hidden lg:flex items-center justify-center flex-shrink-0 ml-auto" style={{ width: '520px', height: '280px' }}>
               {/* Left image — club-specs */}
               <div className="absolute rounded-2xl overflow-hidden shadow-2xl" style={{ left: '40px', top: '40px', width: '160px', height: '160px', transform: 'rotate(-8deg)', zIndex: 1, backgroundColor: '#FFFFFF' }}>
                 <img src="/onboarding/club-specs.png" alt="Club specs" className="w-full h-full" style={{ objectFit: 'contain', padding: '12px' }} />
@@ -97,24 +97,33 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Trust Bar */}
+     {/* Trust Bar */}
       <section className="bg-white" style={{ borderBottom: '1px solid #E0E0D8' }}>
-        <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-center gap-6 px-4 py-4 sm:gap-10 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1DC690" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>
-            <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '0.82rem', color: '#6B6B6B' }}>Buyer Protection on every purchase</span>
+        <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-center gap-8 px-4 py-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1DC690" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6"/><path d="M8 11h6"/></svg>
+            <div>
+              <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '0.82rem', color: '#0D0D0D' }}>Golf-specific filters</p>
+              <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 400, fontSize: '0.75rem', color: '#6B6B6B' }}>No other marketplace offers this</p>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#278AB0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect width="7" height="7" x="14" y="11" rx="1"/><path d="M5 17a2 2 0 1 0 4 0 2 2 0 0 0-4 0"/><path d="M19 17a2 2 0 1 0 4 0 2 2 0 0 0-4 0"/></svg>
-            <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '0.82rem', color: '#6B6B6B' }}>Insured Shipping on all orders</span>
+          <div className="flex items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#278AB0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
+            <div>
+              <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '0.82rem', color: '#0D0D0D' }}>3-day inspection window</p>
+              <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 400, fontSize: '0.75rem', color: '#6B6B6B' }}>Return if not as described</p>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1C4670" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
-            <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '0.82rem', color: '#6B6B6B' }}>Verified Sellers</span>
+          <div className="flex items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1C4670" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <div>
+              <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '0.82rem', color: '#0D0D0D' }}>Verified seller ratings</p>
+              <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 400, fontSize: '0.75rem', color: '#6B6B6B' }}>Real reviews from real buyers</p>
+            </div>
           </div>
         </div>
       </section>
-
+      
       {/* Featured Listings (client component) */}
       <FeaturedListings />
 
