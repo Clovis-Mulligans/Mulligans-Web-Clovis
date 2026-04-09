@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Trash2 } from 'lucide-react';
+import { Trash2, ShieldCheck } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import {
   getCart,
@@ -102,13 +102,15 @@ export default function CartPage() {
   const allItems = cart?.sellers.flatMap((s) => s.items) ?? [];
   const totalItemCount = allItems.reduce((sum, i) => sum + i.quantity, 0);
   const isEmpty = !cart || cart.sellers.length === 0;
+  const hasUnavailableItems = allItems.some((i) => i.is_available === false);
+  const availableItems = allItems.filter((i) => i.is_available !== false);
 
-  const itemsSubtotal = allItems.reduce((sum, item) => {
+  const itemsSubtotal = availableItems.reduce((sum, item) => {
     const raw = Number(item.offer_price ?? item.price);
     return sum + raw * item.quantity;
   }, 0);
 
-  const buyerProtectionFee = allItems.reduce((sum, item) => {
+  const buyerProtectionFee = availableItems.reduce((sum, item) => {
     const raw = Number(item.offer_price ?? item.price);
     return sum + (raw * 0.075 + 0.99) * item.quantity;
   }, 0);
@@ -120,40 +122,106 @@ export default function CartPage() {
 
   const estimatedTotal = itemsSubtotal + buyerProtectionFee + shippingTotal;
 
+  const OrderSummary = (
+    <div style={{ background: '#fff', borderRadius: 14, border: '0.5px solid #d4d4cc', padding: '24px 22px' }}>
+      <p style={{ fontSize: 18, fontWeight: 700, color: '#06070A', margin: '0 0 20px' }}>Order summary</p>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 15, color: '#666' }}>
+          <span>Items ({totalItemCount})</span>
+          <span style={{ color: '#06070A', fontWeight: 500 }}>{fp(itemsSubtotal)}</span>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 15, color: '#666' }}>
+          <span>Buyer protection fee</span>
+          <span style={{ color: '#06070A', fontWeight: 500 }}>{fp(buyerProtectionFee)}</span>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 15, color: '#666' }}>
+          <span>Shipping (est.)</span>
+          <span style={{ color: '#06070A', fontWeight: 500 }}>{fp(shippingTotal)}</span>
+        </div>
+      </div>
+
+      <div style={{ borderTop: '1px solid #e8e8e4', margin: '18px 0' }} />
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+        <span style={{ fontSize: 17, fontWeight: 700, color: '#06070A' }}>Total</span>
+        <span style={{ fontSize: 26, fontWeight: 700, color: '#06070A' }}>{fp(estimatedTotal)}</span>
+      </div>
+
+      {hasUnavailableItems && (
+        <p style={{ marginTop: 14, fontSize: 13, color: '#c0392b', background: '#fdf0ee', padding: '10px 12px', borderRadius: 8, lineHeight: 1.5 }}>
+          Some items are no longer available. Remove them before checking out.
+        </p>
+      )}
+
+      <button
+        onClick={handleCheckout}
+        disabled={checkingOut || hasUnavailableItems}
+        style={{
+          marginTop: 18, width: '100%', padding: '15px 0', border: 'none',
+          borderRadius: 10, background: hasUnavailableItems ? '#ccc' : '#1DC690',
+          color: '#fff', fontSize: 16, fontWeight: 700,
+          cursor: hasUnavailableItems ? 'not-allowed' : 'pointer',
+          opacity: checkingOut ? 0.7 : 1, transition: 'opacity 0.15s',
+        }}
+      >
+        {checkingOut ? 'Processing...' : 'Proceed to checkout'}
+      </button>
+
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 14 }}>
+        <ShieldCheck size={14} color="#1DC690" />
+        <p style={{ fontSize: 12, color: '#999', margin: 0 }}>
+          All purchases covered by Mulligans Buyer Protection
+        </p>
+      </div>
+    </div>
+  );
+
   return (
     <div style={{ backgroundColor: '#EAEAE0' }}>
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
-        .trash-btn { background: none; border: none; cursor: pointer; padding: 0; display: inline-flex; color: #c0c0c0; }
+        .trash-btn { background: none; border: none; cursor: pointer; padding: 4px; display: inline-flex; color: #c8c8c8; border-radius: 4px; transition: color 0.15s; }
         .trash-btn:hover { color: #e24b4a; }
-        .checkout-btn-green { width: 100%; padding: 14px 0; border: none; border-radius: 10px; background: #1DC690; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; }
-        .checkout-btn-green:hover { opacity: 0.9; }
-        .checkout-btn-green:disabled { opacity: 0.6; }
-        .browse-btn { display: inline-block; padding: 12px 28px; background: #1DC690; color: #fff; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none; }
+        .item-img-link { display: block; transition: opacity 0.15s; }
+        .item-img-link:hover { opacity: 0.9; }
+        .item-title-link { text-decoration: none; }
+        .item-title-link:hover p { text-decoration: underline; text-decoration-color: #ccc; }
+        @media (max-width: 767px) {
+          .cart-grid { display: flex !important; flex-direction: column !important; }
+          .cart-summary-col { order: -1; position: static !important; }
+          .cart-items-col { order: 1; }
+        }
       `}</style>
 
-      <div style={{ maxWidth: 960, margin: '0 auto', padding: '32px 16px' }}>
+      <div style={{ maxWidth: 980, margin: '0 auto', padding: '36px 16px 48px' }}>
 
         {loading ? (
           <CardSkeletonGrid count={4} />
         ) : isEmpty ? (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 0', textAlign: 'center' }}>
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1.5"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-            <p style={{ marginTop: 20, fontSize: 20, fontWeight: 600, color: '#06070A' }}>Your bag is empty</p>
-            <p style={{ marginTop: 6, fontSize: 14, color: '#888' }}>Browse listings to find your next club</p>
-            <Link href="/search" className="browse-btn" style={{ marginTop: 24 }}>Browse listings</Link>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '80px 0', textAlign: 'center' }}>
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1.3">
+              <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+              <path d="M3 6h18"/>
+              <path d="M16 10a4 4 0 0 1-8 0"/>
+            </svg>
+            <p style={{ marginTop: 20, fontSize: 22, fontWeight: 700, color: '#06070A' }}>Your bag is empty</p>
+            <p style={{ marginTop: 8, fontSize: 15, color: '#888' }}>Browse listings to find your next club</p>
+            <Link href="/search" style={{ marginTop: 24, display: 'inline-block', padding: '13px 32px', background: '#1DC690', color: '#fff', borderRadius: 10, fontSize: 15, fontWeight: 600, textDecoration: 'none' }}>
+              Browse listings
+            </Link>
           </div>
         ) : (
           <>
-            <h1 style={{ fontSize: 26, fontWeight: 700, color: '#06070A', marginBottom: 24 }}>
+            <h1 style={{ fontSize: 28, fontWeight: 700, color: '#06070A', textAlign: 'center', marginBottom: 32 }}>
               Bag ({totalItemCount} item{totalItemCount !== 1 ? 's' : ''})
             </h1>
 
-            {/* Two column layout */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 280px', gap: 20, alignItems: 'start' }}>
-
-              {/* LEFT — Seller cards */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div
+              className="cart-grid"
+              style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 300px', gap: 24, alignItems: 'start' }}
+            >
+              <div className="cart-items-col" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {cart!.sellers.map((seller, idx) => (
                   <SellerCard
                     key={seller.seller_id}
@@ -165,48 +233,9 @@ export default function CartPage() {
                 ))}
               </div>
 
-              {/* RIGHT — Order summary */}
-              <div style={{ position: 'sticky', top: 20 }}>
-                <div style={{ background: '#fff', borderRadius: 12, border: '0.5px solid #d4d4cc', padding: '22px 20px' }}>
-                  <p style={{ fontSize: 17, fontWeight: 700, color: '#06070A', marginBottom: 18 }}>Order summary</p>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 15, color: '#555' }}>
-                      <span>Items ({totalItemCount})</span>
-                      <span style={{ color: '#06070A', fontWeight: 500 }}>{fp(itemsSubtotal)}</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 15, color: '#555' }}>
-                      <span>Buyer protection fee</span>
-                      <span style={{ color: '#06070A', fontWeight: 500 }}>{fp(buyerProtectionFee)}</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 15, color: '#555' }}>
-                      <span>Shipping (est.)</span>
-                      <span style={{ color: '#06070A', fontWeight: 500 }}>{fp(shippingTotal)}</span>
-                    </div>
-                  </div>
-
-                  <div style={{ borderTop: '1px solid #e8e8e4', margin: '16px 0' }} />
-
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                    <span style={{ fontSize: 16, fontWeight: 700, color: '#06070A' }}>Total</span>
-                    <span style={{ fontSize: 22, fontWeight: 700, color: '#06070A' }}>{fp(estimatedTotal)}</span>
-                  </div>
-
-                  <button
-                    onClick={handleCheckout}
-                    disabled={checkingOut}
-                    className="checkout-btn-green"
-                    style={{ marginTop: 18 }}
-                  >
-                    {checkingOut ? 'Processing...' : 'Proceed to checkout'}
-                  </button>
-
-                  <p style={{ marginTop: 12, textAlign: 'center', fontSize: 11, color: '#aaa', lineHeight: 1.5 }}>
-                    ✦ All purchases covered by Mulligans Buyer Protection
-                  </p>
-                </div>
+              <div className="cart-summary-col" style={{ position: 'sticky', top: 24 }}>
+                {OrderSummary}
               </div>
-
             </div>
           </>
         )}
@@ -230,29 +259,46 @@ function SellerCard({
 }) {
   const avatarBg = AVATAR_COLOURS[colourIndex % AVATAR_COLOURS.length];
   const isPro = seller.is_pro_store ?? seller.seller_is_verified_seller_seller;
-  const displayName = isPro && seller.pro_store_name ? seller.pro_store_name : (seller.seller_name || 'Seller');
+  const displayName = isPro && seller.pro_store_name
+    ? seller.pro_store_name
+    : (seller.seller_name || 'Seller');
+  const handle = seller.seller_name
+    ? `@${seller.seller_name.toLowerCase().replace(/\s+/g, '')}`
+    : null;
 
   return (
-    <div style={{ background: '#fff', borderRadius: 12, border: '0.5px solid #d4d4cc', overflow: 'hidden' }}>
+    <div style={{ background: '#fff', borderRadius: 14, border: '0.5px solid #d4d4cc', overflow: 'hidden' }}>
 
       {/* Seller header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderBottom: '0.5px solid #ebebeb', background: '#fafaf8' }}>
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 12,
+        padding: '14px 20px', borderBottom: '1px solid #efefed',
+        background: '#f8f8f6',
+      }}>
         <div style={{
-          width: 38, height: 38, borderRadius: '50%', backgroundColor: avatarBg,
+          width: 44, height: 44, borderRadius: '50%', backgroundColor: avatarBg,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 13, fontWeight: 600, color: '#fff', flexShrink: 0,
-          ...(isPro ? { outline: '2px solid #C9A84C', outlineOffset: 2 } : {})
+          fontSize: 15, fontWeight: 700, color: '#fff', flexShrink: 0,
+          ...(isPro ? { outline: '2.5px solid #C9A84C', outlineOffset: 2 } : {}),
         }}>
           {seller.seller_avatar
             ? <img src={seller.seller_avatar} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
             : getInitials(displayName)
           }
         </div>
+
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontSize: 16, fontWeight: 700, color: '#06070A', margin: 0 }}>{displayName}</p>
+          <p style={{ fontSize: 16, fontWeight: 700, color: '#06070A', margin: 0, lineHeight: 1.3 }}>{displayName}</p>
+          {handle && (
+            <p style={{ fontSize: 13, color: '#aaa', margin: '2px 0 0' }}>{handle}</p>
+          )}
         </div>
+
         {isPro && (
-          <span style={{ background: '#C9A84C', color: '#fff', fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 4, flexShrink: 0 }}>
+          <span style={{
+            background: '#C9A84C', color: '#fff', fontSize: 11, fontWeight: 700,
+            padding: '3px 10px', borderRadius: 5, flexShrink: 0, letterSpacing: '0.3px',
+          }}>
             PRO
           </span>
         )}
@@ -264,24 +310,22 @@ function SellerCard({
         const buyerPrice = raw * 1.075 + 0.99;
         const hasOffer = item.offer_price !== null && item.offer_price !== undefined;
         const shippingCost = item.shipping_cost ? Number(item.shipping_cost) : (seller.shipping_cost || 0);
+        const isUnavailable = item.is_available === false;
 
         return (
           <div
             key={item.id}
             style={{
-              display: 'flex', gap: 14, padding: '16px 16px',
-              borderBottom: idx < seller.items.length - 1 ? '0.5px solid #f0f0ee' : 'none',
+              display: 'flex', gap: 16, padding: '20px 20px',
+              borderBottom: idx < seller.items.length - 1 ? '1px solid #f2f2f0' : 'none',
+              opacity: isUnavailable ? 0.5 : 1,
             }}
           >
-            {/* Image — portrait rectangle like Depop */}
-            <Link href={`/listings/${item.listing_id}`} style={{ flexShrink: 0 }}>
-              <div style={{ width: 110, height: 130, borderRadius: 8, overflow: 'hidden', backgroundColor: '#f0f0ec' }}>
+            {/* Image — portrait rectangle */}
+            <Link href={`/listings/${item.listing_id}`} className="item-img-link" style={{ flexShrink: 0 }}>
+              <div style={{ width: 130, height: 155, borderRadius: 10, overflow: 'hidden', backgroundColor: '#efefeb' }}>
                 {item.image_url ? (
-                  <img
-                    src={item.image_url}
-                    alt=""
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                  />
+                  <img src={item.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                 ) : (
                   <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
@@ -291,37 +335,43 @@ function SellerCard({
             </Link>
 
             {/* Centre — title and meta */}
-            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 5 }}>
-              <Link href={`/listings/${item.listing_id}`} style={{ textDecoration: 'none' }}>
-                <p style={{ fontSize: 15, fontWeight: 500, color: '#06070A', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6, paddingTop: 2 }}>
+              <Link href={`/listings/${item.listing_id}`} className="item-title-link">
+                <p style={{ fontSize: 15, fontWeight: 600, color: '#06070A', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.4 }}>
                   {item.title}
                 </p>
               </Link>
               {item.selected_size && (
                 <p style={{ fontSize: 13, color: '#aaa', margin: 0 }}>{item.selected_size}</p>
               )}
+              {isUnavailable && (
+                <span style={{ fontSize: 12, fontWeight: 600, color: '#c0392b', background: '#fdf0ee', padding: '3px 8px', borderRadius: 5, display: 'inline-block', marginTop: 2 }}>
+                  No longer available
+                </span>
+              )}
             </div>
 
             {/* Right — price, shipping, trash */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'space-between', flexShrink: 0, gap: 6 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'space-between', flexShrink: 0, minWidth: 110 }}>
               <div style={{ textAlign: 'right' }}>
-                <p style={{ fontSize: 20, fontWeight: 700, color: '#06070A', margin: 0 }}>
+                <p style={{ fontSize: 20, fontWeight: 700, color: '#06070A', margin: 0, lineHeight: 1.2 }}>
                   {fp(buyerPrice)}
                 </p>
                 {hasOffer && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'flex-end', marginTop: 2 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, justifyContent: 'flex-end', marginTop: 3 }}>
                     <span style={{ fontSize: 12, color: '#ccc', textDecoration: 'line-through' }}>
                       {fp(Number(item.price) * 1.075 + 0.99)}
                     </span>
-                    <span style={{ fontSize: 10, fontWeight: 500, background: '#F0EAFA', color: '#7C5CBF', padding: '2px 6px', borderRadius: 4 }}>
+                    <span style={{ fontSize: 10, fontWeight: 600, background: '#F0EAFA', color: '#7C5CBF', padding: '2px 6px', borderRadius: 4 }}>
                       Offer
                     </span>
                   </div>
                 )}
-                <p style={{ fontSize: 12, color: '#aaa', margin: '4px 0 0', textAlign: 'right' }}>
+                <p style={{ fontSize: 12, color: '#aaa', margin: '5px 0 0', textAlign: 'right' }}>
                   + {shippingCost > 0 ? fp(shippingCost) : 'Free'} shipping
                 </p>
               </div>
+
               <button
                 className="trash-btn"
                 onClick={() => onRemove(item)}
@@ -329,7 +379,7 @@ function SellerCard({
                 aria-label="Remove item"
                 style={{ opacity: removing === item.id ? 0.4 : 1 }}
               >
-                <Trash2 size={15} />
+                <Trash2 size={16} />
               </button>
             </div>
           </div>
