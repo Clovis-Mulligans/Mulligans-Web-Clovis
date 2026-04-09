@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Trash2, ShieldCheck } from 'lucide-react';
+import { Trash2, ShieldCheck, Star } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import {
   getCart,
@@ -194,7 +194,7 @@ export default function CartPage() {
         }
       `}</style>
 
-      <div style={{ maxWidth: 980, margin: '0 auto', padding: '36px 16px 48px' }}>
+      <div style={{ maxWidth: 980, margin: '0 auto', padding: '36px 20px 48px' }}>
 
         {loading ? (
           <CardSkeletonGrid count={4} />
@@ -262,19 +262,18 @@ function SellerCard({
   const displayName = isPro && seller.pro_store_name
     ? seller.pro_store_name
     : (seller.seller_name || 'Seller');
-  const handle = seller.seller_name
-    ? `@${seller.seller_name.toLowerCase().replace(/\s+/g, '')}`
-    : null;
+  const rating = seller.seller_rating ? Number(seller.seller_rating) : null;
 
   return (
     <div style={{ background: '#fff', borderRadius: 14, border: '0.5px solid #d4d4cc', overflow: 'hidden' }}>
 
-      {/* Seller header */}
+      {/* ── Seller header ── */}
       <div style={{
-        display: 'flex', alignItems: 'center', gap: 12,
-        padding: '14px 20px', borderBottom: '1px solid #efefed',
+        display: 'flex', alignItems: 'center', gap: 14,
+        padding: '16px 20px', borderBottom: '1px solid #efefed',
         background: '#f8f8f6',
       }}>
+        {/* Avatar */}
         <div style={{
           width: 44, height: 44, borderRadius: '50%', backgroundColor: avatarBg,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -287,13 +286,22 @@ function SellerCard({
           }
         </div>
 
+        {/* Name + rating */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontSize: 16, fontWeight: 700, color: '#06070A', margin: 0, lineHeight: 1.3 }}>{displayName}</p>
-          {handle && (
-            <p style={{ fontSize: 13, color: '#aaa', margin: '2px 0 0' }}>{handle}</p>
+          <p style={{ fontSize: 16, fontWeight: 700, color: '#06070A', margin: 0, lineHeight: 1.3 }}>
+            {displayName}
+          </p>
+          {rating !== null && rating > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 3 }}>
+              <Star size={12} fill="#F5A623" color="#F5A623" />
+              <span style={{ fontSize: 13, color: '#888', fontWeight: 500 }}>
+                {rating.toFixed(1)}
+              </span>
+            </div>
           )}
         </div>
 
+        {/* PRO badge */}
         {isPro && (
           <span style={{
             background: '#C9A84C', color: '#fff', fontSize: 11, fontWeight: 700,
@@ -304,7 +312,7 @@ function SellerCard({
         )}
       </div>
 
-      {/* Items */}
+      {/* ── Items ── */}
       {seller.items.map((item, idx) => {
         const raw = Number(item.offer_price ?? item.price);
         const buyerPrice = raw * 1.075 + 0.99;
@@ -316,28 +324,36 @@ function SellerCard({
           <div
             key={item.id}
             style={{
-              display: 'flex', gap: 16, padding: '20px 20px',
+              display: 'flex', alignItems: 'center', gap: 16, padding: '18px 20px',
               borderBottom: idx < seller.items.length - 1 ? '1px solid #f2f2f0' : 'none',
               opacity: isUnavailable ? 0.5 : 1,
             }}
           >
-            {/* Image — portrait rectangle */}
+            {/* Image — portrait, object-position top so product is visible */}
             <Link href={`/listings/${item.listing_id}`} className="item-img-link" style={{ flexShrink: 0 }}>
               <div style={{ width: 130, height: 155, borderRadius: 10, overflow: 'hidden', backgroundColor: '#efefeb' }}>
                 {item.image_url ? (
-                  <img src={item.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  <img
+                    src={item.image_url}
+                    alt=""
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top', display: 'block' }}
+                  />
                 ) : (
                   <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1.5">
+                      <rect x="3" y="3" width="18" height="18" rx="2"/>
+                      <circle cx="8.5" cy="8.5" r="1.5"/>
+                      <path d="m21 15-5-5L5 21"/>
+                    </svg>
                   </div>
                 )}
               </div>
             </Link>
 
-            {/* Centre — title and meta */}
-            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6, paddingTop: 2 }}>
+            {/* Centre — title and meta, vertically centred in row */}
+            <div style={{ flex: 1, minWidth: 0 }}>
               <Link href={`/listings/${item.listing_id}`} className="item-title-link">
-                <p style={{ fontSize: 15, fontWeight: 600, color: '#06070A', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.4 }}>
+                <p style={{ fontSize: 15, fontWeight: 600, color: '#06070A', margin: '0 0 5px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.4 }}>
                   {item.title}
                 </p>
               </Link>
@@ -345,39 +361,36 @@ function SellerCard({
                 <p style={{ fontSize: 13, color: '#aaa', margin: 0 }}>{item.selected_size}</p>
               )}
               {isUnavailable && (
-                <span style={{ fontSize: 12, fontWeight: 600, color: '#c0392b', background: '#fdf0ee', padding: '3px 8px', borderRadius: 5, display: 'inline-block', marginTop: 2 }}>
+                <span style={{ fontSize: 12, fontWeight: 600, color: '#c0392b', background: '#fdf0ee', padding: '3px 8px', borderRadius: 5, display: 'inline-block', marginTop: 6 }}>
                   No longer available
                 </span>
               )}
             </div>
 
             {/* Right — price, shipping, trash */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'space-between', flexShrink: 0, minWidth: 110 }}>
-              <div style={{ textAlign: 'right' }}>
-                <p style={{ fontSize: 20, fontWeight: 700, color: '#06070A', margin: 0, lineHeight: 1.2 }}>
-                  {fp(buyerPrice)}
-                </p>
-                {hasOffer && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, justifyContent: 'flex-end', marginTop: 3 }}>
-                    <span style={{ fontSize: 12, color: '#ccc', textDecoration: 'line-through' }}>
-                      {fp(Number(item.price) * 1.075 + 0.99)}
-                    </span>
-                    <span style={{ fontSize: 10, fontWeight: 600, background: '#F0EAFA', color: '#7C5CBF', padding: '2px 6px', borderRadius: 4 }}>
-                      Offer
-                    </span>
-                  </div>
-                )}
-                <p style={{ fontSize: 12, color: '#aaa', margin: '5px 0 0', textAlign: 'right' }}>
-                  + {shippingCost > 0 ? fp(shippingCost) : 'Free'} shipping
-                </p>
-              </div>
-
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center', flexShrink: 0, minWidth: 110, gap: 4 }}>
+              <p style={{ fontSize: 20, fontWeight: 700, color: '#06070A', margin: 0, lineHeight: 1.2 }}>
+                {fp(buyerPrice)}
+              </p>
+              {hasOffer && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, justifyContent: 'flex-end' }}>
+                  <span style={{ fontSize: 12, color: '#ccc', textDecoration: 'line-through' }}>
+                    {fp(Number(item.price) * 1.075 + 0.99)}
+                  </span>
+                  <span style={{ fontSize: 10, fontWeight: 600, background: '#F0EAFA', color: '#7C5CBF', padding: '2px 6px', borderRadius: 4 }}>
+                    Offer
+                  </span>
+                </div>
+              )}
+              <p style={{ fontSize: 12, color: '#aaa', margin: 0, textAlign: 'right' }}>
+                + {shippingCost > 0 ? fp(shippingCost) : 'Free'} shipping
+              </p>
               <button
                 className="trash-btn"
                 onClick={() => onRemove(item)}
                 disabled={removing === item.id}
                 aria-label="Remove item"
-                style={{ opacity: removing === item.id ? 0.4 : 1 }}
+                style={{ opacity: removing === item.id ? 0.4 : 1, marginTop: 6 }}
               >
                 <Trash2 size={16} />
               </button>
