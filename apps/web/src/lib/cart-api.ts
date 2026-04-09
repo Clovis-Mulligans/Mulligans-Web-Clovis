@@ -44,6 +44,8 @@ export interface CartSeller {
   items: CartItem[];
   subtotal: number;
   shipping_cost: number;
+  is_pro_store: boolean;
+  pro_store_name: string | null;
 }
 
 export interface CartItem {

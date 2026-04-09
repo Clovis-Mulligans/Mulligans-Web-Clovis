@@ -15,13 +15,9 @@ import {
 } from '@/lib/cart-api';
 import { CardSkeletonGrid } from '@/components/LoadingSkeleton';
 
-/* ── Constants ─────────────────────────────────────────── */
-
 const AVATAR_COLOURS = ['#1DC690', '#278AB0', '#1C4670', '#7C5CBF'];
 
-/* ── Helpers ───────────────────────────────────────────── */
-
-function formatPrice(n: number) {
+function fp(n: number) {
   return `£${n.toFixed(2)}`;
 }
 
@@ -31,8 +27,6 @@ function getInitials(name: string): string {
   return name.slice(0, 2).toUpperCase();
 }
 
-/* ── Page ──────────────────────────────────────────────── */
-
 export default function CartPage() {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
@@ -41,7 +35,6 @@ export default function CartPage() {
   const [removing, setRemoving] = useState<string | null>(null);
   const [checkingOut, setCheckingOut] = useState(false);
 
-  // Auth gate
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.push('/login?redirect=/cart');
@@ -64,7 +57,6 @@ export default function CartPage() {
     fetchCart();
   }, [fetchCart]);
 
-  /* ── Remove item (optimistic) ── */
   const handleRemoveItem = async (item: CartItem) => {
     setRemoving(item.id);
     setCart((prev) => {
@@ -84,7 +76,6 @@ export default function CartPage() {
     }
   };
 
-  /* ── Checkout ── */
   const handleCheckout = async () => {
     if (!isAuthenticated) {
       router.push('/login?redirect=/cart');
@@ -100,11 +91,10 @@ export default function CartPage() {
     }
   };
 
-  /* ── Auth loading gate ── */
   if (isLoading || !isAuthenticated) {
     return (
-      <div className="flex items-center justify-center py-24">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#1DC690] border-t-transparent" />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6rem 0' }}>
+        <div style={{ width: 32, height: 32, borderRadius: '50%', border: '2px solid #1DC690', borderTopColor: 'transparent', animation: 'spin 0.7s linear infinite' }} />
       </div>
     );
   }
@@ -113,7 +103,6 @@ export default function CartPage() {
   const totalItemCount = allItems.reduce((sum, i) => sum + i.quantity, 0);
   const isEmpty = !cart || cart.sellers.length === 0;
 
-  /* ── Order summary calculations (brief-specified formulas) ── */
   const itemsSubtotal = allItems.reduce((sum, item) => {
     const raw = Number(item.offer_price ?? item.price);
     return sum + raw * item.quantity;
@@ -132,78 +121,41 @@ export default function CartPage() {
   const estimatedTotal = itemsSubtotal + buyerProtectionFee + shippingTotal;
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#EAEAE0' }}>
-      <div className="mx-auto max-w-[1280px] px-4 py-6 sm:px-6 lg:px-8">
+    <div style={{ backgroundColor: '#EAEAE0', minHeight: '100vh' }}>
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .trash-btn { background: none; border: none; cursor: pointer; padding: 0; display: inline-flex; color: #c0c0c0; }
+        .trash-btn:hover { color: #e24b4a; }
+        .checkout-btn-green { width: 100%; padding: 14px 0; border: none; border-radius: 10px; background: #1DC690; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; }
+        .checkout-btn-green:hover { opacity: 0.9; }
+        .checkout-btn-green:disabled { opacity: 0.6; }
+        .browse-btn { display: inline-block; padding: 12px 28px; background: #1DC690; color: #fff; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none; }
+      `}</style>
+
+      <div style={{ maxWidth: 960, margin: '0 auto', padding: '32px 16px' }}>
+
         {loading ? (
           <CardSkeletonGrid count={4} />
         ) : isEmpty ? (
-          /* ── Empty state ───────────────────────── */
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="64"
-              height="64"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#ADADAD"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
-              <path d="M3 6h18" />
-              <path d="M16 10a4 4 0 0 1-8 0" />
-            </svg>
-            <p
-              className="mt-4"
-              style={{
-                fontFamily: 'var(--font-sans)',
-                fontWeight: 600,
-                fontSize: '1.1rem',
-                color: '#06070A',
-              }}
-            >
-              Your bag is empty
-            </p>
-            <p
-              className="mt-1"
-              style={{
-                fontFamily: 'var(--font-sans)',
-                fontSize: '0.875rem',
-                color: '#6B6B6B',
-              }}
-            >
-              Browse listings to find your next club
-            </p>
-            <Link
-              href="/search"
-              className="mt-6 inline-flex items-center rounded-lg px-6 py-3 text-sm font-medium text-white transition-colors hover:opacity-90"
-              style={{ backgroundColor: '#1DC690' }}
-            >
-              Browse listings
-            </Link>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 0', textAlign: 'center' }}>
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1.5"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            <p style={{ marginTop: 20, fontSize: 20, fontWeight: 600, color: '#06070A' }}>Your bag is empty</p>
+            <p style={{ marginTop: 6, fontSize: 14, color: '#888' }}>Browse listings to find your next club</p>
+            <Link href="/search" className="browse-btn" style={{ marginTop: 24 }}>Browse listings</Link>
           </div>
         ) : (
           <>
-            {/* ── Page heading ────────────────────── */}
-            <h1
-              className="mb-6"
-              style={{
-                fontFamily: 'var(--font-sans)',
-                fontWeight: 500,
-                fontSize: '1.5rem',
-                color: '#06070A',
-              }}
-            >
-              Your bag ({totalItemCount} item{totalItemCount !== 1 ? 's' : ''})
+            <h1 style={{ fontSize: 26, fontWeight: 700, color: '#06070A', marginBottom: 24 }}>
+              Bag ({totalItemCount} item{totalItemCount !== 1 ? 's' : ''})
             </h1>
 
-            {/* ── Two-column grid (single col on mobile) ── */}
-            <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_252px] gap-4 items-start">
-              {/* ── LEFT: Seller cards ── */}
-              <div className="space-y-4 min-w-0">
+            {/* Two column layout */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 280px', gap: 20, alignItems: 'start' }}>
+
+              {/* LEFT — Seller cards */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {cart!.sellers.map((seller, idx) => (
-                  <SellerCardBlock
+                  <SellerCard
                     key={seller.seller_id}
                     seller={seller}
                     colourIndex={idx}
@@ -213,115 +165,49 @@ export default function CartPage() {
                 ))}
               </div>
 
-              {/* ── RIGHT: Order summary (sticky on desktop) ── */}
-              <div className="md:sticky md:top-5">
-                <div
-                  className="rounded-xl p-4"
-                  style={{
-                    backgroundColor: '#fff',
-                    border: '0.5px solid #d4d4cc',
-                  }}
-                >
-                  <p
-                    style={{
-                      fontFamily: 'var(--font-sans)',
-                      fontWeight: 500,
-                      fontSize: '14px',
-                      color: '#06070A',
-                      marginBottom: '12px',
-                    }}
-                  >
-                    Order summary
-                  </p>
+              {/* RIGHT — Order summary */}
+              <div style={{ position: 'sticky', top: 20 }}>
+                <div style={{ background: '#fff', borderRadius: 12, border: '0.5px solid #d4d4cc', padding: '22px 20px' }}>
+                  <p style={{ fontSize: 17, fontWeight: 700, color: '#06070A', marginBottom: 18 }}>Order summary</p>
 
-                  {/* Rows */}
-                  <div className="space-y-2" style={{ fontSize: '13px' }}>
-                    <div className="flex justify-between">
-                      <span style={{ color: '#6B6B6B' }}>
-                        Items ({totalItemCount})
-                      </span>
-                      <span style={{ color: '#06070A' }}>
-                        {formatPrice(itemsSubtotal)}
-                      </span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, color: '#555' }}>
+                      <span>Items ({totalItemCount})</span>
+                      <span style={{ color: '#06070A', fontWeight: 500 }}>{fp(itemsSubtotal)}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span style={{ color: '#6B6B6B' }}>
-                        Buyer protection fee
-                      </span>
-                      <span style={{ color: '#06070A' }}>
-                        {formatPrice(buyerProtectionFee)}
-                      </span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, color: '#555' }}>
+                      <span>Buyer protection fee</span>
+                      <span style={{ color: '#06070A', fontWeight: 500 }}>{fp(buyerProtectionFee)}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span style={{ color: '#6B6B6B' }}>Shipping (est.)</span>
-                      <span style={{ color: '#06070A' }}>
-                        {formatPrice(shippingTotal)}
-                      </span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, color: '#555' }}>
+                      <span>Shipping (est.)</span>
+                      <span style={{ color: '#06070A', fontWeight: 500 }}>{fp(shippingTotal)}</span>
                     </div>
                   </div>
 
-                  {/* Divider */}
-                  <div
-                    className="my-3"
-                    style={{ borderTop: '1px solid #d4d4cc' }}
-                  />
+                  <div style={{ borderTop: '1px solid #e8e8e4', margin: '16px 0' }} />
 
-                  {/* Total */}
-                  <div className="flex justify-between items-baseline">
-                    <span
-                      style={{
-                        fontFamily: 'var(--font-sans)',
-                        fontWeight: 500,
-                        fontSize: '14px',
-                        color: '#06070A',
-                      }}
-                    >
-                      Estimated total
-                    </span>
-                    <span
-                      style={{
-                        fontFamily: 'var(--font-sans)',
-                        fontWeight: 600,
-                        fontSize: '16px',
-                        color: '#06070A',
-                      }}
-                    >
-                      {formatPrice(estimatedTotal)}
-                    </span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                    <span style={{ fontSize: 16, fontWeight: 700, color: '#06070A' }}>Total</span>
+                    <span style={{ fontSize: 22, fontWeight: 700, color: '#06070A' }}>{fp(estimatedTotal)}</span>
                   </div>
 
-                  {/* Checkout button */}
                   <button
                     onClick={handleCheckout}
                     disabled={checkingOut}
-                    className="mt-4 w-full rounded-lg py-3 text-sm font-medium text-white transition-colors hover:opacity-90 disabled:opacity-60"
-                    style={{ backgroundColor: '#1DC690' }}
+                    className="checkout-btn-green"
+                    style={{ marginTop: 18 }}
                   >
-                    {checkingOut ? (
-                      <span className="inline-flex items-center gap-2">
-                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                        Processing...
-                      </span>
-                    ) : (
-                      'Proceed to checkout'
-                    )}
+                    {checkingOut ? 'Processing...' : 'Proceed to checkout'}
                   </button>
 
-                  {/* Buyer protection note */}
-                  <p
-                    className="mt-3 text-center"
-                    style={{
-                      fontFamily: 'var(--font-sans)',
-                      fontSize: '11px',
-                      color: '#6B6B6B',
-                    }}
-                  >
-                    &#10022; All purchases covered by Mulligans Buyer Protection
+                  <p style={{ marginTop: 12, textAlign: 'center', fontSize: 11, color: '#aaa', lineHeight: 1.5 }}>
+                    ✦ All purchases covered by Mulligans Buyer Protection
                   </p>
                 </div>
               </div>
-            </div>
 
+            </div>
           </>
         )}
       </div>
@@ -329,9 +215,9 @@ export default function CartPage() {
   );
 }
 
-/* ── Seller Card Component ────────────────────────────── */
+/* ─── Seller Card ─────────────────────────────────────── */
 
-function SellerCardBlock({
+function SellerCard({
   seller,
   colourIndex,
   removing,
@@ -343,226 +229,112 @@ function SellerCardBlock({
   onRemove: (item: CartItem) => void;
 }) {
   const avatarBg = AVATAR_COLOURS[colourIndex % AVATAR_COLOURS.length];
-  const isPro = seller.seller_is_verified_seller_seller;
-  const displayName = seller.seller_name || 'Seller';
-  const initials = getInitials(displayName);
+  const isPro = seller.is_pro_store ?? seller.seller_is_verified_seller_seller;
+  const displayName = isPro && seller.pro_store_name ? seller.pro_store_name : (seller.seller_name || 'Seller');
 
   return (
-    <div
-      className="rounded-xl overflow-hidden"
-      style={{ backgroundColor: '#fff', border: '0.5px solid #d4d4cc' }}
-    >
-      {/* ── Seller header ── */}
-      <div
-        className="flex items-center gap-3 px-4 py-3"
-        style={{ borderBottom: '0.5px solid #d4d4cc' }}
-      >
-        {/* Avatar */}
-        <div
-          className="flex-shrink-0 flex items-center justify-center rounded-full text-white"
-          style={{
-            width: 32,
-            height: 32,
-            backgroundColor: avatarBg,
-            fontSize: '12px',
-            fontWeight: 600,
-            fontFamily: 'var(--font-sans)',
-            ...(isPro
-              ? { outline: '2px solid #C9A84C', outlineOffset: '1px' }
-              : {}),
-          }}
-        >
-          {seller.seller_avatar ? (
-            <img
-              src={seller.seller_avatar}
-              alt=""
-              className="w-full h-full rounded-full object-cover"
-            />
-          ) : (
-            initials
-          )}
-        </div>
+    <div style={{ background: '#fff', borderRadius: 12, border: '0.5px solid #d4d4cc', overflow: 'hidden' }}>
 
-        {/* Name + handle */}
-        <div className="flex-1 min-w-0">
-          <p
-            className="truncate"
-            style={{
-              fontFamily: 'var(--font-sans)',
-              fontWeight: 500,
-              fontSize: '13px',
-              color: '#06070A',
-            }}
-          >
-            {displayName}
-          </p>
+      {/* Seller header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderBottom: '0.5px solid #ebebeb', background: '#fafaf8' }}>
+        <div style={{
+          width: 38, height: 38, borderRadius: '50%', backgroundColor: avatarBg,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 13, fontWeight: 600, color: '#fff', flexShrink: 0,
+          ...(isPro ? { outline: '2px solid #C9A84C', outlineOffset: 2 } : {})
+        }}>
+          {seller.seller_avatar
+            ? <img src={seller.seller_avatar} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+            : getInitials(displayName)
+          }
         </div>
-
-        {/* PRO badge */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ fontSize: 14, fontWeight: 600, color: '#06070A', margin: 0 }}>{displayName}</p>
+        </div>
         {isPro && (
-          <span
-            className="flex-shrink-0"
-            style={{
-              backgroundColor: '#C9A84C',
-              color: '#fff',
-              fontSize: '10px',
-              padding: '2px 7px',
-              borderRadius: '4px',
-              fontWeight: 600,
-              fontFamily: 'var(--font-sans)',
-            }}
-          >
+          <span style={{ background: '#C9A84C', color: '#fff', fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 4, flexShrink: 0 }}>
             PRO
           </span>
         )}
       </div>
 
-      {/* ── Item rows ── */}
-      {seller.items.map((item, itemIdx) => {
+      {/* Items */}
+      {seller.items.map((item, idx) => {
         const raw = Number(item.offer_price ?? item.price);
         const buyerPrice = raw * 1.075 + 0.99;
-        const hasOffer =
-          item.offer_price !== null && item.offer_price !== undefined;
-
-        // Build meta parts
-        const metaParts: string[] = [];
-        if (item.selected_size) metaParts.push(item.selected_size);
+        const hasOffer = item.offer_price !== null && item.offer_price !== undefined;
+        const shippingCost = item.shipping_cost ? Number(item.shipping_cost) : (seller.shipping_cost || 0);
 
         return (
           <div
             key={item.id}
-            className="flex items-start gap-3 px-4 py-3"
             style={{
-              borderBottom:
-                itemIdx < seller.items.length - 1
-                  ? '0.5px solid #d4d4cc'
-                  : 'none',
+              display: 'flex', gap: 14, padding: '16px 16px',
+              borderBottom: idx < seller.items.length - 1 ? '0.5px solid #f0f0ee' : 'none',
             }}
           >
-            {/* Thumbnail */}
-            <Link href={`/listings/${item.listing_id}`} className="flex-shrink-0">
-              <div
-                className="overflow-hidden"
-                style={{
-                  width: 88,
-                  height: 88,
-                  borderRadius: 8,
-                  backgroundColor: '#F4F4F0',
-                }}
-              >
+            {/* Image — portrait rectangle like Depop */}
+            <Link href={`/listings/${item.listing_id}`} style={{ flexShrink: 0 }}>
+              <div style={{ width: 110, height: 130, borderRadius: 8, overflow: 'hidden', backgroundColor: '#f0f0ec' }}>
                 {item.image_url ? (
                   <img
                     src={item.image_url}
                     alt=""
-                    className="w-full h-full object-cover"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                   />
                 ) : (
-                  <div className="flex items-center justify-center w-full h-full text-2xl text-gray-300">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="32"
-                      height="32"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="#ccc"
-                      strokeWidth="1.5"
-                    >
-                      <rect x="3" y="3" width="18" height="18" rx="2" />
-                      <circle cx="8.5" cy="8.5" r="1.5" />
-                      <path d="m21 15-5-5L5 21" />
-                    </svg>
+                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
                   </div>
                 )}
               </div>
             </Link>
 
-            {/* Item details */}
-            <div className="flex-1 min-w-0">
-              {/* Title */}
-              <Link href={`/listings/${item.listing_id}`}>
-                <p
-                  className="truncate"
-                  style={{
-                    fontFamily: 'var(--font-sans)',
-                    fontWeight: 500,
-                    fontSize: '13px',
-                    color: '#06070A',
-                  }}
-                >
+            {/* Details */}
+            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <Link href={`/listings/${item.listing_id}`} style={{ textDecoration: 'none' }}>
+                <p style={{ fontSize: 14, fontWeight: 500, color: '#06070A', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {item.title}
                 </p>
               </Link>
 
-              {/* Meta line */}
-              {metaParts.length > 0 && (
-                <p
-                  className="mt-0.5"
-                  style={{
-                    fontFamily: 'var(--font-sans)',
-                    fontSize: '11px',
-                    color: '#aaa',
-                  }}
-                >
-                  {metaParts.join(' \u00B7 ')}
-                </p>
+              {item.selected_size && (
+                <p style={{ fontSize: 12, color: '#aaa', margin: 0 }}>{item.selected_size}</p>
               )}
 
-              {/* Price */}
-              <div className="mt-1 flex items-center gap-1.5 flex-wrap">
-                <span
-                  style={{
-                    fontFamily: 'var(--font-sans)',
-                    fontWeight: 500,
-                    fontSize: '14px',
-                    color: '#06070A',
-                  }}
-                >
-                  {formatPrice(buyerPrice)}
+              {/* Price row — bold and prominent */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
+                <span style={{ fontSize: 17, fontWeight: 700, color: '#06070A' }}>
+                  {fp(buyerPrice)}
                 </span>
-
                 {hasOffer && (
                   <>
-                    <span
-                      style={{
-                        fontFamily: 'var(--font-sans)',
-                        fontSize: '11px',
-                        color: '#ccc',
-                        textDecoration: 'line-through',
-                      }}
-                    >
-                      {formatPrice(Number(item.price) * 1.075 + 0.99)}
+                    <span style={{ fontSize: 13, color: '#ccc', textDecoration: 'line-through' }}>
+                      {fp(Number(item.price) * 1.075 + 0.99)}
                     </span>
-                    <span
-                      style={{
-                        backgroundColor: '#F0EAFA',
-                        color: '#7C5CBF',
-                        fontSize: '10px',
-                        padding: '2px 6px',
-                        borderRadius: '4px',
-                        fontFamily: 'var(--font-sans)',
-                        fontWeight: 500,
-                      }}
-                    >
+                    <span style={{ fontSize: 10, fontWeight: 500, background: '#F0EAFA', color: '#7C5CBF', padding: '2px 6px', borderRadius: 4 }}>
                       Offer price
                     </span>
                   </>
                 )}
               </div>
-            </div>
 
-            {/* Remove button */}
-            <button
-              onClick={() => onRemove(item)}
-              disabled={removing === item.id}
-              className="flex-shrink-0 p-1 transition-colors group"
-              aria-label="Remove item"
-            >
-              <Trash2
-                width={16}
-                height={16}
-                className="text-[#ccc] group-hover:text-[#e24b4a] transition-colors"
-              />
-            </button>
+              {/* Shipping — shown per item so buyer sees true cost */}
+              <p style={{ fontSize: 12, color: '#888', margin: 0 }}>
+                + {shippingCost > 0 ? fp(shippingCost) : 'Free'} shipping
+              </p>
+
+              {/* Trash — below details, small */}
+              <button
+                className="trash-btn"
+                onClick={() => onRemove(item)}
+                disabled={removing === item.id}
+                aria-label="Remove item"
+                style={{ marginTop: 6, opacity: removing === item.id ? 0.4 : 1 }}
+              >
+                <Trash2 size={16} />
+              </button>
+            </div>
           </div>
         );
       })}
