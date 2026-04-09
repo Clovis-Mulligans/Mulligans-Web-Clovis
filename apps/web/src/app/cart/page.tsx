@@ -290,49 +290,46 @@ function SellerCard({
               </div>
             </Link>
 
-            {/* Details */}
-            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {/* Centre — title and meta */}
+            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 5 }}>
               <Link href={`/listings/${item.listing_id}`} style={{ textDecoration: 'none' }}>
-                <p style={{ fontSize: 16, fontWeight: 500, color: '#06070A', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <p style={{ fontSize: 15, fontWeight: 500, color: '#06070A', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {item.title}
                 </p>
               </Link>
-
               {item.selected_size && (
-                <p style={{ fontSize: 14, color: '#aaa', margin: 0 }}>{item.selected_size}</p>
+                <p style={{ fontSize: 13, color: '#aaa', margin: 0 }}>{item.selected_size}</p>
               )}
+            </div>
 
-              {/* Price row — bold and prominent */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
-                <span style={{ fontSize: 20, fontWeight: 700, color: '#06070A' }}>
+            {/* Right — price, shipping, trash */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'space-between', flexShrink: 0, gap: 6 }}>
+              <div style={{ textAlign: 'right' }}>
+                <p style={{ fontSize: 20, fontWeight: 700, color: '#06070A', margin: 0 }}>
                   {fp(buyerPrice)}
-                </span>
+                </p>
                 {hasOffer && (
-                  <>
-                    <span style={{ fontSize: 13, color: '#ccc', textDecoration: 'line-through' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'flex-end', marginTop: 2 }}>
+                    <span style={{ fontSize: 12, color: '#ccc', textDecoration: 'line-through' }}>
                       {fp(Number(item.price) * 1.075 + 0.99)}
                     </span>
                     <span style={{ fontSize: 10, fontWeight: 500, background: '#F0EAFA', color: '#7C5CBF', padding: '2px 6px', borderRadius: 4 }}>
-                      Offer price
+                      Offer
                     </span>
-                  </>
+                  </div>
                 )}
+                <p style={{ fontSize: 12, color: '#aaa', margin: '4px 0 0', textAlign: 'right' }}>
+                  + {shippingCost > 0 ? fp(shippingCost) : 'Free'} shipping
+                </p>
               </div>
-
-              {/* Shipping — shown per item so buyer sees true cost */}
-              <p style={{ fontSize: 14, color: '#888', margin: 0 }}>
-                + {shippingCost > 0 ? fp(shippingCost) : 'Free'} shipping
-              </p>
-
-              {/* Trash — below details, small */}
               <button
                 className="trash-btn"
                 onClick={() => onRemove(item)}
                 disabled={removing === item.id}
                 aria-label="Remove item"
-                style={{ marginTop: 6, opacity: removing === item.id ? 0.4 : 1 }}
+                style={{ opacity: removing === item.id ? 0.4 : 1 }}
               >
-                <Trash2 size={16} />
+                <Trash2 size={15} />
               </button>
             </div>
           </div>
