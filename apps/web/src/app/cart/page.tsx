@@ -121,7 +121,7 @@ export default function CartPage() {
   const estimatedTotal = itemsSubtotal + buyerProtectionFee + shippingTotal;
 
   return (
-    <div style={{ backgroundColor: '#EAEAE0', minHeight: '100vh' }}>
+    <div style={{ backgroundColor: '#EAEAE0' }}>
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         .trash-btn { background: none; border: none; cursor: pointer; padding: 0; display: inline-flex; color: #c0c0c0; }
@@ -171,15 +171,15 @@ export default function CartPage() {
                   <p style={{ fontSize: 17, fontWeight: 700, color: '#06070A', marginBottom: 18 }}>Order summary</p>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, color: '#555' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 15, color: '#555' }}>
                       <span>Items ({totalItemCount})</span>
                       <span style={{ color: '#06070A', fontWeight: 500 }}>{fp(itemsSubtotal)}</span>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, color: '#555' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 15, color: '#555' }}>
                       <span>Buyer protection fee</span>
                       <span style={{ color: '#06070A', fontWeight: 500 }}>{fp(buyerProtectionFee)}</span>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, color: '#555' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 15, color: '#555' }}>
                       <span>Shipping (est.)</span>
                       <span style={{ color: '#06070A', fontWeight: 500 }}>{fp(shippingTotal)}</span>
                     </div>
@@ -249,7 +249,7 @@ function SellerCard({
           }
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontSize: 14, fontWeight: 600, color: '#06070A', margin: 0 }}>{displayName}</p>
+          <p style={{ fontSize: 16, fontWeight: 700, color: '#06070A', margin: 0 }}>{displayName}</p>
         </div>
         {isPro && (
           <span style={{ background: '#C9A84C', color: '#fff', fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 4, flexShrink: 0 }}>
@@ -293,18 +293,18 @@ function SellerCard({
             {/* Details */}
             <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
               <Link href={`/listings/${item.listing_id}`} style={{ textDecoration: 'none' }}>
-                <p style={{ fontSize: 14, fontWeight: 500, color: '#06070A', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <p style={{ fontSize: 16, fontWeight: 500, color: '#06070A', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {item.title}
                 </p>
               </Link>
 
               {item.selected_size && (
-                <p style={{ fontSize: 12, color: '#aaa', margin: 0 }}>{item.selected_size}</p>
+                <p style={{ fontSize: 14, color: '#aaa', margin: 0 }}>{item.selected_size}</p>
               )}
 
               {/* Price row — bold and prominent */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
-                <span style={{ fontSize: 17, fontWeight: 700, color: '#06070A' }}>
+                <span style={{ fontSize: 20, fontWeight: 700, color: '#06070A' }}>
                   {fp(buyerPrice)}
                 </span>
                 {hasOffer && (
@@ -320,7 +320,7 @@ function SellerCard({
               </div>
 
               {/* Shipping — shown per item so buyer sees true cost */}
-              <p style={{ fontSize: 12, color: '#888', margin: 0 }}>
+              <p style={{ fontSize: 14, color: '#888', margin: 0 }}>
                 + {shippingCost > 0 ? fp(shippingCost) : 'Free'} shipping
               </p>
 
