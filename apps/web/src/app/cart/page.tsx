@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Trash2, ShieldCheck, Star } from 'lucide-react';
+import { Trash2, ShieldCheck, Star, Tag, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import {
   getCart,
@@ -14,6 +14,7 @@ import {
   type CartItem,
 } from '@/lib/cart-api';
 import { CardSkeletonGrid } from '@/components/LoadingSkeleton';
+import { CONDITION_COLOURS } from '@/lib/constants';
 
 const AVATAR_COLOURS = ['#1DC690', '#278AB0', '#1C4670', '#7C5CBF'];
 
@@ -25,6 +26,58 @@ function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/);
   if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
   return name.slice(0, 2).toUpperCase();
+}
+
+function getConditionLabel(score: number | null | undefined): string {
+  if (!score) return '';
+  const labels: Record<number, string> = {
+    1: 'Poor',
+    2: 'Fair',
+    3: 'Good',
+    4: 'Very Good',
+    5: 'Excellent',
+  };
+  return labels[score] ?? '';
+}
+
+/* ── Expandable buyer protection panel ── */
+function BuyerProtectionPanel() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ border: '1px solid #e0f5ee', borderRadius: 10, overflow: 'hidden', marginTop: 18 }}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '12px 14px', background: '#f0fbf6', border: 'none', cursor: 'pointer',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <ShieldCheck size={16} color="#1DC690" />
+          <span style={{ fontSize: 14, fontWeight: 600, color: '#06070A' }}>
+            Mulligans Buyer Protection
+          </span>
+        </div>
+        {open
+          ? <ChevronUp size={16} color="#888" />
+          : <ChevronDown size={16} color="#888" />
+        }
+      </button>
+      {open && (
+        <div style={{ padding: '12px 14px', background: '#fff', borderTop: '1px solid #e0f5ee' }}>
+          <p style={{ fontSize: 13, color: '#444', lineHeight: 1.6, margin: '0 0 8px' }}>
+            Every purchase on Mulligans is covered by our Buyer Protection policy:
+          </p>
+          <ul style={{ fontSize: 13, color: '#555', lineHeight: 1.8, margin: 0, paddingLeft: 18 }}>
+            <li>Full refund if your item doesn't arrive</li>
+            <li>Full refund if the item isn't as described</li>
+            <li>3-day inspection window after delivery</li>
+            <li>Funds held in escrow until you confirm receipt</li>
+          </ul>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function CartPage() {
@@ -126,18 +179,18 @@ export default function CartPage() {
     <div style={{ background: '#fff', borderRadius: 14, border: '0.5px solid #d4d4cc', padding: '24px 22px' }}>
       <p style={{ fontSize: 18, fontWeight: 700, color: '#06070A', margin: '0 0 20px' }}>Order summary</p>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 15, color: '#666' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 15, color: '#555' }}>
           <span>Items ({totalItemCount})</span>
-          <span style={{ color: '#06070A', fontWeight: 500 }}>{fp(itemsSubtotal)}</span>
+          <span style={{ color: '#06070A', fontWeight: 600 }}>{fp(itemsSubtotal)}</span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 15, color: '#666' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 15, color: '#555' }}>
           <span>Buyer protection fee</span>
-          <span style={{ color: '#06070A', fontWeight: 500 }}>{fp(buyerProtectionFee)}</span>
+          <span style={{ color: '#06070A', fontWeight: 600 }}>{fp(buyerProtectionFee)}</span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 15, color: '#666' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 15, color: '#555' }}>
           <span>Shipping (est.)</span>
-          <span style={{ color: '#06070A', fontWeight: 500 }}>{fp(shippingTotal)}</span>
+          <span style={{ color: '#06070A', fontWeight: 600 }}>{fp(shippingTotal)}</span>
         </div>
       </div>
 
@@ -149,7 +202,7 @@ export default function CartPage() {
       </div>
 
       {hasUnavailableItems && (
-        <p style={{ marginTop: 14, fontSize: 13, color: '#c0392b', background: '#fdf0ee', padding: '10px 12px', borderRadius: 8, lineHeight: 1.5 }}>
+        <p style={{ marginTop: 14, fontSize: 13, color: '#c0392b', background: '#fdf0ee', padding: '10px 12px', borderRadius: 8, lineHeight: 1.6 }}>
           Some items are no longer available. Remove them before checking out.
         </p>
       )}
@@ -168,12 +221,8 @@ export default function CartPage() {
         {checkingOut ? 'Processing...' : 'Proceed to checkout'}
       </button>
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 14 }}>
-        <ShieldCheck size={14} color="#1DC690" />
-        <p style={{ fontSize: 12, color: '#999', margin: 0 }}>
-          All purchases covered by Mulligans Buyer Protection
-        </p>
-      </div>
+      {/* Expandable buyer protection */}
+      <BuyerProtectionPanel />
     </div>
   );
 
@@ -206,7 +255,7 @@ export default function CartPage() {
               <path d="M16 10a4 4 0 0 1-8 0"/>
             </svg>
             <p style={{ marginTop: 20, fontSize: 22, fontWeight: 700, color: '#06070A' }}>Your bag is empty</p>
-            <p style={{ marginTop: 8, fontSize: 15, color: '#888' }}>Browse listings to find your next club</p>
+            <p style={{ marginTop: 8, fontSize: 15, color: '#666' }}>Browse listings to find your next club</p>
             <Link href="/search" style={{ marginTop: 24, display: 'inline-block', padding: '13px 32px', background: '#1DC690', color: '#fff', borderRadius: 10, fontSize: 15, fontWeight: 600, textDecoration: 'none' }}>
               Browse listings
             </Link>
@@ -267,13 +316,12 @@ function SellerCard({
   return (
     <div style={{ background: '#fff', borderRadius: 14, border: '0.5px solid #d4d4cc', overflow: 'hidden' }}>
 
-      {/* ── Seller header ── */}
+      {/* Seller header */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 14,
         padding: '16px 20px', borderBottom: '1px solid #efefed',
         background: '#f8f8f6',
       }}>
-        {/* Avatar */}
         <div style={{
           width: 44, height: 44, borderRadius: '50%', backgroundColor: avatarBg,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -286,22 +334,20 @@ function SellerCard({
           }
         </div>
 
-        {/* Name + rating */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{ fontSize: 16, fontWeight: 700, color: '#06070A', margin: 0, lineHeight: 1.3 }}>
             {displayName}
           </p>
           {rating !== null && rating > 0 && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 3 }}>
-              <Star size={12} fill="#F5A623" color="#F5A623" />
-              <span style={{ fontSize: 13, color: '#888', fontWeight: 500 }}>
+              <Star size={13} fill="#F5A623" color="#F5A623" />
+              <span style={{ fontSize: 13, color: '#666', fontWeight: 600 }}>
                 {rating.toFixed(1)}
               </span>
             </div>
           )}
         </div>
 
-        {/* PRO badge */}
         {isPro && (
           <span style={{
             background: '#C9A84C', color: '#fff', fontSize: 11, fontWeight: 700,
@@ -312,24 +358,29 @@ function SellerCard({
         )}
       </div>
 
-      {/* ── Items ── */}
+      {/* Items */}
       {seller.items.map((item, idx) => {
         const raw = Number(item.offer_price ?? item.price);
         const buyerPrice = raw * 1.075 + 0.99;
         const hasOffer = item.offer_price !== null && item.offer_price !== undefined;
         const shippingCost = item.shipping_cost ? Number(item.shipping_cost) : (seller.shipping_cost || 0);
         const isUnavailable = item.is_available === false;
+        const conditionScore = item.condition_overall ?? null;
+        const conditionLabel = getConditionLabel(conditionScore);
+        const conditionStyle = conditionScore
+          ? (CONDITION_COLOURS[conditionScore as keyof typeof CONDITION_COLOURS] ?? null)
+          : null;
 
         return (
           <div
             key={item.id}
             style={{
-              display: 'flex', alignItems: 'center', gap: 16, padding: '18px 20px',
+              display: 'flex', alignItems: 'center', gap: 16, padding: '20px 20px',
               borderBottom: idx < seller.items.length - 1 ? '1px solid #f2f2f0' : 'none',
               opacity: isUnavailable ? 0.5 : 1,
             }}
           >
-            {/* Image — portrait, object-position top so product is visible */}
+            {/* Image */}
             <Link href={`/listings/${item.listing_id}`} className="item-img-link" style={{ flexShrink: 0 }}>
               <div style={{ width: 130, height: 155, borderRadius: 10, overflow: 'hidden', backgroundColor: '#efefeb' }}>
                 {item.image_url ? (
@@ -350,39 +401,68 @@ function SellerCard({
               </div>
             </Link>
 
-            {/* Centre — title and meta, vertically centred in row */}
-            <div style={{ flex: 1, minWidth: 0 }}>
+            {/* Centre — title, meta, condition, offer badge */}
+            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 7 }}>
               <Link href={`/listings/${item.listing_id}`} className="item-title-link">
-                <p style={{ fontSize: 15, fontWeight: 600, color: '#06070A', margin: '0 0 5px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.4 }}>
+                <p style={{ fontSize: 15, fontWeight: 600, color: '#06070A', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.4 }}>
                   {item.title}
                 </p>
               </Link>
-              {item.selected_size && (
-                <p style={{ fontSize: 13, color: '#aaa', margin: 0 }}>{item.selected_size}</p>
+
+              {/* Condition tag — matches mobile app style */}
+              {conditionLabel && (
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center',
+                  fontSize: 12, fontWeight: 600,
+                  padding: '3px 9px', borderRadius: 20,
+                  background: conditionStyle?.bg ?? '#f0f0ec',
+                  color: conditionStyle?.text ?? '#555',
+                  alignSelf: 'flex-start',
+                }}>
+                  {conditionLabel}
+                </span>
               )}
+
+              {/* Size if present */}
+              {item.selected_size && (
+                <p style={{ fontSize: 14, color: '#666', margin: 0, fontWeight: 500 }}>
+                  Size: {item.selected_size}
+                </p>
+              )}
+
+              {/* Offer badge — purple with tag icon, matching mobile */}
+              {hasOffer && (
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, alignSelf: 'flex-start' }}>
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 5,
+                    fontSize: 12, fontWeight: 600,
+                    background: '#F0EAFA', color: '#7C5CBF',
+                    padding: '3px 9px', borderRadius: 20,
+                  }}>
+                    <Tag size={11} />
+                    Offer accepted
+                  </span>
+                </div>
+              )}
+
               {isUnavailable && (
-                <span style={{ fontSize: 12, fontWeight: 600, color: '#c0392b', background: '#fdf0ee', padding: '3px 8px', borderRadius: 5, display: 'inline-block', marginTop: 6 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: '#c0392b', background: '#fdf0ee', padding: '3px 10px', borderRadius: 20, display: 'inline-block', alignSelf: 'flex-start' }}>
                   No longer available
                 </span>
               )}
             </div>
 
             {/* Right — price, shipping, trash */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center', flexShrink: 0, minWidth: 110, gap: 4 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center', flexShrink: 0, minWidth: 120, gap: 5 }}>
               <p style={{ fontSize: 20, fontWeight: 700, color: '#06070A', margin: 0, lineHeight: 1.2 }}>
                 {fp(buyerPrice)}
               </p>
               {hasOffer && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 5, justifyContent: 'flex-end' }}>
-                  <span style={{ fontSize: 12, color: '#ccc', textDecoration: 'line-through' }}>
-                    {fp(Number(item.price) * 1.075 + 0.99)}
-                  </span>
-                  <span style={{ fontSize: 10, fontWeight: 600, background: '#F0EAFA', color: '#7C5CBF', padding: '2px 6px', borderRadius: 4 }}>
-                    Offer
-                  </span>
-                </div>
+                <span style={{ fontSize: 13, color: '#bbb', textDecoration: 'line-through' }}>
+                  {fp(Number(item.price) * 1.075 + 0.99)}
+                </span>
               )}
-              <p style={{ fontSize: 12, color: '#aaa', margin: 0, textAlign: 'right' }}>
+              <p style={{ fontSize: 14, color: '#666', margin: 0, textAlign: 'right', fontWeight: 500 }}>
                 + {shippingCost > 0 ? fp(shippingCost) : 'Free'} shipping
               </p>
               <button
@@ -390,7 +470,7 @@ function SellerCard({
                 onClick={() => onRemove(item)}
                 disabled={removing === item.id}
                 aria-label="Remove item"
-                style={{ opacity: removing === item.id ? 0.4 : 1, marginTop: 6 }}
+                style={{ opacity: removing === item.id ? 0.4 : 1, marginTop: 4 }}
               >
                 <Trash2 size={16} />
               </button>
