@@ -416,7 +416,7 @@ function SellerCard({
                   fontSize: 12, fontWeight: 600,
                   padding: '3px 9px', borderRadius: 20,
                   background: conditionStyle?.bg ?? '#f0f0ec',
-                  color: conditionStyle?.text ?? '#555',
+                  color: '#555',
                   alignSelf: 'flex-start',
                 }}>
                   {conditionLabel}
