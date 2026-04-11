@@ -68,6 +68,8 @@ export interface CartItem {
   offer_price: number | null;
   offer_expires_at: string | null;
   condition_overall: number | null;
+  brand: string | null;
+  model: string | null;
 }
 
 export interface CartSummary {
