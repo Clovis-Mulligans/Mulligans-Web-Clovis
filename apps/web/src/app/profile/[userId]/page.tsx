@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { useAuth } from '@/components/AuthProvider';
+import { useAuth } from '@/hooks/useAuth';
 import { ListingCard, type ListingCardData } from '@/components/ListingCard';
 import { CardSkeletonGrid } from '@/components/LoadingSkeleton';
 import SimpleModal from '@/components/SimpleModal';
