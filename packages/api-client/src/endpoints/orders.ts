@@ -18,6 +18,12 @@ export interface MarkAsShippedData {
   carrier: string;
 }
 
+export interface OpenDisputeData {
+  reasonType: string;
+  reasonText: string;
+  requestedRefundPercent: number;
+}
+
 // --- Endpoint Functions ---
 
 /** GET /api/orders/my-sales — seller's sold orders */
@@ -52,4 +58,17 @@ export function confirmReceipt(id: string) {
 /** GET /api/orders/counts — order badge counts */
 export function getOrderCounts() {
   return apiClient.get<OrderCounts>('/api/orders/counts');
+}
+
+/**
+ * POST /api/disputes — open a full dispute (buyer only).
+ * Uses the dispute controller (not the simpler PUT /api/orders/:id/dispute).
+ * Backend: src/controllers/disputeController.ts -> openDispute
+ * Accepts: orderId, reasonType, reasonText, requestedRefundPercent (10–100, multiples of 10)
+ */
+export function openDispute(orderId: string, data: OpenDisputeData) {
+  return apiClient.post<{ message: string; dispute: { id: string } }>('/api/disputes', {
+    orderId,
+    ...data,
+  });
 }
