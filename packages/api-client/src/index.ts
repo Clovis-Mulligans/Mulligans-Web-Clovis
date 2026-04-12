@@ -95,6 +95,7 @@ export {
   markAsShipped,
   confirmReceipt,
   getOrderCounts,
+  openDispute,
 } from './endpoints/orders';
 
 // Types — Offers (endpoints)
@@ -273,6 +274,14 @@ export {
   removeFavourite,
   checkFavourite,
 } from './endpoints/favourites';
+
+// Reviews
+export { getUserReviews, getUserReviewStats } from './endpoints/reviews';
+export type { ReviewData, ReviewsResponse, ReviewStats } from './endpoints/reviews';
+
+// Users — new additions
+export { getUserStats, getSellerStats, getUserListings, getUserSoldItems, reportUser, blockUser, unblockUser, isUserBlocked } from './endpoints/users';
+export type { UserStats, SellerStats, UserListingsParams, UserListingsResponse, SoldItemsResponse } from './endpoints/users';
 
 // Endpoints — Offers (additions)
 export { createOffer, getOffer } from './endpoints/offers';
