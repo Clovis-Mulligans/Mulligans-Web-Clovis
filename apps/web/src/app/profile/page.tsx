@@ -7,36 +7,18 @@ import { useAuth } from '@/hooks/useAuth';
 import { ListingCard, type ListingCardData } from '@/components/ListingCard';
 import { CardSkeletonGrid } from '@/components/LoadingSkeleton';
 import {
-  getPublicProfile,
-  getUserStats,
-  getSellerStats,
-  getUserSoldItems,
-  getMyListings,
+  getPublicProfile, getUserStats, getSellerStats, getUserSoldItems, getMyListings,
 } from '@mulligans/api-client';
 import type { UserStats, SellerStats } from '@mulligans/api-client';
 import { getUserReviewStats } from '@mulligans/api-client';
 import type { ReviewStats } from '@mulligans/api-client';
 import {
-  User,
-  MapPin,
-  Calendar,
-  Share2,
-  Settings,
-  Star,
-  ChevronRight,
-  ChevronDown,
-  ShoppingBag,
-  Pencil,
-  Search,
-  Check,
-  ShieldCheck,
-  Tag,
-  Inbox,
-  Send,
+  User, MapPin, Calendar, Share2, Settings, Star, ChevronRight, ChevronDown,
+  ShoppingBag, Pencil, Search, Check, ShieldCheck, Tag, Inbox, Send,
+  Zap, Package, Eye, Heart,
 } from 'lucide-react';
 
 const CLOUDFRONT_BASE = 'https://d1bhj4xuvi3dve.cloudfront.net';
-
 const SORT_OPTIONS = [
   { value: 'recent', label: 'Most Recent' },
   { value: 'price_asc', label: 'Price: Low to High' },
@@ -50,27 +32,15 @@ function resolveImageUrl(url: string | null | undefined): string | null {
 }
 
 interface ProfileUser {
-  id: string;
-  display_name: string | null;
-  avatar_url: string | null;
-  is_verified_seller: boolean;
-  is_pro_store?: boolean;
-  pro_store_name?: string | null;
-  rating: number;
-  total_sales?: number;
-  location: string | null;
-  bio: string | null;
-  created_at: string;
+  id: string; display_name: string | null; avatar_url: string | null;
+  is_verified_seller: boolean; is_pro_store?: boolean; pro_store_name?: string | null;
+  rating: number; total_sales?: number; location: string | null; bio: string | null; created_at: string;
 }
 
 export default function MyProfilePage() {
   const router = useRouter();
   const { user: authUser, isAuthenticated, isLoading: authLoading } = useAuth();
-
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) router.replace('/login?redirect=/profile');
-  }, [authLoading, isAuthenticated, router]);
-
+  useEffect(() => { if (!authLoading && !isAuthenticated) router.replace('/login?redirect=/profile'); }, [authLoading, isAuthenticated, router]);
   const userId = authUser?.id;
 
   const [profile, setProfile] = useState<ProfileUser | null>(null);
@@ -99,8 +69,7 @@ export default function MyProfilePage() {
         getPublicProfile(userId), getUserStats(userId), getUserReviewStats(userId),
       ]);
       setProfile((profileData as any).user || profileData);
-      setStats(statsData);
-      setReviewStats(reviewStatsData);
+      setStats(statsData); setReviewStats(reviewStatsData);
       try { setSellerStats(await getSellerStats(userId)); } catch {}
     } catch (err) { console.error('Failed to load profile:', err); }
     finally { setLoading(false); }
@@ -153,93 +122,48 @@ export default function MyProfilePage() {
   const avatarUrl = resolveImageUrl(profile?.avatar_url);
   const hasReviews = (reviewStats?.total_reviews || 0) > 0;
   const showSellerDashboard = (stats?.sales || 0) > 0 || (stats?.activeListingsCount || 0) > 0;
-
   const categories = useMemo(() => {
     const cats = new Set<string>();
     listings.forEach((l: any) => { if (l.category) cats.add(l.category); });
     return Array.from(cats).slice(0, 4);
   }, [listings]);
 
-  // ─── Loading ───
   if (loading || authLoading || !userId) {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#EAEAE0' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 16px' }}>
-          <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 32 }}>
-            <div style={{ width: 88, height: 88, borderRadius: '50%', backgroundColor: '#E5E7EB' }} />
-            <div><div style={{ height: 24, width: 180, backgroundColor: '#E5E7EB', borderRadius: 6, marginBottom: 10 }} /><div style={{ height: 14, width: 260, backgroundColor: '#E5E7EB', borderRadius: 6, marginBottom: 8 }} /><div style={{ height: 14, width: 200, backgroundColor: '#E5E7EB', borderRadius: 6 }} /></div>
+          <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 24 }}>
+            <div style={{ width: 80, height: 80, borderRadius: '50%', backgroundColor: '#E5E7EB' }} />
+            <div><div style={{ height: 24, width: 180, backgroundColor: '#E5E7EB', borderRadius: 6, marginBottom: 10 }} /><div style={{ height: 14, width: 260, backgroundColor: '#E5E7EB', borderRadius: 6 }} /></div>
           </div>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>{[1,2,3,4].map(i => <div key={i} style={{ flex: 1, height: 70, backgroundColor: '#E5E7EB', borderRadius: 10 }} />)}</div>
           <CardSkeletonGrid count={8} />
         </div>
       </div>
     );
   }
 
-  // ─── Separator helper ───
-  const dot = <span style={{ margin: '0 6px', color: '#D1D5DB' }}>·</span>;
-
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#EAEAE0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '32px 16px 80px' }}>
 
-        {/* ═══ FLAT HEADER ═══ */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 24, marginBottom: 8 }}>
-          {/* Avatar */}
+        {/* ═══ HEADER ═══ */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20, marginBottom: 16 }}>
           <div style={{ flexShrink: 0 }}>
             {avatarUrl ? (
-              <img src={avatarUrl} alt={profile?.display_name || 'You'} style={{ width: 88, height: 88, borderRadius: '50%', objectFit: 'cover', border: '3px solid #fff', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }} />
+              <img src={avatarUrl} alt={profile?.display_name || 'You'} style={{ width: 80, height: 80, borderRadius: '50%', objectFit: 'cover', border: '3px solid #fff' }} />
             ) : (
-              <div style={{ width: 88, height: 88, borderRadius: '50%', backgroundColor: '#E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '3px solid #fff' }}>
-                <User size={40} color="#9CA3AF" />
+              <div style={{ width: 80, height: 80, borderRadius: '50%', backgroundColor: '#E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '3px solid #fff' }}>
+                <User size={36} color="#9CA3AF" />
               </div>
             )}
           </div>
-
-          {/* Name + meta */}
           <div style={{ flex: 1, minWidth: 0 }}>
-            <h1 style={{ fontSize: 26, fontWeight: 700, color: '#111827', margin: '0 0 4px', lineHeight: 1.2 }}>
-              {profile?.display_name || 'Mulligans User'}
-            </h1>
-
-            {/* Location + Member since — inline */}
-            <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', fontSize: 14, color: '#6B7280', marginBottom: 6 }}>
-              {memberYear && (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                  <Calendar size={13} /> Member since {memberYear}
-                </span>
-              )}
-              {profile?.location && (
-                <>
-                  {dot}
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                    <MapPin size={13} /> {profile.location}
-                  </span>
-                </>
-              )}
+            <h1 style={{ fontSize: 24, fontWeight: 700, color: '#111827', margin: '0 0 4px', lineHeight: 1.2 }}>{profile?.display_name || 'Mulligans User'}</h1>
+            <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 4, fontSize: 13, color: '#6B7280', marginBottom: 4 }}>
+              <Calendar size={13} color="#6B7280" /> <span>Member since {memberYear}</span>
+              {profile?.location && (<><span style={{ margin: '0 4px', color: '#D1D5DB' }}>·</span><MapPin size={13} color="#6B7280" /> <span>{profile.location}</span></>)}
             </div>
-
-            {/* Stats row — bold numbers inline */}
-            <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', fontSize: 14, marginBottom: 6 }}>
-              <Link href={`/user/${userId}/reviews`} style={{ display: 'inline-flex', alignItems: 'center', gap: 3, textDecoration: 'none' }}>
-                <Star size={14} fill="#F59E0B" color="#F59E0B" />
-                {hasReviews ? (
-                  <>
-                    <span style={{ fontWeight: 700, color: '#111827' }}>{Number(stats?.rating || 0).toFixed(1)}</span>
-                    <span style={{ color: '#9CA3AF' }}>({reviewStats?.total_reviews})</span>
-                  </>
-                ) : (
-                  <span style={{ color: '#9CA3AF' }}>No reviews yet</span>
-                )}
-              </Link>
-              {dot}
-              <span><span style={{ fontWeight: 700, color: '#111827' }}>{stats?.sales || 0}</span> <span style={{ color: '#6B7280' }}>sales</span></span>
-              {dot}
-              <span><span style={{ fontWeight: 700, color: '#111827' }}>{sellerStats?.totalViews || 0}</span> <span style={{ color: '#6B7280' }}>views</span></span>
-              {dot}
-              <span><span style={{ fontWeight: 700, color: '#111827' }}>{sellerStats?.totalFavorites || 0}</span> <span style={{ color: '#6B7280' }}>favourites</span></span>
-            </div>
-
-            {/* Badges */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               {profile?.is_verified_seller && (
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 600, color: '#1DC690' }}>
@@ -253,91 +177,136 @@ export default function MyProfilePage() {
               )}
             </div>
           </div>
-
-          {/* Action buttons */}
           <div style={{ display: 'flex', gap: 8, flexShrink: 0, paddingTop: 4 }}>
             <button onClick={handleShare} style={{ width: 38, height: 38, borderRadius: 8, border: '1px solid #E5E7EB', backgroundColor: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Share"><Share2 size={17} color="#6B7280" /></button>
             <Link href="/settings" style={{ width: 38, height: 38, borderRadius: 8, border: '1px solid #E5E7EB', backgroundColor: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }} title="Settings"><Settings size={17} color="#6B7280" /></Link>
           </div>
         </div>
 
-        {/* ═══ BIO + TRUST LINE ═══ */}
-        <div style={{ marginLeft: 112, marginBottom: 8 }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 4 }}>
+        {/* ═══ STAT BOXES — white ═══ */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+          <div style={{ flex: 1, backgroundColor: '#fff', borderRadius: 10, padding: '14px 12px', textAlign: 'center' }}>
+            <div style={{ fontSize: 22, fontWeight: 700, color: '#111827' }}>{stats?.sales || 0}</div>
+            <div style={{ fontSize: 11, color: '#6B7280', marginTop: 2 }}>Sales</div>
+          </div>
+          <Link href={`/user/${userId}/reviews`} style={{ flex: 1, backgroundColor: '#fff', borderRadius: 10, padding: '14px 12px', textAlign: 'center', textDecoration: 'none' }}>
+            {hasReviews ? (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
+                  <Star size={15} fill="#F59E0B" color="#F59E0B" />
+                  <span style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>{Number(stats?.rating || 0).toFixed(1)}</span>
+                  <span style={{ fontSize: 11, color: '#9CA3AF' }}>({reviewStats?.total_reviews})</span>
+                </div>
+                <div style={{ fontSize: 10, color: '#1DC690', fontWeight: 500, marginTop: 2 }}>View reviews</div>
+              </>
+            ) : (
+              <>
+                <div style={{ fontSize: 13, color: '#9CA3AF', fontWeight: 500 }}>No reviews</div>
+                <div style={{ fontSize: 11, color: '#6B7280', marginTop: 2 }}>Rating</div>
+              </>
+            )}
+          </Link>
+          <div style={{ flex: 1, backgroundColor: '#fff', borderRadius: 10, padding: '14px 12px', textAlign: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+              <Eye size={14} color="#6B7280" />
+              <span style={{ fontSize: 18, fontWeight: 700, color: '#111827' }}>{sellerStats?.totalViews || 0}</span>
+            </div>
+            <div style={{ fontSize: 11, color: '#6B7280', marginTop: 2 }}>Views</div>
+          </div>
+          <div style={{ flex: 1, backgroundColor: '#fff', borderRadius: 10, padding: '14px 12px', textAlign: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+              <Heart size={14} color="#6B7280" />
+              <span style={{ fontSize: 18, fontWeight: 700, color: '#111827' }}>{sellerStats?.totalFavorites || 0}</span>
+            </div>
+            <div style={{ fontSize: 11, color: '#6B7280', marginTop: 2 }}>Favourites</div>
+          </div>
+        </div>
+
+        {/* ═══ TRUST BOXES — coloured ═══ */}
+        {sellerStats && (
+          <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+            <div style={{ flex: 1, backgroundColor: '#E8F8F2', borderRadius: 10, padding: '12px 14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                <Zap size={14} color="#085041" />
+                <span style={{ fontSize: 15, fontWeight: 700, color: '#085041' }}>{sellerStats.responseRate || 0}%</span>
+              </div>
+              <div style={{ fontSize: 11, color: '#0F6E56' }}>Response rate</div>
+            </div>
+            <div style={{ flex: 1, backgroundColor: '#EDF5FA', borderRadius: 10, padding: '12px 14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                <Package size={14} color="#0C447C" />
+                <span style={{ fontSize: 15, fontWeight: 700, color: '#0C447C' }}>{sellerStats.avgShippingTime ? `${Number(sellerStats.avgShippingTime).toFixed(1)} days` : 'N/A'}</span>
+              </div>
+              <div style={{ fontSize: 11, color: '#185FA5' }}>Avg. dispatch</div>
+            </div>
+            {categories.length > 0 && (
+              <div style={{ flex: 1, backgroundColor: '#FDF8ED', borderRadius: 10, padding: '12px 14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                  <Tag size={14} color="#633806" />
+                  <span style={{ fontSize: 11, fontWeight: 600, color: '#854F0B' }}>Specialises in</span>
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                  {categories.map(cat => (
+                    <span key={cat} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.7)', color: '#633806', fontWeight: 500 }}>{cat}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ═══ BIO ═══ */}
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
             <p style={{ fontSize: 14, color: profile?.bio ? '#374151' : '#9CA3AF', lineHeight: 1.5, margin: 0, flex: 1, fontStyle: profile?.bio ? 'normal' : 'italic' }}>
               {profile?.bio || 'No bio yet. Add one in your profile settings.'}
             </p>
             <Link href="/settings/profile" style={{ fontSize: 13, fontWeight: 600, color: '#1DC690', textDecoration: 'none', whiteSpace: 'nowrap' }}>Edit profile</Link>
           </div>
-
-          {/* Trust metrics — single line */}
-          {sellerStats && (
-            <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', fontSize: 13, color: '#6B7280', marginTop: 4 }}>
-              <span><span style={{ fontWeight: 600, color: '#374151' }}>{sellerStats.responseRate || 0}%</span> response rate</span>
-              {dot}
-              <span><span style={{ fontWeight: 600, color: '#374151' }}>{sellerStats.avgShippingTime ? `${Number(sellerStats.avgShippingTime).toFixed(1)} day` : 'N/A'}</span> avg. dispatch</span>
-              {categories.length > 0 && (
-                <>
-                  {dot}
-                  <span>Sells {categories.join(', ')}</span>
-                </>
-              )}
-            </div>
-          )}
         </div>
 
         {/* ═══ DIVIDER ═══ */}
-        <div style={{ height: 1, backgroundColor: '#D4D4C8', margin: '20px 0' }} />
+        <div style={{ height: 1, backgroundColor: '#D4D4C8', margin: '4px 0 16px' }} />
 
         {/* ═══ ACTION CARDS ═══ */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12, marginBottom: 24 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10, marginBottom: 24 }}>
           {showSellerDashboard && (
-            <div style={{ backgroundColor: '#fff', borderRadius: 12, overflow: 'hidden' }}>
+            <div style={{ backgroundColor: '#fff', borderRadius: 10, overflow: 'hidden' }}>
               <div style={{ backgroundColor: '#1DC690', padding: '10px 16px' }}>
-                <h3 style={{ fontSize: 14, fontWeight: 700, color: '#fff', margin: 0 }}>Seller Dashboard</h3>
+                <h3 style={{ fontSize: 13, fontWeight: 700, color: '#fff', margin: 0 }}>Seller Dashboard</h3>
               </div>
-              <div style={{ display: 'flex', padding: 16 }}>
+              <div style={{ display: 'flex', padding: 14 }}>
                 <div style={{ flex: 1, textAlign: 'center' }}>
-                  <div style={{ fontSize: 18, fontWeight: 700, color: '#111827' }}>£{(sellerStats?.todayEarnings || 0).toFixed(2)}</div>
-                  <div style={{ fontSize: 11, color: '#6B7280' }}>Today</div>
+                  <div style={{ fontSize: 17, fontWeight: 700, color: '#111827' }}>{'\u00A3'}{(sellerStats?.todayEarnings || 0).toFixed(2)}</div>
+                  <div style={{ fontSize: 10, color: '#6B7280' }}>Today</div>
                 </div>
                 <div style={{ width: 1, backgroundColor: '#F0F0EA' }} />
                 <div style={{ flex: 1, textAlign: 'center' }}>
-                  <div style={{ fontSize: 18, fontWeight: 700, color: '#111827' }}>{sellerStats?.totalFavorites || 0}</div>
-                  <div style={{ fontSize: 11, color: '#6B7280' }}>Favourites</div>
+                  <div style={{ fontSize: 17, fontWeight: 700, color: '#111827' }}>{sellerStats?.totalFavorites || 0}</div>
+                  <div style={{ fontSize: 10, color: '#6B7280' }}>Favourites</div>
                 </div>
               </div>
-              <Link href={profile?.is_pro_store ? 'https://dashboard.mulligans.uk.com' : '/settings'} style={{ display: 'block', textAlign: 'center', padding: '10px', fontSize: 13, fontWeight: 600, color: '#1DC690', borderTop: '1px solid #F5F5F0', textDecoration: 'none' }}>
-                View Full Dashboard <ChevronRight size={14} style={{ verticalAlign: 'middle' }} />
+              <Link href={profile?.is_pro_store ? 'https://dashboard.mulligans.uk.com' : '/settings'} style={{ display: 'block', textAlign: 'center', padding: '9px', fontSize: 12, fontWeight: 600, color: '#1DC690', borderTop: '1px solid #F5F5F0', textDecoration: 'none' }}>
+                View Full Dashboard <ChevronRight size={13} style={{ verticalAlign: 'middle' }} />
               </Link>
             </div>
           )}
-
-          <div style={{ backgroundColor: '#fff', borderRadius: 12, overflow: 'hidden' }}>
-            <div style={{ backgroundColor: '#278AB0', padding: '10px 16px' }}>
-              <h3 style={{ fontSize: 14, fontWeight: 700, color: '#fff', margin: 0 }}>Orders</h3>
-            </div>
-            <Link href="/orders?tab=purchases" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', textDecoration: 'none', borderBottom: '1px solid #F5F5F0' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><ShoppingBag size={16} color="#278AB0" /><span style={{ fontSize: 14, color: '#111827' }}>Buying</span></div>
-              <ChevronRight size={16} color="#9CA3AF" />
+          <div style={{ backgroundColor: '#fff', borderRadius: 10, overflow: 'hidden' }}>
+            <div style={{ backgroundColor: '#278AB0', padding: '10px 16px' }}><h3 style={{ fontSize: 13, fontWeight: 700, color: '#fff', margin: 0 }}>Orders</h3></div>
+            <Link href="/orders?tab=purchases" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 16px', textDecoration: 'none', borderBottom: '1px solid #F5F5F0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><ShoppingBag size={15} color="#278AB0" /><span style={{ fontSize: 13, color: '#111827' }}>Buying</span></div><ChevronRight size={15} color="#9CA3AF" />
             </Link>
-            <Link href="/orders?tab=sales" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', textDecoration: 'none' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Pencil size={16} color="#278AB0" /><span style={{ fontSize: 14, color: '#111827' }}>Selling</span></div>
-              <ChevronRight size={16} color="#9CA3AF" />
+            <Link href="/orders?tab=sales" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 16px', textDecoration: 'none' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Pencil size={15} color="#278AB0" /><span style={{ fontSize: 13, color: '#111827' }}>Selling</span></div><ChevronRight size={15} color="#9CA3AF" />
             </Link>
           </div>
-
-          <div style={{ backgroundColor: '#fff', borderRadius: 12, overflow: 'hidden' }}>
-            <div style={{ backgroundColor: '#7C5CBF', padding: '10px 16px' }}>
-              <h3 style={{ fontSize: 14, fontWeight: 700, color: '#fff', margin: 0 }}>Offers</h3>
-            </div>
-            <Link href="/offers?tab=received" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', textDecoration: 'none', borderBottom: '1px solid #F5F5F0' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Inbox size={16} color="#7C5CBF" /><span style={{ fontSize: 14, color: '#111827' }}>Received</span></div>
-              <ChevronRight size={16} color="#9CA3AF" />
+          <div style={{ backgroundColor: '#fff', borderRadius: 10, overflow: 'hidden' }}>
+            <div style={{ backgroundColor: '#7C5CBF', padding: '10px 16px' }}><h3 style={{ fontSize: 13, fontWeight: 700, color: '#fff', margin: 0 }}>Offers</h3></div>
+            <Link href="/offers?tab=received" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 16px', textDecoration: 'none', borderBottom: '1px solid #F5F5F0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Inbox size={15} color="#7C5CBF" /><span style={{ fontSize: 13, color: '#111827' }}>Received</span></div><ChevronRight size={15} color="#9CA3AF" />
             </Link>
-            <Link href="/offers?tab=made" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', textDecoration: 'none' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Send size={16} color="#7C5CBF" /><span style={{ fontSize: 14, color: '#111827' }}>Made</span></div>
-              <ChevronRight size={16} color="#9CA3AF" />
+            <Link href="/offers?tab=made" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 16px', textDecoration: 'none' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Send size={15} color="#7C5CBF" /><span style={{ fontSize: 13, color: '#111827' }}>Made</span></div><ChevronRight size={15} color="#9CA3AF" />
             </Link>
           </div>
         </div>
@@ -345,14 +314,9 @@ export default function MyProfilePage() {
         {/* ═══ LISTINGS ═══ */}
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 24, marginBottom: 16 }}>
-            <button onClick={() => setActiveTab('active')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, fontWeight: activeTab === 'active' ? 700 : 500, color: activeTab === 'active' ? '#111827' : '#9CA3AF', borderBottom: activeTab === 'active' ? '2px solid #1DC690' : '2px solid transparent', paddingBottom: 8 }}>
-              Active Listings ({listingsTotal})
-            </button>
-            <button onClick={() => setActiveTab('sold')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, fontWeight: activeTab === 'sold' ? 700 : 500, color: activeTab === 'sold' ? '#111827' : '#9CA3AF', borderBottom: activeTab === 'sold' ? '2px solid #1DC690' : '2px solid transparent', paddingBottom: 8 }}>
-              Sold
-            </button>
+            <button onClick={() => setActiveTab('active')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, fontWeight: activeTab === 'active' ? 700 : 500, color: activeTab === 'active' ? '#111827' : '#9CA3AF', borderBottom: activeTab === 'active' ? '2px solid #1DC690' : '2px solid transparent', paddingBottom: 8 }}>Active Listings ({listingsTotal})</button>
+            <button onClick={() => setActiveTab('sold')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, fontWeight: activeTab === 'sold' ? 700 : 500, color: activeTab === 'sold' ? '#111827' : '#9CA3AF', borderBottom: activeTab === 'sold' ? '2px solid #1DC690' : '2px solid transparent', paddingBottom: 8 }}>Sold</button>
           </div>
-
           {activeTab === 'active' && (
             <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
               <div style={{ flex: '1 1 280px', position: 'relative' }}>
@@ -378,15 +342,9 @@ export default function MyProfilePage() {
               </button>
             </div>
           )}
-
-          {listingsLoading && listings.length === 0 ? (
-            <CardSkeletonGrid count={8} />
-          ) : activeTab === 'sold' ? (
+          {listingsLoading && listings.length === 0 ? <CardSkeletonGrid count={8} /> : activeTab === 'sold' ? (
             soldItems.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '60px 20px', color: '#6B7280' }}>
-                <ShoppingBag size={48} color="#D1D5DB" style={{ margin: '0 auto 16px', display: 'block' }} />
-                <p style={{ fontSize: 18, fontWeight: 600, color: '#111827', marginBottom: 8 }}>No sold items yet</p>
-              </div>
+              <div style={{ textAlign: 'center', padding: '60px 20px' }}><ShoppingBag size={48} color="#D1D5DB" style={{ margin: '0 auto 16px', display: 'block' }} /><p style={{ fontSize: 18, fontWeight: 600, color: '#111827', marginBottom: 8 }}>No sold items yet</p></div>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
                 {soldItems.map((item: any) => {
@@ -395,18 +353,16 @@ export default function MyProfilePage() {
                   const imgUrl = resolveImageUrl(sorted[0]?.image_url);
                   return (
                     <Link key={item.id} href={`/listings/${item.id}`} style={{ textDecoration: 'none' }}>
-                      <div style={{ backgroundColor: '#fff', borderRadius: 12, overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
+                      <div style={{ backgroundColor: '#fff', borderRadius: 12, overflow: 'hidden' }}>
                         <div style={{ aspectRatio: '3/4', backgroundColor: '#F4F4F0', position: 'relative' }}>
-                          {imgUrl ? (<img src={imgUrl} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />) : (
-                            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><User size={32} color="#D1D5DB" /></div>
-                          )}
+                          {imgUrl ? <img src={imgUrl} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><User size={32} color="#D1D5DB" /></div>}
                           <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(6,7,10,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <span style={{ backgroundColor: '#06070A', color: '#fff', padding: '4px 16px', borderRadius: 20, fontSize: 12, fontWeight: 700, letterSpacing: 1 }}>SOLD</span>
                           </div>
                         </div>
                         <div style={{ padding: 12 }}>
                           <p style={{ fontSize: 14, fontWeight: 600, color: '#9CA3AF', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</p>
-                          <p style={{ fontSize: 15, fontWeight: 700, color: '#9CA3AF', margin: '4px 0 0' }}>£{Number(item.price).toFixed(0)}</p>
+                          <p style={{ fontSize: 15, fontWeight: 700, color: '#9CA3AF', margin: '4px 0 0' }}>{'\u00A3'}{Number(item.price).toFixed(0)}</p>
                         </div>
                       </div>
                     </Link>
@@ -415,11 +371,7 @@ export default function MyProfilePage() {
               </div>
             )
           ) : listings.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '60px 20px', color: '#6B7280' }}>
-              <Search size={48} color="#D1D5DB" style={{ margin: '0 auto 16px', display: 'block' }} />
-              <p style={{ fontSize: 18, fontWeight: 600, color: '#111827', marginBottom: 8 }}>No listings found</p>
-              <p style={{ fontSize: 14 }}>{searchQuery ? 'Try adjusting your search' : 'Start selling to see your listings here'}</p>
-            </div>
+            <div style={{ textAlign: 'center', padding: '60px 20px' }}><Search size={48} color="#D1D5DB" style={{ margin: '0 auto 16px', display: 'block' }} /><p style={{ fontSize: 18, fontWeight: 600, color: '#111827', marginBottom: 8 }}>No listings found</p><p style={{ fontSize: 14, color: '#6B7280' }}>{searchQuery ? 'Try adjusting your search' : 'Start selling to see your listings here'}</p></div>
           ) : (
             <>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
@@ -436,17 +388,14 @@ export default function MyProfilePage() {
               </div>
               {hasMoreListings && (
                 <div style={{ textAlign: 'center', marginTop: 24 }}>
-                  <button onClick={handleLoadMore} disabled={listingsLoading} style={{ padding: '12px 32px', borderRadius: 8, border: '2px solid #1DC690', backgroundColor: 'transparent', color: '#1DC690', fontSize: 14, fontWeight: 600, cursor: 'pointer', opacity: listingsLoading ? 0.5 : 1 }}>
-                    {listingsLoading ? 'Loading...' : 'Load More'}
-                  </button>
+                  <button onClick={handleLoadMore} disabled={listingsLoading} style={{ padding: '12px 32px', borderRadius: 8, border: '2px solid #1DC690', backgroundColor: 'transparent', color: '#1DC690', fontSize: 14, fontWeight: 600, cursor: 'pointer', opacity: listingsLoading ? 0.5 : 1 }}>{listingsLoading ? 'Loading...' : 'Load More'}</button>
                 </div>
               )}
             </>
           )}
         </div>
-
         {bulkMode && selectedIds.size > 0 && (
-          <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, backgroundColor: '#fff', borderTop: '1px solid #E5E7EB', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, zIndex: 30, boxShadow: '0 -2px 10px rgba(0,0,0,0.1)' }}>
+          <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, backgroundColor: '#fff', borderTop: '1px solid #E5E7EB', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, zIndex: 30 }}>
             <span style={{ fontSize: 14, fontWeight: 600, color: '#374151' }}>{selectedIds.size} selected</span>
             <button onClick={() => executeBulkAction('sold')} style={{ padding: '10px 20px', borderRadius: 8, backgroundColor: '#1DC690', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 14 }}>Mark as Sold</button>
             <button onClick={() => executeBulkAction('inactive')} style={{ padding: '10px 20px', borderRadius: 8, backgroundColor: '#F59E0B', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 14 }}>Deactivate</button>
