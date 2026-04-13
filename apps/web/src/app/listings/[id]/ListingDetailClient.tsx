@@ -273,7 +273,7 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
                     </div>
                   </div>
                   <div className="mt-3 flex gap-2">
-                    <Link href={`/profile/${seller.id}`} className="flex-1 flex items-center justify-center rounded-[10px] transition-colors hover:bg-[#F4F4F0]" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '0.82rem', border: '1px solid #1DC690', color: '#1DC690', height: '40px' }}>Visit Seller</Link>
+                    <Link href={`/user/${seller.id}`} className="flex-1 flex items-center justify-center rounded-[10px] transition-colors hover:bg-[#F4F4F0]" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '0.82rem', border: '1px solid #1DC690', color: '#1DC690', height: '40px' }}>Visit Seller</Link>
                     {!isOwnListing && (
                       <button onClick={handleMessage} className="flex-1 flex items-center justify-center rounded-[10px] transition-colors hover:bg-[#F4F4F0]" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '0.82rem', border: '1px solid #1DC690', color: '#1DC690', height: '40px' }}>Message</button>
                     )}
