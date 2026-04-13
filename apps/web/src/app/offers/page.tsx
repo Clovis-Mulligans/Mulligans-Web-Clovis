@@ -28,6 +28,11 @@ import {
   User,
   ShoppingCart,
   AlertCircle,
+  ArrowRight,
+  X,
+  RotateCcw,
+  ShieldCheck,
+  Percent,
 } from 'lucide-react';
 
 const CLOUDFRONT_BASE = 'https://d1bhj4xuvi3dve.cloudfront.net';
@@ -69,6 +74,15 @@ function formatTimeLeft(ms: number): string {
 function resolveImage(raw: string | null): string | null {
   if (!raw) return null;
   return raw.startsWith('http') ? raw : `${CLOUDFRONT_BASE}/${raw}`;
+}
+
+// Buyer protection fee: 7.5% + £0.99
+function withFees(price: number): number {
+  return price * 1.075 + 0.99;
+}
+
+function formatPrice(price: number): string {
+  return `£${price.toFixed(2)}`;
 }
 
 // ──────────────────────────────────────────────────────────────
@@ -276,7 +290,7 @@ function CounterOfferModal({
 }
 
 // ──────────────────────────────────────────────────────────────
-// OFFER CARD
+// OFFER CARD — improved layout
 // ──────────────────────────────────────────────────────────────
 interface OfferCardProps {
   offer: ReceivedOffer | MadeOffer;
@@ -288,115 +302,92 @@ interface OfferCardProps {
 function OfferCard({ offer, tab, onAction, onCounter }: OfferCardProps) {
   const [busy, setBusy] = useState(false);
   const statusActive = isActive(offer.status);
-
   const img = resolveImage(offer.listing.image);
+  const isBuyer = tab === 'made';
 
-  // Determine which expiry to show
   const expiresTimestamp =
     offer.status === 'ACCEPTED' || offer.status === 'COUNTER_ACCEPTED'
       ? offer.acceptance_expires_at
       : offer.expires_at;
 
-  const otherParty =
-    tab === 'received'
-      ? (offer as ReceivedOffer).buyer?.display_name || 'Buyer'
-      : 'Seller';
+  const buyerName = tab === 'received' ? (offer as ReceivedOffer).buyer?.display_name || 'Buyer' : null;
+
+  // Price helpers — buyers see fees included, sellers see raw amounts
+  const offerRaw = Number(offer.offer_amount);
+  const listRaw = Number(offer.list_price);
+  const counterRaw = offer.counter_amount != null ? Number(offer.counter_amount) : null;
+  const finalRaw = offer.final_amount != null ? Number(offer.final_amount) : null;
+
+  const offerDisplay = isBuyer ? withFees(offerRaw) : offerRaw;
+  const listDisplay = isBuyer ? withFees(listRaw) : listRaw;
+  const counterDisplay = counterRaw != null ? (isBuyer ? withFees(counterRaw) : counterRaw) : null;
+  const finalDisplay = finalRaw != null ? (isBuyer ? withFees(finalRaw) : finalRaw) : null;
+
+  const discount = listRaw > 0 ? Math.round(((listRaw - offerRaw) / listRaw) * 100) : 0;
 
   const handleAction = async (fn: () => Promise<unknown>) => {
     setBusy(true);
-    try {
-      await fn();
-      onAction();
-    } catch (err: any) {
-      const msg = (err as any)?.data?.error || 'Action failed. Please try again.';
-      alert(msg);
-    } finally {
-      setBusy(false);
-    }
+    try { await fn(); onAction(); }
+    catch (err: any) { alert((err as any)?.data?.error || 'Action failed. Please try again.'); }
+    finally { setBusy(false); }
   };
 
-  // Render action buttons
   const renderActions = () => {
     if (!statusActive) return null;
 
     if (tab === 'received') {
-      // Seller actions
       if (offer.status === 'PENDING') {
         return (
-          <>
-            <button
-              onClick={() => handleAction(() => acceptOffer(offer.id))}
-              disabled={busy}
-              style={{ padding: '10px 20px', borderRadius: 8, border: 'none', backgroundColor: '#1DC690', color: '#fff', cursor: busy ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14, opacity: busy ? 0.6 : 1 }}
-            >
-              Accept
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <button onClick={() => handleAction(() => acceptOffer(offer.id))} disabled={busy}
+              style={{ padding: '10px 24px', borderRadius: 8, border: 'none', backgroundColor: '#1DC690', color: '#fff', cursor: busy ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14, opacity: busy ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <ShieldCheck size={15} /> Accept
             </button>
-            <button
-              onClick={() => onCounter(offer as ReceivedOffer)}
-              disabled={busy}
-              style={{ padding: '10px 20px', borderRadius: 8, border: '1px solid #278AB0', backgroundColor: 'transparent', color: '#278AB0', cursor: busy ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14, opacity: busy ? 0.6 : 1 }}
-            >
-              Counter
+            <button onClick={() => onCounter(offer as ReceivedOffer)} disabled={busy}
+              style={{ padding: '10px 24px', borderRadius: 8, border: '2px solid #278AB0', backgroundColor: '#EDF5FA', color: '#278AB0', cursor: busy ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14, opacity: busy ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <RotateCcw size={15} /> Counter
             </button>
-            <button
-              onClick={() => handleAction(() => declineOffer(offer.id))}
-              disabled={busy}
-              style={{ padding: '10px 20px', borderRadius: 8, border: 'none', backgroundColor: 'transparent', color: '#EF4444', cursor: busy ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14, opacity: busy ? 0.6 : 1 }}
-            >
-              Decline
+            <button onClick={() => handleAction(() => declineOffer(offer.id))} disabled={busy}
+              style={{ padding: '10px 24px', borderRadius: 8, border: '2px solid #FEE2E2', backgroundColor: '#FEF2F2', color: '#EF4444', cursor: busy ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14, opacity: busy ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <X size={15} /> Decline
             </button>
-          </>
+          </div>
         );
       }
-      if (offer.status === 'COUNTERED' || offer.status === 'ACCEPTED' || offer.status === 'COUNTER_ACCEPTED') {
-        const msg = offer.status === 'COUNTERED'
-          ? 'Waiting for buyer to respond'
-          : 'Waiting for buyer to purchase';
-        return (
-          <p style={{ fontSize: 13, color: '#6B7280', margin: 0, fontStyle: 'italic' }}>{msg}</p>
-        );
+      if (offer.status === 'COUNTERED') {
+        return <p style={{ fontSize: 13, color: '#3730A3', margin: 0, fontWeight: 500, padding: '8px 12px', backgroundColor: '#E0E7FF', borderRadius: 8, display: 'inline-block' }}>Waiting for buyer to respond</p>;
+      }
+      if (offer.status === 'ACCEPTED' || offer.status === 'COUNTER_ACCEPTED') {
+        return <p style={{ fontSize: 13, color: '#065F46', margin: 0, fontWeight: 500, padding: '8px 12px', backgroundColor: '#D1FAE5', borderRadius: 8, display: 'inline-block' }}>Waiting for buyer to purchase</p>;
       }
     } else {
-      // Buyer actions
       if (offer.status === 'PENDING') {
         return (
-          <button
-            onClick={() => handleAction(() => withdrawOffer(offer.id))}
-            disabled={busy}
-            style={{ padding: '10px 20px', borderRadius: 8, border: '1px solid #E5E7EB', backgroundColor: 'transparent', color: '#6B7280', cursor: busy ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14, opacity: busy ? 0.6 : 1 }}
-          >
-            Withdraw
+          <button onClick={() => handleAction(() => withdrawOffer(offer.id))} disabled={busy}
+            style={{ padding: '10px 24px', borderRadius: 8, border: '2px solid #E5E7EB', backgroundColor: '#F9FAFB', color: '#6B7280', cursor: busy ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14, opacity: busy ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <X size={15} /> Withdraw Offer
           </button>
         );
       }
       if (offer.status === 'COUNTERED') {
         return (
-          <>
-            <button
-              onClick={() => handleAction(() => acceptCounter(offer.id))}
-              disabled={busy}
-              style={{ padding: '10px 20px', borderRadius: 8, border: 'none', backgroundColor: '#1DC690', color: '#fff', cursor: busy ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14, opacity: busy ? 0.6 : 1 }}
-            >
-              Accept Counter
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <button onClick={() => handleAction(() => acceptCounter(offer.id))} disabled={busy}
+              style={{ padding: '10px 24px', borderRadius: 8, border: 'none', backgroundColor: '#1DC690', color: '#fff', cursor: busy ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14, opacity: busy ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <ShieldCheck size={15} /> Accept Counter
             </button>
-            <button
-              onClick={() => handleAction(() => declineCounter(offer.id))}
-              disabled={busy}
-              style={{ padding: '10px 20px', borderRadius: 8, border: 'none', backgroundColor: 'transparent', color: '#EF4444', cursor: busy ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14, opacity: busy ? 0.6 : 1 }}
-            >
-              Decline Counter
+            <button onClick={() => handleAction(() => declineCounter(offer.id))} disabled={busy}
+              style={{ padding: '10px 24px', borderRadius: 8, border: '2px solid #FEE2E2', backgroundColor: '#FEF2F2', color: '#EF4444', cursor: busy ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14, opacity: busy ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <X size={15} /> Decline Counter
             </button>
-          </>
+          </div>
         );
       }
       if (offer.status === 'ACCEPTED' || offer.status === 'COUNTER_ACCEPTED') {
         return (
-          <Link
-            href={`/listings/${offer.listing_id}`}
-            style={{ padding: '10px 20px', borderRadius: 8, backgroundColor: '#1DC690', color: '#fff', fontWeight: 600, fontSize: 14, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}
-          >
-            <ShoppingCart size={16} />
-            Buy Now
+          <Link href={`/listings/${offer.listing_id}`}
+            style={{ padding: '10px 24px', borderRadius: 8, backgroundColor: '#1DC690', color: '#fff', fontWeight: 600, fontSize: 14, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <ShoppingCart size={16} /> Buy Now
           </Link>
         );
       }
@@ -406,88 +397,81 @@ function OfferCard({ offer, tab, onAction, onCounter }: OfferCardProps) {
 
   return (
     <div style={{
-      backgroundColor: '#fff',
-      borderRadius: 12,
-      padding: 20,
-      boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 12,
+      backgroundColor: '#fff', borderRadius: 12, overflow: 'hidden',
+      border: statusActive ? '1px solid #E5E7EB' : '1px solid #F0F0EA',
+      opacity: statusActive ? 1 : 0.75,
     }}>
-      {/* Top row: image + title + status */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+      {/* Card body */}
+      <div style={{ padding: 20, display: 'flex', gap: 16 }}>
+        {/* Image — larger */}
         <Link href={`/listings/${offer.listing_id}`} style={{ flexShrink: 0 }}>
           {img ? (
-            <img src={img} alt={offer.listing.title} style={{ width: 60, height: 60, borderRadius: 8, objectFit: 'cover' }} />
+            <img src={img} alt={offer.listing.title} style={{ width: 88, height: 88, borderRadius: 10, objectFit: 'cover' }} />
           ) : (
-            <div style={{ width: 60, height: 60, borderRadius: 8, backgroundColor: '#E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Tag size={24} color="#9CA3AF" />
+            <div style={{ width: 88, height: 88, borderRadius: 10, backgroundColor: '#F4F4F0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Tag size={28} color="#D1D5DB" />
             </div>
           )}
         </Link>
 
+        {/* Info */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, flexWrap: 'wrap' }}>
+          {/* Title + badge row */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 6 }}>
             <Link href={`/listings/${offer.listing_id}`} style={{ textDecoration: 'none', flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+              <p style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {offer.listing.title}
               </p>
             </Link>
             <StatusBadge status={offer.status} />
           </div>
 
-          {/* Party name */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}>
-            <div style={{ width: 20, height: 20, borderRadius: '50%', backgroundColor: '#E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {/* Party info */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+            <div style={{ width: 22, height: 22, borderRadius: '50%', backgroundColor: '#E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <User size={12} color="#6B7280" />
             </div>
             <span style={{ fontSize: 13, color: '#6B7280' }}>
-              {tab === 'received' ? 'From' : 'To'} {otherParty}
+              {tab === 'received' ? `From ${buyerName}` : `To ${(offer as any).seller?.display_name || 'Seller'}`}
             </span>
+            {discount > 0 && (
+              <span style={{ fontSize: 11, fontWeight: 600, color: '#7C5CBF', backgroundColor: '#F3F0FF', padding: '2px 8px', borderRadius: 12, marginLeft: 4, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                <Percent size={10} /> {discount}% off
+              </span>
+            )}
+          </div>
+
+          {/* Price breakdown */}
+          <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'baseline' }}>
+            <div>
+              <div style={{ fontSize: 11, color: '#6B7280', marginBottom: 2 }}>{isBuyer ? 'Your offer (inc. fees)' : 'Offer'}</div>
+              <div style={{ fontSize: 17, fontWeight: 700, color: '#7C5CBF' }}>{formatPrice(offerDisplay)}</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 11, color: '#6B7280', marginBottom: 2 }}>{isBuyer ? 'List price (inc. fees)' : 'List price'}</div>
+              <div style={{ fontSize: 14, color: '#9CA3AF', textDecoration: 'line-through' }}>{formatPrice(listDisplay)}</div>
+            </div>
+            {counterDisplay != null && (
+              <div>
+                <div style={{ fontSize: 11, color: '#6B7280', marginBottom: 2 }}>{isBuyer ? 'Counter (inc. fees)' : 'Your counter'}</div>
+                <div style={{ fontSize: 17, fontWeight: 700, color: '#278AB0' }}>{formatPrice(counterDisplay)}</div>
+              </div>
+            )}
+            {finalDisplay != null && (offer.status === 'ACCEPTED' || offer.status === 'COUNTER_ACCEPTED' || offer.status === 'PURCHASED') && (
+              <div>
+                <div style={{ fontSize: 11, color: '#6B7280', marginBottom: 2 }}>{isBuyer ? 'You pay' : 'Agreed price'}</div>
+                <div style={{ fontSize: 17, fontWeight: 700, color: '#1DC690' }}>{formatPrice(finalDisplay)}</div>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Price section */}
-      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
-        <div>
-          <span style={{ fontSize: 13, color: '#6B7280' }}>Offer: </span>
-          <span style={{ fontSize: 15, fontWeight: 700, color: '#7C5CBF' }}>
-            £{Number(offer.offer_amount).toFixed(2)}
-          </span>
-        </div>
-        <div>
-          <span style={{ fontSize: 13, color: '#6B7280', textDecoration: 'line-through' }}>
-            List: £{Number(offer.list_price).toFixed(2)}
-          </span>
-        </div>
-        {offer.counter_amount != null && (
-          <div>
-            <span style={{ fontSize: 13, color: '#6B7280' }}>Counter: </span>
-            <span style={{ fontSize: 15, fontWeight: 700, color: '#278AB0' }}>
-              £{Number(offer.counter_amount).toFixed(2)}
-            </span>
-          </div>
-        )}
-        {offer.final_amount != null && (offer.status === 'ACCEPTED' || offer.status === 'COUNTER_ACCEPTED' || offer.status === 'PURCHASED') && (
-          <div>
-            <span style={{ fontSize: 13, color: '#6B7280' }}>Agreed: </span>
-            <span style={{ fontSize: 15, fontWeight: 700, color: '#1DC690' }}>
-              £{Number(offer.final_amount).toFixed(2)}
-            </span>
-          </div>
-        )}
-      </div>
-
-      {/* Timer (active only) */}
-      {statusActive && expiresTimestamp && (
-        <CountdownTimer expiresAt={expiresTimestamp} onExpire={onAction} />
-      )}
-
-      {/* Actions */}
+      {/* Footer — timer + actions */}
       {statusActive && (
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginTop: 4 }}>
-          {renderActions()}
+        <div style={{ padding: '12px 20px', backgroundColor: '#FAFAF8', borderTop: '1px solid #F0F0EA', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+          {expiresTimestamp && <CountdownTimer expiresAt={expiresTimestamp} onExpire={onAction} />}
+          <div>{renderActions()}</div>
         </div>
       )}
     </div>
