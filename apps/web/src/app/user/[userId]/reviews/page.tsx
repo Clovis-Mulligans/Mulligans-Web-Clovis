@@ -127,7 +127,7 @@ export default function ReviewsPage() {
 
         {/* Back link */}
         <Link
-          href={`/profile/${userId}`}
+          href={`/user/${userId}`}
           style={{
             display: 'inline-flex',
             alignItems: 'center',
