@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ChevronRight, Package } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import PageHeader from '@/components/PageHeader';
 import {
   getMyPurchases,
   getMySales,
@@ -151,18 +152,7 @@ export default function OrdersPage() {
         style={{ maxWidth: 680, margin: '0 auto', padding: '32px 16px 48px' }}
       >
         {/* Title */}
-        <h1
-          style={{
-            fontFamily: 'var(--font-sans)',
-            fontSize: 24,
-            fontWeight: 700,
-            textAlign: 'center',
-            color: '#06070A',
-            margin: '0 0 24px',
-          }}
-        >
-          Orders
-        </h1>
+       <PageHeader title="Orders" />
 
         {/* ── Tabs ── */}
         <div
