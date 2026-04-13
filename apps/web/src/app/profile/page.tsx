@@ -29,10 +29,8 @@ import {
   Pencil,
   Search,
   Check,
-  Zap,
-  Package,
-  Tag,
   ShieldCheck,
+  Tag,
   Inbox,
   Send,
 } from 'lucide-react';
@@ -48,8 +46,7 @@ const SORT_OPTIONS = [
 
 function resolveImageUrl(url: string | null | undefined): string | null {
   if (!url) return null;
-  if (url.startsWith('http')) return url;
-  return `${CLOUDFRONT_BASE}/${url}`;
+  return url.startsWith('http') ? url : `${CLOUDFRONT_BASE}/${url}`;
 }
 
 interface ProfileUser {
@@ -71,9 +68,7 @@ export default function MyProfilePage() {
   const { user: authUser, isAuthenticated, isLoading: authLoading } = useAuth();
 
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.replace('/login?redirect=/profile');
-    }
+    if (!authLoading && !isAuthenticated) router.replace('/login?redirect=/profile');
   }, [authLoading, isAuthenticated, router]);
 
   const userId = authUser?.id;
@@ -101,19 +96,14 @@ export default function MyProfilePage() {
     try {
       setLoading(true);
       const [profileData, statsData, reviewStatsData] = await Promise.all([
-        getPublicProfile(userId),
-        getUserStats(userId),
-        getUserReviewStats(userId),
+        getPublicProfile(userId), getUserStats(userId), getUserReviewStats(userId),
       ]);
       setProfile((profileData as any).user || profileData);
       setStats(statsData);
       setReviewStats(reviewStatsData);
-      try { setSellerStats(await getSellerStats(userId)); } catch { /* ok */ }
-    } catch (err) {
-      console.error('Failed to load profile:', err);
-    } finally {
-      setLoading(false);
-    }
+      try { setSellerStats(await getSellerStats(userId)); } catch {}
+    } catch (err) { console.error('Failed to load profile:', err); }
+    finally { setLoading(false); }
   }, [userId]);
 
   const loadListings = useCallback(async (page = 1, append = false) => {
@@ -144,11 +134,9 @@ export default function MyProfilePage() {
   };
   const handleLoadMore = () => { const n = listingsPage + 1; setListingsPage(n); loadListings(n, true); };
   const toggleSelect = (id: string) => { setSelectedIds(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; }); };
-
   const executeBulkAction = async (action: 'sold' | 'inactive' | 'delete') => {
     const ids = Array.from(selectedIds);
-    const labels: Record<string, string> = { sold: 'Mark as Sold', inactive: 'Deactivate', delete: 'Delete' };
-    if (!confirm(`${labels[action]} ${ids.length} listing(s)?${action === 'delete' ? ' This cannot be undone.' : ''}`)) return;
+    if (!confirm(`${action === 'delete' ? 'Delete' : action === 'sold' ? 'Mark as Sold' : 'Deactivate'} ${ids.length} listing(s)?${action === 'delete' ? ' This cannot be undone.' : ''}`)) return;
     try {
       const base = process.env.NEXT_PUBLIC_API_URL || 'https://api.mulligans.uk.com';
       const token = localStorage.getItem('mulligans_auth_token');
@@ -166,152 +154,142 @@ export default function MyProfilePage() {
   const hasReviews = (reviewStats?.total_reviews || 0) > 0;
   const showSellerDashboard = (stats?.sales || 0) > 0 || (stats?.activeListingsCount || 0) > 0;
 
-  // Derive categories from loaded listings
   const categories = useMemo(() => {
     const cats = new Set<string>();
     listings.forEach((l: any) => { if (l.category) cats.add(l.category); });
     return Array.from(cats).slice(0, 4);
   }, [listings]);
 
+  // ─── Loading ───
   if (loading || authLoading || !userId) {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#EAEAE0' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 16px' }}>
-          <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 24 }}>
-            <div style={{ width: 80, height: 80, borderRadius: '50%', backgroundColor: '#E5E7EB' }} />
-            <div style={{ flex: 1 }}>
-              <div style={{ height: 24, width: 200, backgroundColor: '#E5E7EB', borderRadius: 8, marginBottom: 8 }} />
-              <div style={{ height: 16, width: 140, backgroundColor: '#E5E7EB', borderRadius: 8 }} />
-            </div>
+          <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 32 }}>
+            <div style={{ width: 88, height: 88, borderRadius: '50%', backgroundColor: '#E5E7EB' }} />
+            <div><div style={{ height: 24, width: 180, backgroundColor: '#E5E7EB', borderRadius: 6, marginBottom: 10 }} /><div style={{ height: 14, width: 260, backgroundColor: '#E5E7EB', borderRadius: 6, marginBottom: 8 }} /><div style={{ height: 14, width: 200, backgroundColor: '#E5E7EB', borderRadius: 6 }} /></div>
           </div>
-          <div style={{ height: 200, backgroundColor: '#E5E7EB', borderRadius: 12, marginBottom: 24 }} />
           <CardSkeletonGrid count={8} />
         </div>
       </div>
     );
   }
 
+  // ─── Separator helper ───
+  const dot = <span style={{ margin: '0 6px', color: '#D1D5DB' }}>·</span>;
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#EAEAE0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '32px 16px 80px' }}>
 
-        {/* ═══ HEADER ═══ */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20, marginBottom: 24 }}>
+        {/* ═══ FLAT HEADER ═══ */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 24, marginBottom: 8 }}>
+          {/* Avatar */}
           <div style={{ flexShrink: 0 }}>
             {avatarUrl ? (
-              <img src={avatarUrl} alt={profile?.display_name || 'You'} style={{ width: 80, height: 80, borderRadius: '50%', objectFit: 'cover' }} />
+              <img src={avatarUrl} alt={profile?.display_name || 'You'} style={{ width: 88, height: 88, borderRadius: '50%', objectFit: 'cover', border: '3px solid #fff', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }} />
             ) : (
-              <div style={{ width: 80, height: 80, borderRadius: '50%', backgroundColor: '#E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <User size={36} color="#9CA3AF" />
+              <div style={{ width: 88, height: 88, borderRadius: '50%', backgroundColor: '#E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '3px solid #fff' }}>
+                <User size={40} color="#9CA3AF" />
               </div>
             )}
           </div>
-          <div style={{ flex: 1 }}>
-            <h1 style={{ fontSize: 24, fontWeight: 700, color: '#111827', margin: '0 0 4px' }}>{profile?.display_name || 'Mulligans User'}</h1>
-            {profile?.location && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#6B7280', fontSize: 14, marginBottom: 2 }}>
-                <MapPin size={14} /> <span>{profile.location}</span>
-              </div>
-            )}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#6B7280', fontSize: 14 }}>
-              <Calendar size={14} /> <span>Member since {memberYear}</span>
+
+          {/* Name + meta */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <h1 style={{ fontSize: 26, fontWeight: 700, color: '#111827', margin: '0 0 4px', lineHeight: 1.2 }}>
+              {profile?.display_name || 'Mulligans User'}
+            </h1>
+
+            {/* Location + Member since — inline */}
+            <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', fontSize: 14, color: '#6B7280', marginBottom: 6 }}>
+              {memberYear && (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <Calendar size={13} /> Member since {memberYear}
+                </span>
+              )}
+              {profile?.location && (
+                <>
+                  {dot}
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <MapPin size={13} /> {profile.location}
+                  </span>
+                </>
+              )}
             </div>
-            {profile?.is_verified_seller && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#1DC690', fontSize: 14, fontWeight: 600, marginTop: 4 }}>
-                <ShieldCheck size={16} color="#1DC690" /> Verified Seller
-              </div>
-            )}
-            {profile?.is_pro_store && (
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#C9A84C', fontSize: 13, fontWeight: 600, marginTop: 4, background: '#FDF8ED', padding: '2px 10px', borderRadius: 20 }}>
-                <Tag size={14} color="#C9A84C" /> {profile.pro_store_name || 'Pro Store'}
-              </div>
-            )}
+
+            {/* Stats row — bold numbers inline */}
+            <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', fontSize: 14, marginBottom: 6 }}>
+              <Link href={`/user/${userId}/reviews`} style={{ display: 'inline-flex', alignItems: 'center', gap: 3, textDecoration: 'none' }}>
+                <Star size={14} fill="#F59E0B" color="#F59E0B" />
+                {hasReviews ? (
+                  <>
+                    <span style={{ fontWeight: 700, color: '#111827' }}>{Number(stats?.rating || 0).toFixed(1)}</span>
+                    <span style={{ color: '#9CA3AF' }}>({reviewStats?.total_reviews})</span>
+                  </>
+                ) : (
+                  <span style={{ color: '#9CA3AF' }}>No reviews yet</span>
+                )}
+              </Link>
+              {dot}
+              <span><span style={{ fontWeight: 700, color: '#111827' }}>{stats?.sales || 0}</span> <span style={{ color: '#6B7280' }}>sales</span></span>
+              {dot}
+              <span><span style={{ fontWeight: 700, color: '#111827' }}>{sellerStats?.totalViews || 0}</span> <span style={{ color: '#6B7280' }}>views</span></span>
+              {dot}
+              <span><span style={{ fontWeight: 700, color: '#111827' }}>{sellerStats?.totalFavorites || 0}</span> <span style={{ color: '#6B7280' }}>favourites</span></span>
+            </div>
+
+            {/* Badges */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              {profile?.is_verified_seller && (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 600, color: '#1DC690' }}>
+                  <ShieldCheck size={15} color="#1DC690" /> Verified Seller
+                </span>
+              )}
+              {profile?.is_pro_store && (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 600, color: '#C9A84C', background: '#FDF8ED', padding: '2px 10px', borderRadius: 20 }}>
+                  <Tag size={13} color="#C9A84C" /> {profile.pro_store_name || 'Pro Store'}
+                </span>
+              )}
+            </div>
           </div>
-          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-            <button onClick={handleShare} style={{ width: 40, height: 40, borderRadius: 8, border: '1px solid #E5E7EB', backgroundColor: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Share2 size={18} color="#6B7280" /></button>
-            <Link href="/settings" style={{ width: 40, height: 40, borderRadius: 8, border: '1px solid #E5E7EB', backgroundColor: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}><Settings size={18} color="#6B7280" /></Link>
+
+          {/* Action buttons */}
+          <div style={{ display: 'flex', gap: 8, flexShrink: 0, paddingTop: 4 }}>
+            <button onClick={handleShare} style={{ width: 38, height: 38, borderRadius: 8, border: '1px solid #E5E7EB', backgroundColor: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Share"><Share2 size={17} color="#6B7280" /></button>
+            <Link href="/settings" style={{ width: 38, height: 38, borderRadius: 8, border: '1px solid #E5E7EB', backgroundColor: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }} title="Settings"><Settings size={17} color="#6B7280" /></Link>
           </div>
         </div>
 
-        {/* ═══ PROFILE CARD — compact ═══ */}
-        <div style={{ backgroundColor: '#fff', borderRadius: 12, overflow: 'hidden', marginBottom: 16, display: 'flex' }}>
-          {/* Left — bio + compact trust metrics */}
-          <div style={{ flex: 1, padding: '20px 24px', borderRight: '1px solid #F0F0EA' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-              <span style={{ fontSize: 11, fontWeight: 500, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.5px' }}>About</span>
-              <Link href="/settings/profile" style={{ fontSize: 13, fontWeight: 600, color: '#1DC690', textDecoration: 'none' }}>Edit profile</Link>
-            </div>
-            <p style={{ fontSize: 14, color: profile?.bio ? '#374151' : '#9CA3AF', lineHeight: 1.5, margin: '0 0 10px', fontStyle: profile?.bio ? 'normal' : 'italic' }}>
+        {/* ═══ BIO + TRUST LINE ═══ */}
+        <div style={{ marginLeft: 112, marginBottom: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 4 }}>
+            <p style={{ fontSize: 14, color: profile?.bio ? '#374151' : '#9CA3AF', lineHeight: 1.5, margin: 0, flex: 1, fontStyle: profile?.bio ? 'normal' : 'italic' }}>
               {profile?.bio || 'No bio yet. Add one in your profile settings.'}
             </p>
-            {profile?.is_verified_seller && (
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#1DC690', fontSize: 12, fontWeight: 600, marginBottom: 10 }}>
-                <ShieldCheck size={14} color="#1DC690" /> Verified Seller
-              </div>
-            )}
-
-            {/* Trust metrics — compact 2-col grid */}
-            {sellerStats && (
-              <>
-                <div style={{ height: 1, backgroundColor: '#F0F0EA', margin: '4px 0 10px' }} />
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 24px' }}>
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{sellerStats.responseRate || 0}%</div>
-                    <div style={{ fontSize: 11, color: '#6B7280' }}>Response rate</div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>
-                      {sellerStats.avgShippingTime ? `${Number(sellerStats.avgShippingTime).toFixed(1)} days` : 'N/A'}
-                    </div>
-                    <div style={{ fontSize: 11, color: '#6B7280' }}>Avg. dispatch</div>
-                  </div>
-                </div>
-                {categories.length > 0 && (
-                  <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                    {categories.map((cat) => (
-                      <span key={cat} style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, backgroundColor: '#F0F0EA', color: '#374151', fontWeight: 500 }}>{cat}</span>
-                    ))}
-                  </div>
-                )}
-              </>
-            )}
+            <Link href="/settings/profile" style={{ fontSize: 13, fontWeight: 600, color: '#1DC690', textDecoration: 'none', whiteSpace: 'nowrap' }}>Edit profile</Link>
           </div>
 
-          {/* Right — stacked stats */}
-          <div style={{ width: 160, padding: '12px 16px', display: 'flex', flexDirection: 'column', justifyContent: 'center', flexShrink: 0 }}>
-            <div style={{ textAlign: 'center', padding: '8px 0' }}>
-              <div style={{ fontSize: 22, fontWeight: 700, color: '#111827' }}>{stats?.sales || 0}</div>
-              <div style={{ fontSize: 10, color: '#6B7280' }}>Sales</div>
-            </div>
-            <div style={{ height: 1, backgroundColor: '#F0F0EA' }} />
-            <Link href={`/user/${userId}/reviews`} style={{ textAlign: 'center', padding: '8px 0', textDecoration: 'none' }}>
-              {hasReviews ? (
+          {/* Trust metrics — single line */}
+          {sellerStats && (
+            <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', fontSize: 13, color: '#6B7280', marginTop: 4 }}>
+              <span><span style={{ fontWeight: 600, color: '#374151' }}>{sellerStats.responseRate || 0}%</span> response rate</span>
+              {dot}
+              <span><span style={{ fontWeight: 600, color: '#374151' }}>{sellerStats.avgShippingTime ? `${Number(sellerStats.avgShippingTime).toFixed(1)} day` : 'N/A'}</span> avg. dispatch</span>
+              {categories.length > 0 && (
                 <>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
-                    <Star size={14} fill="#F59E0B" color="#F59E0B" />
-                    <span style={{ fontSize: 18, fontWeight: 700, color: '#111827' }}>{Number(stats?.rating || 0).toFixed(1)}</span>
-                    <span style={{ fontSize: 11, color: '#9CA3AF' }}>({reviewStats?.total_reviews})</span>
-                  </div>
-                  <div style={{ fontSize: 10, color: '#1DC690', fontWeight: 500, marginTop: 1 }}>View reviews</div>
+                  {dot}
+                  <span>Sells {categories.join(', ')}</span>
                 </>
-              ) : (
-                <div style={{ fontSize: 12, color: '#9CA3AF' }}>No reviews yet</div>
               )}
-            </Link>
-            <div style={{ height: 1, backgroundColor: '#F0F0EA' }} />
-            <div style={{ textAlign: 'center', padding: '8px 0' }}>
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>{sellerStats?.totalViews || 0}</div>
-              <div style={{ fontSize: 10, color: '#6B7280' }}>Views</div>
             </div>
-            <div style={{ height: 1, backgroundColor: '#F0F0EA' }} />
-            <div style={{ textAlign: 'center', padding: '8px 0' }}>
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>{sellerStats?.totalFavorites || 0}</div>
-              <div style={{ fontSize: 10, color: '#6B7280' }}>Favourites</div>
-            </div>
-          </div>
+          )}
         </div>
 
-        {/* ═══ ACTION CARDS: Dashboard + Orders + Offers ═══ */}
+        {/* ═══ DIVIDER ═══ */}
+        <div style={{ height: 1, backgroundColor: '#D4D4C8', margin: '20px 0' }} />
+
+        {/* ═══ ACTION CARDS ═══ */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12, marginBottom: 24 }}>
           {showSellerDashboard && (
             <div style={{ backgroundColor: '#fff', borderRadius: 12, overflow: 'hidden' }}>
