@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import SimpleModal from '@/components/SimpleModal';
+import PageHeader from '@/components/PageHeader';
 import {
   getReceivedOffers,
   getMyOffers,
@@ -593,9 +594,7 @@ function OffersPageInner() {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#EAEAE0' }}>
       <div style={{ maxWidth: 800, margin: '0 auto', padding: '32px 16px 64px' }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, color: '#111827', margin: '0 0 24px' }}>
-          Offers
-        </h1>
+        <PageHeader title="Offers" />
 
         {/* Tabs */}
         <div style={{
