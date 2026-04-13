@@ -59,6 +59,8 @@ export interface SellerStats {
   ordersToShip: number;
   totalViews: number;
   totalFavorites: number;
+  responseRate: number;
+  avgShippingTime: number; 
 }
 
 export interface UserListingsParams {
