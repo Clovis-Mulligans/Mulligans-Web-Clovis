@@ -233,106 +233,94 @@ export default function UserProfilePage() {
           </div>
         </div>
 
-        {/* ═══ MERGED PROFILE CARD (Option A) ═══ */}
+        {/* ═══ PROFILE CARD — compact ═══ */}
         <div style={{ backgroundColor: '#fff', borderRadius: 12, overflow: 'hidden', marginBottom: 20, display: 'flex' }}>
           <div style={{ flex: 1, padding: '20px 24px', borderRight: '1px solid #F0F0EA' }}>
-            <p style={{ fontSize: 14, color: profile.bio ? '#374151' : '#9CA3AF', lineHeight: 1.6, marginBottom: 12, fontStyle: profile.bio ? 'normal' : 'italic' }}>
+            <p style={{ fontSize: 14, color: profile.bio ? '#374151' : '#9CA3AF', lineHeight: 1.5, margin: '0 0 10px', fontStyle: profile.bio ? 'normal' : 'italic' }}>
               {profile.bio || "This user hasn't added a bio yet."}
             </p>
             {profile.is_verified_seller && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#1DC690', fontSize: 13, fontWeight: 600, marginBottom: 8 }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#1DC690', fontSize: 12, fontWeight: 600, marginBottom: 10 }}>
                 <ShieldCheck size={14} color="#1DC690" /> Verified Seller
               </div>
             )}
 
-            <div style={{ height: 1, backgroundColor: '#F0F0EA', margin: '12px 0' }} />
-
-            {/* Trust metrics */}
+            {/* Trust metrics — compact 2-col grid */}
             {sellerStats ? (
               <>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid #F5F5F0' }}>
-                  <div style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: '#E8F8F2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Zap size={16} color="#1DC690" />
-                  </div>
+                <div style={{ height: 1, backgroundColor: '#F0F0EA', margin: '4px 0 10px' }} />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 24px' }}>
                   <div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{sellerStats.responseRate || 0}%</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{sellerStats.responseRate || 0}%</div>
                     <div style={{ fontSize: 11, color: '#6B7280' }}>Response rate</div>
                   </div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid #F5F5F0' }}>
-                  <div style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: '#F0F7FB', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Package size={16} color="#278AB0" />
-                  </div>
                   <div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>
                       {sellerStats.avgShippingTime ? `${Number(sellerStats.avgShippingTime).toFixed(1)} days` : 'N/A'}
                     </div>
-                    <div style={{ fontSize: 11, color: '#6B7280' }}>Avg. dispatch time</div>
+                    <div style={{ fontSize: 11, color: '#6B7280' }}>Avg. dispatch</div>
                   </div>
                 </div>
                 {categories.length > 0 && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid #F5F5F0' }}>
-                    <div style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: '#FDF8ED', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Tag size={16} color="#C9A84C" />
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{categories.join(', ')}</div>
-                      <div style={{ fontSize: 11, color: '#6B7280' }}>Specialises in</div>
-                    </div>
+                  <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {categories.map((cat) => (
+                      <span key={cat} style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, backgroundColor: '#F0F0EA', color: '#374151', fontWeight: 500 }}>{cat}</span>
+                    ))}
                   </div>
                 )}
               </>
             ) : (
               <>
+                <div style={{ height: 1, backgroundColor: '#F0F0EA', margin: '4px 0 10px' }} />
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#6B7280', fontSize: 13, marginBottom: 6 }}>
                   <Calendar size={14} color="#1DC690" /> Member since {memberYear}
                 </div>
                 {profile.location && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#6B7280', fontSize: 13, marginBottom: 6 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#6B7280', fontSize: 13 }}>
                     <MapPin size={14} color="#1DC690" /> {profile.location}
                   </div>
                 )}
               </>
             )}
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#278AB0', marginTop: 12, padding: '8px 10px', backgroundColor: '#F0F7FB', borderRadius: 8 }}>
-              <ShieldCheck size={14} color="#278AB0" /> All purchases protected by Mulligans Buyer Protection
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#278AB0', marginTop: 10, padding: '6px 10px', backgroundColor: '#F0F7FB', borderRadius: 8 }}>
+              <ShieldCheck size={14} color="#278AB0" /> Protected by Mulligans Buyer Protection
             </div>
           </div>
 
           {/* Right — stacked stats */}
-          <div style={{ width: 200, padding: '16px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', flexShrink: 0 }}>
-            <div style={{ textAlign: 'center', padding: '12px 0' }}>
-              <div style={{ fontSize: 26, fontWeight: 700, color: '#111827' }}>{stats?.sales || 0}</div>
-              <div style={{ fontSize: 11, color: '#6B7280', marginTop: 2 }}>Sales</div>
+          <div style={{ width: 160, padding: '12px 16px', display: 'flex', flexDirection: 'column', justifyContent: 'center', flexShrink: 0 }}>
+            <div style={{ textAlign: 'center', padding: '8px 0' }}>
+              <div style={{ fontSize: 22, fontWeight: 700, color: '#111827' }}>{stats?.sales || 0}</div>
+              <div style={{ fontSize: 10, color: '#6B7280' }}>Sales</div>
             </div>
             <div style={{ height: 1, backgroundColor: '#F0F0EA' }} />
-            <Link href={`/user/${userId}/reviews`} style={{ textAlign: 'center', padding: '12px 0', textDecoration: 'none' }}>
+            <Link href={`/user/${userId}/reviews`} style={{ textAlign: 'center', padding: '8px 0', textDecoration: 'none' }}>
               {hasReviews ? (
                 <>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-                    <Star size={16} fill="#F59E0B" color="#F59E0B" />
-                    <span style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>{Number(stats?.rating || 0).toFixed(1)}</span>
-                    <span style={{ fontSize: 12, color: '#9CA3AF' }}>({reviewStats?.total_reviews})</span>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
+                    <Star size={14} fill="#F59E0B" color="#F59E0B" />
+                    <span style={{ fontSize: 18, fontWeight: 700, color: '#111827' }}>{Number(stats?.rating || 0).toFixed(1)}</span>
+                    <span style={{ fontSize: 11, color: '#9CA3AF' }}>({reviewStats?.total_reviews})</span>
                   </div>
-                  <div style={{ fontSize: 11, color: '#1DC690', fontWeight: 500, marginTop: 2 }}>View reviews</div>
+                  <div style={{ fontSize: 10, color: '#1DC690', fontWeight: 500, marginTop: 1 }}>View reviews</div>
                 </>
               ) : (
                 <>
-                  <div style={{ fontSize: 13, fontWeight: 500, color: '#9CA3AF' }}>New seller</div>
-                  <div style={{ fontSize: 11, color: '#9CA3AF' }}>No reviews yet</div>
+                  <div style={{ fontSize: 12, fontWeight: 500, color: '#9CA3AF' }}>New seller</div>
+                  <div style={{ fontSize: 10, color: '#9CA3AF' }}>No reviews yet</div>
                 </>
               )}
             </Link>
             <div style={{ height: 1, backgroundColor: '#F0F0EA' }} />
-            <div style={{ textAlign: 'center', padding: '12px 0' }}>
-              <div style={{ fontSize: 18, fontWeight: 700, color: '#111827' }}>{sellerStats?.totalViews || 0}</div>
-              <div style={{ fontSize: 11, color: '#6B7280', marginTop: 2 }}>Views</div>
+            <div style={{ textAlign: 'center', padding: '8px 0' }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>{sellerStats?.totalViews || 0}</div>
+              <div style={{ fontSize: 10, color: '#6B7280' }}>Views</div>
             </div>
             <div style={{ height: 1, backgroundColor: '#F0F0EA' }} />
-            <div style={{ textAlign: 'center', padding: '12px 0' }}>
-              <div style={{ fontSize: 18, fontWeight: 700, color: '#111827' }}>{sellerStats?.totalFavorites || 0}</div>
-              <div style={{ fontSize: 11, color: '#6B7280', marginTop: 2 }}>Favourites</div>
+            <div style={{ textAlign: 'center', padding: '8px 0' }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>{sellerStats?.totalFavorites || 0}</div>
+              <div style={{ fontSize: 10, color: '#6B7280' }}>Favourites</div>
             </div>
           </div>
         </div>
