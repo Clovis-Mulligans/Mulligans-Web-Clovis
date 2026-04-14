@@ -859,24 +859,24 @@ function MessagesPageInner() {
                         <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 4, fontSize: 12, color: COLOR.textLight }}>
                           {otherUserStats && (
                             <>
-                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+                              <span title={`Seller rating: ${Number(otherUserStats.rating || 0).toFixed(1)} out of 5 from ${otherUserStats.reviewCount || 0} reviews`} style={{ display: 'inline-flex', alignItems: 'center', gap: 2, cursor: 'help' }}>
                                 <Star size={11} fill="#F59E0B" color="#F59E0B" />
                                 <span style={{ fontWeight: 600, color: COLOR.textMed }}>{Number(otherUserStats.rating || 0).toFixed(1)}</span>
                                 <span>({otherUserStats.reviewCount || 0})</span>
                               </span>
                               <span style={{ color: '#D1D5DB' }}>·</span>
-                              <span><span style={{ fontWeight: 600, color: COLOR.textMed }}>{otherUserStats.sales || 0}</span> sales</span>
+                              <span title={`This seller has completed ${otherUserStats.sales || 0} sales on Mulligans`} style={{ cursor: 'help' }}><span style={{ fontWeight: 600, color: COLOR.textMed }}>{otherUserStats.sales || 0}</span> sales</span>
                             </>
                           )}
                           {otherSellerStats && (
                             <>
                               <span style={{ color: '#D1D5DB' }}>·</span>
-                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+                              <span title={`Response rate: this seller replies to ${otherSellerStats.responseRate || 0}% of messages`} style={{ display: 'inline-flex', alignItems: 'center', gap: 2, cursor: 'help' }}>
                                 <Zap size={10} color={COLOR.green} />
                                 <span>{otherSellerStats.responseRate || 0}%</span>
                               </span>
                               <span style={{ color: '#D1D5DB' }}>·</span>
-                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+                              <span title={`Average dispatch time: this seller typically ships within ${otherSellerStats.avgShippingTime ? Number(otherSellerStats.avgShippingTime).toFixed(1) + ' days' : 'N/A'}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 2, cursor: 'help' }}>
                                 <Package size={10} color={COLOR.blue} />
                                 <span>{otherSellerStats.avgShippingTime ? `${Number(otherSellerStats.avgShippingTime).toFixed(1)}d` : 'N/A'}</span>
                               </span>
@@ -926,10 +926,11 @@ function MessagesPageInner() {
                             {listingDetail?.brand && (
                               <div style={{ fontSize: 12, color: COLOR.textLight, marginTop: 2 }}>{listingDetail.brand}{listingDetail?.model ? ` · ${listingDetail.model}` : ''}</div>
                             )}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
-                              {selectedConversation.listing_price != null && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
+                              {/* Price — try conversation first, then enriched listing */}
+                              {(selectedConversation.listing_price != null || listingDetail?.price != null) && (
                                 <span style={{ fontSize: 16, fontWeight: 700, color: COLOR.green }}>
-                                  {formatPrice(selectedConversation.listing_price)}
+                                  {formatPrice(selectedConversation.listing_price ?? listingDetail?.price)}
                                 </span>
                               )}
                               {/* Condition badge from enriched data */}
@@ -941,6 +942,12 @@ function MessagesPageInner() {
                                   <span style={{ fontSize: 11, fontWeight: 600, color: '#fff', backgroundColor: cfg.bg, padding: '2px 8px', borderRadius: 4 }}>{cfg.label}</span>
                                 ) : null;
                               })()}
+                              {/* Accepts offers badge */}
+                              {listingDetail?.is_negotiable && (
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 11, fontWeight: 600, color: COLOR.purple, backgroundColor: '#F3F0FF', padding: '2px 8px', borderRadius: 4 }}>
+                                  <Tag size={10} color={COLOR.purple} /> Accepts offers
+                                </span>
+                              )}
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: COLOR.blue, marginTop: 4 }}>
                               <ShieldCheck size={11} color={COLOR.blue} /> Buyer Protection included
