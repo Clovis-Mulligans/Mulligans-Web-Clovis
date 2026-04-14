@@ -572,7 +572,7 @@ function MessagesPageInner() {
           {showList && (
             <div
               style={{
-                width: isMobile ? '100%' : 340,
+                width: isMobile ? '100%' : 420,
                 borderRight: isMobile ? 'none' : `1px solid ${COLOR.border}`,
                 display: 'flex',
                 flexDirection: 'column',
@@ -640,8 +640,8 @@ function MessagesPageInner() {
                           width: '100%',
                           textAlign: 'left',
                           display: 'flex',
-                          gap: 10,
-                          padding: '12px 14px',
+                          gap: 14,
+                          padding: '14px 16px',
                           backgroundColor: isSelected ? COLOR.selectedBg : 'transparent',
                           borderLeft: `3px solid ${isSelected ? COLOR.green : 'transparent'}`,
                           borderBottom: `1px solid ${COLOR.border}`,
@@ -652,7 +652,7 @@ function MessagesPageInner() {
                         }}
                       >
                         <div style={{ position: 'relative', flexShrink: 0 }}>
-                          <ListingThumb url={c.listing_image} size={48} />
+                          <ListingThumb url={c.listing_image} size={56} />
                           <div
                             style={{
                               position: 'absolute',
@@ -662,7 +662,7 @@ function MessagesPageInner() {
                               borderRadius: '50%',
                             }}
                           >
-                            <Avatar url={c.other_user_avatar} name={c.other_user_name} size={22} />
+                            <Avatar url={c.other_user_avatar} name={c.other_user_name} size={26} />
                           </div>
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
@@ -676,7 +676,7 @@ function MessagesPageInner() {
                           >
                             <div
                               style={{
-                                fontSize: 14,
+                                fontSize: 15,
                                 fontWeight: isUnread ? 700 : 600,
                                 color: COLOR.textDark,
                                 display: 'flex',
@@ -689,12 +689,12 @@ function MessagesPageInner() {
                             >
                               {c.other_user_name || 'Unknown'}
                               {c.other_user_is_verified && (
-                                <CheckCircle2 size={13} color={COLOR.blue} />
+                                <CheckCircle2 size={14} color={COLOR.blue} />
                               )}
                             </div>
                             <div
                               style={{
-                                fontSize: 11,
+                                fontSize: 12,
                                 color: COLOR.textLight,
                                 flexShrink: 0,
                               }}
@@ -705,15 +705,18 @@ function MessagesPageInner() {
                           {c.listing_title && (
                             <div
                               style={{
-                                fontSize: 12,
+                                fontSize: 13,
                                 color: COLOR.textLight,
-                                marginTop: 2,
+                                marginTop: 3,
                                 whiteSpace: 'nowrap',
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis',
                               }}
                             >
                               {c.listing_title}
+                              {c.listing_price != null && (
+                                <span style={{ fontWeight: 600, color: COLOR.green }}> · £{Number(c.listing_price).toFixed(0)}</span>
+                              )}
                             </div>
                           )}
                           <div
@@ -722,12 +725,12 @@ function MessagesPageInner() {
                               alignItems: 'center',
                               justifyContent: 'space-between',
                               gap: 8,
-                              marginTop: 2,
+                              marginTop: 3,
                             }}
                           >
                             <div
                               style={{
-                                fontSize: 13,
+                                fontSize: 14,
                                 color: isUnread ? COLOR.textDark : COLOR.textLight,
                                 fontWeight: isUnread ? 600 : 400,
                                 whiteSpace: 'nowrap',
@@ -837,32 +840,40 @@ function MessagesPageInner() {
                         )}
                       </div>
                     </div>
-                    {/* Bottom row: listing info card */}
+                    {/* Mini listing card */}
                     {selectedConversation.listing_title && (
-                      <a
-                        href={`/listings/${selectedConversation.listing_id}`}
-                        style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', backgroundColor: '#FAFAF8', textDecoration: 'none' }}
-                      >
-                        <ListingThumb url={selectedConversation.listing_image} size={48} />
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 14, fontWeight: 600, color: COLOR.textDark, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {selectedConversation.listing_title}
-                          </div>
-                          {selectedConversation.listing_price != null && (
-                            <div style={{ fontSize: 15, fontWeight: 700, color: COLOR.green, marginTop: 2 }}>
-                              {formatPrice(selectedConversation.listing_price)}
+                      <div style={{ padding: '10px 16px 8px' }}>
+                        <a
+                          href={`/listings/${selectedConversation.listing_id}`}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: 12,
+                            padding: '10px 12px',
+                            backgroundColor: '#fff',
+                            border: `1px solid ${COLOR.border}`,
+                            borderRadius: 10,
+                            textDecoration: 'none',
+                          }}
+                        >
+                          <ListingThumb url={selectedConversation.listing_image} size={64} />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 14, fontWeight: 700, color: COLOR.textDark, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {selectedConversation.listing_title}
                             </div>
-                          )}
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: COLOR.blue, fontWeight: 600, flexShrink: 0 }}>
-                          <ExternalLink size={14} /> View
-                        </div>
-                      </a>
+                            {selectedConversation.listing_price != null && (
+                              <div style={{ fontSize: 16, fontWeight: 700, color: COLOR.green, marginTop: 4 }}>
+                                {formatPrice(selectedConversation.listing_price)}
+                              </div>
+                            )}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: COLOR.blue, marginTop: 4 }}>
+                              <ShieldCheck size={11} color={COLOR.blue} /> Buyer Protection included
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: COLOR.blue, fontWeight: 600, flexShrink: 0 }}>
+                            <ExternalLink size={14} /> View
+                          </div>
+                        </a>
+                      </div>
                     )}
-                    {/* Buyer protection trust line */}
-                    <div style={{ padding: '6px 16px 8px', display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: COLOR.blue }}>
-                      <ShieldCheck size={12} color={COLOR.blue} /> Protected by Mulligans Buyer Protection
-                    </div>
                   </div>
 
                   <div
