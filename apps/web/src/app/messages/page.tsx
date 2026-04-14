@@ -112,6 +112,16 @@ function formatPrice(p: number | null | undefined): string {
   return `£${Number(p).toFixed(2)}`;
 }
 
+// Buyer protection fee: 7.5% + £0.99
+function withFees(price: number): number {
+  return price * 1.075 + 0.99;
+}
+
+function formatBuyerPrice(p: number | null | undefined): string {
+  if (p == null) return '';
+  return `£${withFees(Number(p)).toFixed(2)}`;
+}
+
 function Avatar({ url, name, size = 40 }: { url: string | null; name: string | null; size?: number }) {
   const initial = (name || '?').trim().charAt(0).toUpperCase();
   if (url) {
@@ -750,7 +760,7 @@ function MessagesPageInner() {
                             >
                               {c.listing_title}
                               {c.listing_price != null && (
-                                <span style={{ fontWeight: 600, color: COLOR.green }}> · £{Number(c.listing_price).toFixed(0)}</span>
+                                <span style={{ fontWeight: 600, color: COLOR.green }}> · {formatBuyerPrice(c.listing_price)}</span>
                               )}
                             </div>
                           )}
@@ -930,7 +940,7 @@ function MessagesPageInner() {
                               {/* Price — try conversation first, then enriched listing */}
                               {(selectedConversation.listing_price != null || listingDetail?.price != null) && (
                                 <span style={{ fontSize: 16, fontWeight: 700, color: COLOR.green }}>
-                                  {formatPrice(selectedConversation.listing_price ?? listingDetail?.price)}
+                                  {formatBuyerPrice(selectedConversation.listing_price ?? listingDetail?.price)}
                                 </span>
                               )}
                               {/* Condition badge from enriched data */}
@@ -1063,7 +1073,7 @@ function MessagesPageInner() {
                                         Offer
                                       </div>
                                       <div style={{ fontSize: 15, fontWeight: 700 }}>
-                                        {formatPrice(msg.offer_amount)}
+                                        {formatBuyerPrice(msg.offer_amount)}
                                       </div>
                                       {msg.content && (
                                         <div style={{ fontSize: 13, color: COLOR.textMed, marginTop: 2 }}>
