@@ -13,6 +13,9 @@ import {
   Flag,
   Ban,
   ShieldCheck,
+  Star,
+  Package,
+  Zap,
 } from 'lucide-react';
 import { fetchAuthSession } from 'aws-amplify/auth';
 import { io, Socket } from 'socket.io-client';
@@ -25,8 +28,12 @@ import {
   reportUser,
   blockUser,
   unblockUser,
+  getUserStats,
+  getSellerStats,
   type Conversation,
   type Message,
+  type UserStats,
+  type SellerStats,
 } from '@mulligans/api-client';
 import { useAuth } from '@/hooks/useAuth';
 import PageHeader from '@/components/PageHeader';
@@ -48,6 +55,14 @@ const COLOR = {
 };
 const NAV_H = 64;
 const MOBILE_BREAKPOINT = 768;
+
+const CONDITION_BADGES: Record<string, { bg: string; label: string }> = {
+  'New': { bg: '#10B981', label: 'New' },
+  'Excellent': { bg: '#8B5CF6', label: 'Excellent' },
+  'Very Good': { bg: '#3B82F6', label: 'Very Good' },
+  'Good': { bg: '#F59E0B', label: 'Good' },
+  'Poor': { bg: '#EF4444', label: 'Poor' },
+};
 
 function formatRelativeTime(iso: string | null | undefined): string {
   if (!iso) return '';
@@ -211,6 +226,9 @@ function MessagesPageInner() {
   const [reportSubmitting, setReportSubmitting] = useState(false);
   const [showBlockConfirm, setShowBlockConfirm] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
+  const [otherUserStats, setOtherUserStats] = useState<UserStats | null>(null);
+  const [otherSellerStats, setOtherSellerStats] = useState<SellerStats | null>(null);
+  const [listingDetail, setListingDetail] = useState<any>(null);
 
   const socketRef = useRef<Socket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -373,6 +391,9 @@ function MessagesPageInner() {
       setMessages([]);
       setOtherTyping(false);
       setMessagesLoading(true);
+      setOtherUserStats(null);
+      setOtherSellerStats(null);
+      setListingDetail(null);
       try {
         const res = await getMessages(id);
         const list = (res as unknown as { messages?: Message[] }).messages || [];
@@ -386,8 +407,22 @@ function MessagesPageInner() {
       } finally {
         setMessagesLoading(false);
       }
+
+      // Fetch enrichment data (non-blocking)
+      const conv = conversations.find((c) => c.id === id);
+      if (conv?.other_user_id) {
+        getUserStats(conv.other_user_id).then(setOtherUserStats).catch(() => {});
+        getSellerStats(conv.other_user_id).then(setOtherSellerStats).catch(() => {});
+      }
+      if (conv?.listing_id) {
+        const base = process.env.NEXT_PUBLIC_API_URL || 'https://api.mulligans.uk.com';
+        fetch(`${base}/api/listings/${conv.listing_id}`)
+          .then(r => r.json())
+          .then(data => setListingDetail(data.listing || data))
+          .catch(() => {});
+      }
     },
-    [isMobile],
+    [isMobile, conversations],
   );
 
   useEffect(() => {
@@ -803,7 +838,7 @@ function MessagesPageInner() {
                       backgroundColor: COLOR.panel,
                     }}
                   >
-                    {/* Top row: back + user + menu */}
+                    {/* Top row: back + user info + trust stats + menu */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderBottom: `1px solid #F5F5F0` }}>
                       {isMobile && (
                         <button
@@ -814,11 +849,39 @@ function MessagesPageInner() {
                           <ArrowLeft size={20} />
                         </button>
                       )}
-                      <Avatar url={selectedConversation.other_user_avatar} name={selectedConversation.other_user_name} size={36} />
+                      <Avatar url={selectedConversation.other_user_avatar} name={selectedConversation.other_user_name} size={40} />
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 15, fontWeight: 700, color: COLOR.textDark, display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: COLOR.textDark, display: 'flex', alignItems: 'center', gap: 4, marginBottom: 2 }}>
                           {selectedConversation.other_user_name || 'Unknown'}
-                          {selectedConversation.other_user_is_verified && <CheckCircle2 size={14} color={COLOR.blue} />}
+                          {selectedConversation.other_user_is_verified && <CheckCircle2 size={14} color={COLOR.green} />}
+                        </div>
+                        {/* Trust stats inline */}
+                        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 4, fontSize: 12, color: COLOR.textLight }}>
+                          {otherUserStats && (
+                            <>
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+                                <Star size={11} fill="#F59E0B" color="#F59E0B" />
+                                <span style={{ fontWeight: 600, color: COLOR.textMed }}>{Number(otherUserStats.rating || 0).toFixed(1)}</span>
+                                <span>({otherUserStats.reviewCount || 0})</span>
+                              </span>
+                              <span style={{ color: '#D1D5DB' }}>·</span>
+                              <span><span style={{ fontWeight: 600, color: COLOR.textMed }}>{otherUserStats.sales || 0}</span> sales</span>
+                            </>
+                          )}
+                          {otherSellerStats && (
+                            <>
+                              <span style={{ color: '#D1D5DB' }}>·</span>
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+                                <Zap size={10} color={COLOR.green} />
+                                <span>{otherSellerStats.responseRate || 0}%</span>
+                              </span>
+                              <span style={{ color: '#D1D5DB' }}>·</span>
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+                                <Package size={10} color={COLOR.blue} />
+                                <span>{otherSellerStats.avgShippingTime ? `${Number(otherSellerStats.avgShippingTime).toFixed(1)}d` : 'N/A'}</span>
+                              </span>
+                            </>
+                          )}
                         </div>
                       </div>
                       <div style={{ position: 'relative', flexShrink: 0 }}>
@@ -840,7 +903,7 @@ function MessagesPageInner() {
                         )}
                       </div>
                     </div>
-                    {/* Mini listing card */}
+                    {/* Mini listing card — enriched with condition + brand */}
                     {selectedConversation.listing_title && (
                       <div style={{ padding: '10px 16px 8px' }}>
                         <a
@@ -848,7 +911,7 @@ function MessagesPageInner() {
                           style={{
                             display: 'flex', alignItems: 'center', gap: 12,
                             padding: '10px 12px',
-                            backgroundColor: '#fff',
+                            backgroundColor: '#FAFAF8',
                             border: `1px solid ${COLOR.border}`,
                             borderRadius: 10,
                             textDecoration: 'none',
@@ -859,11 +922,26 @@ function MessagesPageInner() {
                             <div style={{ fontSize: 14, fontWeight: 700, color: COLOR.textDark, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                               {selectedConversation.listing_title}
                             </div>
-                            {selectedConversation.listing_price != null && (
-                              <div style={{ fontSize: 16, fontWeight: 700, color: COLOR.green, marginTop: 4 }}>
-                                {formatPrice(selectedConversation.listing_price)}
-                              </div>
+                            {/* Brand from enriched data */}
+                            {listingDetail?.brand && (
+                              <div style={{ fontSize: 12, color: COLOR.textLight, marginTop: 2 }}>{listingDetail.brand}{listingDetail?.model ? ` · ${listingDetail.model}` : ''}</div>
                             )}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                              {selectedConversation.listing_price != null && (
+                                <span style={{ fontSize: 16, fontWeight: 700, color: COLOR.green }}>
+                                  {formatPrice(selectedConversation.listing_price)}
+                                </span>
+                              )}
+                              {/* Condition badge from enriched data */}
+                              {listingDetail?.condition_overall != null && (() => {
+                                const condMap: Record<number, string> = { 1: 'Poor', 2: 'Good', 3: 'Very Good', 4: 'Excellent', 5: 'New' };
+                                const label = condMap[listingDetail.condition_overall] || '';
+                                const cfg = CONDITION_BADGES[label];
+                                return cfg ? (
+                                  <span style={{ fontSize: 11, fontWeight: 600, color: '#fff', backgroundColor: cfg.bg, padding: '2px 8px', borderRadius: 4 }}>{cfg.label}</span>
+                                ) : null;
+                              })()}
+                            </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: COLOR.blue, marginTop: 4 }}>
                               <ShieldCheck size={11} color={COLOR.blue} /> Buyer Protection included
                             </div>
