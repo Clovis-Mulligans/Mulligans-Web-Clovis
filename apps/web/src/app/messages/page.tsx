@@ -9,6 +9,10 @@ import {
   ExternalLink,
   Tag,
   CheckCircle2,
+  MoreHorizontal,
+  Flag,
+  Ban,
+  ShieldCheck,
 } from 'lucide-react';
 import { fetchAuthSession } from 'aws-amplify/auth';
 import { io, Socket } from 'socket.io-client';
@@ -18,11 +22,15 @@ import {
   sendMessage as sendMessageRest,
   markConversationRead,
   createConversation,
+  reportUser,
+  blockUser,
+  unblockUser,
   type Conversation,
   type Message,
 } from '@mulligans/api-client';
 import { useAuth } from '@/hooks/useAuth';
 import PageHeader from '@/components/PageHeader';
+import SimpleModal from '@/components/SimpleModal';
 
 const API_ORIGIN = 'https://api.mulligans.uk.com';
 const COLOR = {
@@ -196,9 +204,17 @@ function MessagesPageInner() {
   const [isMobile, setIsMobile] = useState(false);
   const [mobileView, setMobileView] = useState<'list' | 'chat'>('list');
   const [sendError, setSendError] = useState<string | null>(null);
+  const [showChatMenu, setShowChatMenu] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  const [reportDetails, setReportDetails] = useState('');
+  const [reportSubmitting, setReportSubmitting] = useState(false);
+  const [showBlockConfirm, setShowBlockConfirm] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
 
   const socketRef = useRef<Socket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const messagesContainerRef = useRef<HTMLDivElement | null>(null);
   const typingClearRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTypingEmitRef = useRef<number>(0);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -407,8 +423,8 @@ function MessagesPageInner() {
   }, [isAuthenticated, convLoading, searchParams]);
 
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
     }
   }, [messages.length, otherTyping, selectedId]);
 
@@ -476,6 +492,28 @@ function MessagesPageInner() {
     el.style.height = 'auto';
     const maxHeight = 24 * 3 + 20;
     el.style.height = `${Math.min(el.scrollHeight, maxHeight)}px`;
+  };
+
+  const otherUserId = selectedConversation?.other_user_id || null;
+
+  const handleReport = async () => {
+    if (!reportReason || !otherUserId) return;
+    setReportSubmitting(true);
+    try {
+      await reportUser({ reported_user_id: otherUserId, reason: reportReason, details: reportDetails || undefined });
+      setShowReportModal(false); setReportReason(''); setReportDetails('');
+      alert('Report submitted. Thank you.');
+    } catch (err: any) { alert((err as any)?.data?.error || 'Failed to submit report.'); }
+    finally { setReportSubmitting(false); }
+  };
+
+  const handleBlock = async () => {
+    if (!otherUserId) return;
+    try {
+      if (isBlocked) { await unblockUser(otherUserId); setIsBlocked(false); }
+      else { await blockUser(otherUserId); setIsBlocked(true); }
+      setShowBlockConfirm(false); setShowChatMenu(false);
+    } catch (err: any) { alert((err as any)?.data?.error || 'Action failed.'); }
   };
 
   if (authLoading || !isAuthenticated) {
@@ -614,20 +652,18 @@ function MessagesPageInner() {
                         }}
                       >
                         <div style={{ position: 'relative', flexShrink: 0 }}>
-                          <Avatar url={c.other_user_avatar} name={c.other_user_name} size={40} />
-                          {c.listing_image && (
-                            <div
-                              style={{
-                                position: 'absolute',
-                                right: -6,
-                                bottom: -6,
-                                border: '2px solid #fff',
-                                borderRadius: 8,
-                              }}
-                            >
-                              <ListingThumb url={c.listing_image} size={22} />
-                            </div>
-                          )}
+                          <ListingThumb url={c.listing_image} size={48} />
+                          <div
+                            style={{
+                              position: 'absolute',
+                              right: -4,
+                              bottom: -4,
+                              border: '2px solid #fff',
+                              borderRadius: '50%',
+                            }}
+                          >
+                            <Avatar url={c.other_user_avatar} name={c.other_user_name} size={22} />
+                          </div>
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div
@@ -759,92 +795,78 @@ function MessagesPageInner() {
                 <>
                   <div
                     style={{
-                      padding: '12px 16px',
+                      padding: 0,
                       borderBottom: `1px solid ${COLOR.border}`,
                       backgroundColor: COLOR.panel,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 12,
                     }}
                   >
-                    {isMobile && (
-                      <button
-                        onClick={() => {
-                          setMobileView('list');
-                          setSelectedId(null);
-                        }}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          cursor: 'pointer',
-                          padding: 4,
-                          display: 'inline-flex',
-                          color: COLOR.textMed,
-                        }}
-                        aria-label="Back to conversations"
-                      >
-                        <ArrowLeft size={20} />
-                      </button>
-                    )}
-                    <Avatar
-                      url={selectedConversation.other_user_avatar}
-                      name={selectedConversation.other_user_name}
-                      size={36}
-                    />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div
-                        style={{
-                          fontSize: 15,
-                          fontWeight: 700,
-                          color: COLOR.textDark,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 4,
-                        }}
-                      >
-                        {selectedConversation.other_user_name || 'Unknown'}
-                        {selectedConversation.other_user_is_verified && (
-                          <CheckCircle2 size={14} color={COLOR.blue} />
+                    {/* Top row: back + user + menu */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderBottom: `1px solid #F5F5F0` }}>
+                      {isMobile && (
+                        <button
+                          onClick={() => { setMobileView('list'); setSelectedId(null); }}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'inline-flex', color: COLOR.textMed }}
+                          aria-label="Back to conversations"
+                        >
+                          <ArrowLeft size={20} />
+                        </button>
+                      )}
+                      <Avatar url={selectedConversation.other_user_avatar} name={selectedConversation.other_user_name} size={36} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: COLOR.textDark, display: 'flex', alignItems: 'center', gap: 4 }}>
+                          {selectedConversation.other_user_name || 'Unknown'}
+                          {selectedConversation.other_user_is_verified && <CheckCircle2 size={14} color={COLOR.blue} />}
+                        </div>
+                      </div>
+                      <div style={{ position: 'relative', flexShrink: 0 }}>
+                        <button onClick={() => setShowChatMenu(!showChatMenu)} style={{ width: 34, height: 34, borderRadius: 8, border: `1px solid ${COLOR.border}`, backgroundColor: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <MoreHorizontal size={16} color={COLOR.textLight} />
+                        </button>
+                        {showChatMenu && (
+                          <>
+                            <div style={{ position: 'fixed', inset: 0, zIndex: 40 }} onClick={() => setShowChatMenu(false)} />
+                            <div style={{ position: 'absolute', top: 38, right: 0, backgroundColor: '#fff', borderRadius: 12, boxShadow: '0 4px 20px rgba(0,0,0,0.15)', minWidth: 180, zIndex: 50, overflow: 'hidden' }}>
+                              <button onClick={() => { setShowChatMenu(false); setShowReportModal(true); }} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', border: 'none', backgroundColor: 'transparent', cursor: 'pointer', fontSize: 14, color: COLOR.textMed }}>
+                                <Flag size={16} /> Report User
+                              </button>
+                              <button onClick={() => { setShowChatMenu(false); setShowBlockConfirm(true); }} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', border: 'none', backgroundColor: 'transparent', cursor: 'pointer', fontSize: 14, color: isBlocked ? COLOR.green : '#EF4444' }}>
+                                <Ban size={16} /> {isBlocked ? 'Unblock User' : 'Block User'}
+                              </button>
+                            </div>
+                          </>
                         )}
                       </div>
-                      {selectedConversation.listing_title && (
-                        <div
-                          style={{
-                            fontSize: 12,
-                            color: COLOR.textLight,
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                          }}
-                        >
-                          {selectedConversation.listing_title}
-                          {selectedConversation.listing_price != null && (
-                            <> · {formatPrice(selectedConversation.listing_price)}</>
-                          )}
-                        </div>
-                      )}
                     </div>
-                    {selectedConversation.listing_id && (
+                    {/* Bottom row: listing info card */}
+                    {selectedConversation.listing_title && (
                       <a
                         href={`/listings/${selectedConversation.listing_id}`}
-                        style={{
-                          fontSize: 13,
-                          color: COLOR.blue,
-                          textDecoration: 'none',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 4,
-                          fontWeight: 600,
-                          flexShrink: 0,
-                        }}
+                        style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', backgroundColor: '#FAFAF8', textDecoration: 'none' }}
                       >
-                        <ExternalLink size={14} />
-                        View listing
+                        <ListingThumb url={selectedConversation.listing_image} size={48} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 14, fontWeight: 600, color: COLOR.textDark, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {selectedConversation.listing_title}
+                          </div>
+                          {selectedConversation.listing_price != null && (
+                            <div style={{ fontSize: 15, fontWeight: 700, color: COLOR.green, marginTop: 2 }}>
+                              {formatPrice(selectedConversation.listing_price)}
+                            </div>
+                          )}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: COLOR.blue, fontWeight: 600, flexShrink: 0 }}>
+                          <ExternalLink size={14} /> View
+                        </div>
                       </a>
                     )}
+                    {/* Buyer protection trust line */}
+                    <div style={{ padding: '6px 16px 8px', display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: COLOR.blue }}>
+                      <ShieldCheck size={12} color={COLOR.blue} /> Protected by Mulligans Buyer Protection
+                    </div>
                   </div>
 
                   <div
+                    ref={messagesContainerRef}
                     style={{
                       flex: 1,
                       overflowY: 'auto',
@@ -1078,6 +1100,37 @@ function MessagesPageInner() {
           )}
         </div>
       </div>
+
+      {/* ═══ REPORT MODAL ═══ */}
+      <SimpleModal open={showReportModal} onClose={() => { setShowReportModal(false); setReportReason(''); setReportDetails(''); }} title="Report User">
+        <div>
+          <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 8 }}>Reason</label>
+          <select value={reportReason} onChange={(e) => setReportReason(e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #E5E7EB', fontSize: 14, marginBottom: 16, backgroundColor: '#fff' }}>
+            <option value="">Select a reason...</option>
+            {['Inappropriate content', 'Spam', 'Scam/fraud', 'Harassment', 'Other'].map(r => <option key={r} value={r}>{r}</option>)}
+          </select>
+          <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 8 }}>Details (optional)</label>
+          <textarea value={reportDetails} onChange={(e) => setReportDetails(e.target.value)} placeholder="Provide additional details..." rows={4} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #E5E7EB', fontSize: 14, resize: 'vertical', marginBottom: 16, boxSizing: 'border-box' }} />
+          <button onClick={handleReport} disabled={!reportReason || reportSubmitting} style={{ width: '100%', padding: '12px', borderRadius: 8, backgroundColor: !reportReason || reportSubmitting ? '#D1D5DB' : '#EF4444', color: '#fff', border: 'none', cursor: !reportReason || reportSubmitting ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14 }}>
+            {reportSubmitting ? 'Submitting...' : 'Submit Report'}
+          </button>
+        </div>
+      </SimpleModal>
+
+      {/* ═══ BLOCK CONFIRM MODAL ═══ */}
+      <SimpleModal open={showBlockConfirm} onClose={() => setShowBlockConfirm(false)} title={isBlocked ? 'Unblock User' : 'Block User'}>
+        <div>
+          <p style={{ fontSize: 14, color: '#374151', marginBottom: 20, lineHeight: 1.6 }}>
+            {isBlocked
+              ? `Unblock ${selectedConversation?.other_user_name || 'this user'}? They will be able to message you again.`
+              : `Block ${selectedConversation?.other_user_name || 'this user'}? They won't be able to message you or see your listings.`}
+          </p>
+          <div style={{ display: 'flex', gap: 12 }}>
+            <button onClick={() => setShowBlockConfirm(false)} style={{ flex: 1, padding: '12px', borderRadius: 8, border: '1px solid #E5E7EB', backgroundColor: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: 14, color: '#374151' }}>Cancel</button>
+            <button onClick={handleBlock} style={{ flex: 1, padding: '12px', borderRadius: 8, border: 'none', backgroundColor: isBlocked ? COLOR.green : '#EF4444', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: 14 }}>{isBlocked ? 'Unblock' : 'Block'}</button>
+          </div>
+        </div>
+      </SimpleModal>
     </div>
   );
 }
