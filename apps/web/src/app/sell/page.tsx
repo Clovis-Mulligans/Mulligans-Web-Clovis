@@ -117,7 +117,7 @@ export default function SellPage() {
   const [draftRestored, setDraftRestored] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null!);
 
   /* Auth gate */
   useEffect(() => {
@@ -927,7 +927,7 @@ function Step4Photos({
   form, fileInputRef, onAdd, onRemove, onMove, errors,
 }: {
   form: FormState;
-  fileInputRef: React.RefObject<HTMLInputElement | null>;
+  fileInputRef: React.RefObject<HTMLInputElement>;
   onAdd: (files: FileList | File[]) => void;
   onRemove: (id: string) => void;
   onMove: (from: number, to: number) => void;
