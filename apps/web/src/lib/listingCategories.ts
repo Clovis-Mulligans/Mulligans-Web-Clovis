@@ -131,7 +131,9 @@ export function specFieldsFor(category: string, subcategory: string | null | und
       { key: 'gender', label: 'Gender', type: 'buttons', options: GENDER },
       { key: 'dexterity', label: 'Dexterity', type: 'buttons', options: DEXTERITY },
       { key: 'shaftFlex', label: 'Shaft Flex', type: 'select', options: SHAFT_FLEX },
-      { key: 'shaftModel', label: 'Shaft Model', type: 'text', placeholder: 'e.g. KBS Tour' },
+      // Shaft brand + model are rendered by the <ShaftCascade /> component in
+      // sell/page.tsx (Brief 6L — shafts). Keeping them out of the generic
+      // spec schema lets the cascade clear and filter correctly by subcategory.
     ];
     const lofts = loftOptionsForSubcategory(sub);
     if (lofts.length) {

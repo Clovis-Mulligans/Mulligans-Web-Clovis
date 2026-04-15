@@ -3766,3 +3766,989 @@ export function hasModelsFor(
   const list = getModelsFor(category, subcategory, brand);
   return list.length > 1;
 }
+
+// ═════════════════════════════════════════════════════════════════
+// SHAFT DATABASE
+// Ported from mobile lib/equipment/models/shafts.ts
+// Filtered by club type for correct per-subcategory selection.
+// ═════════════════════════════════════════════════════════════════
+
+const SHAFT_BRANDS_BY_CLUB_TYPE_INTERNAL: Record<string, string[]> = {
+  "Drivers": [
+    "ACCRA",
+    "Aldila",
+    "AutoFlex",
+    "Fujikura",
+    "Grafalloy",
+    "Graphite Design",
+    "LA Golf",
+    "Matrix",
+    "Mitsubishi Chemical",
+    "Oban",
+    "Paderson",
+    "Project X",
+    "TPT Golf",
+    "UST Mamiya"
+  ],
+  "Fairway Woods": [
+    "ACCRA",
+    "Aldila",
+    "AutoFlex",
+    "Fujikura",
+    "Grafalloy",
+    "Graphite Design",
+    "LA Golf",
+    "Matrix",
+    "Mitsubishi Chemical",
+    "Nippon",
+    "Oban",
+    "Paderson",
+    "Project X",
+    "TPT Golf",
+    "UST Mamiya"
+  ],
+  "Hybrids": [
+    "Aldila",
+    "Fujikura",
+    "Graphite Design",
+    "KBS",
+    "Matrix",
+    "Nippon"
+  ],
+  "Irons": [
+    "ACCRA",
+    "Aerotech",
+    "Graphite Design",
+    "KBS",
+    "LA Golf",
+    "Mitsubishi Chemical",
+    "Nippon",
+    "Oban",
+    "Project X",
+    "UST Mamiya"
+  ],
+  "Wedges": [
+    "ACCRA",
+    "Aerotech",
+    "Graphite Design",
+    "KBS",
+    "LA Golf",
+    "Mitsubishi Chemical",
+    "Nippon",
+    "Oban",
+    "Project X",
+    "UST Mamiya"
+  ],
+  "Putters": [
+    "KBS"
+  ]
+};
+
+const ALL_SHAFT_BRANDS_INTERNAL: string[] = ["ACCRA","Aerotech","Aldila","AutoFlex","Fujikura","Grafalloy","Graphite Design","KBS","LA Golf","Matrix","Mitsubishi Chemical","Nippon","Oban","Paderson","Project X","TPT Golf","UST Mamiya"];
+
+const SHAFT_MODELS_BY_BRAND_INTERNAL: Record<string, string[]> = {
+  "Fujikura": [
+    "Ventus Blue",
+    "Ventus Black",
+    "Ventus Red",
+    "Ventus White 2025",
+    "Ventus TR Blue",
+    "Ventus TR Blue 2.0",
+    "Ventus TR Black",
+    "Ventus TR Red",
+    "Speeder NX Blue",
+    "Speeder NX Green",
+    "Speeder NX Red",
+    "Speeder Evolution II",
+    "Speeder Evolution III",
+    "Speeder TR",
+    "Speeder Pro",
+    "Speeder Evolution 661",
+    "Speeder Evolution 757",
+    "Speeder Motore 661",
+    "Speeder Motore 757",
+    "Blur",
+    "Atmos Tour Spec Blue",
+    "Atmos Tour Spec Red",
+    "Atmos Tour Spec Black",
+    "Air Speeder",
+    "Vista Pro 45",
+    "Vista Pro 55",
+    "Vista Pro 65",
+    "Pro 2.0 Blue",
+    "Pro 2.0 Black",
+    "Motore X F1",
+    "Motore X F3",
+    "Motore X F5",
+    "Ventus HB",
+    "Speeder HB"
+  ],
+  "Project X": [
+    "HZRDUS Black Gen 5",
+    "HZRDUS Black Gen 4",
+    "HZRDUS Smoke Black",
+    "HZRDUS Silver Gen 4",
+    "HZRDUS Yellow",
+    "HZRDUS Green",
+    "HZRDUS Red CB Gen 4",
+    "HZRDUS Smoke Blue",
+    "HZRDUS Smoke Red",
+    "HZRDUS Smoke Fairway",
+    "HZRDUS RDX Blue",
+    "HZRDUS RDX Black",
+    "EvenFlow Riptide",
+    "EvenFlow Black",
+    "EvenFlow Blue",
+    "Cypher",
+    "Catalyst 60",
+    "Catalyst 70",
+    "Catalyst 80",
+    "PXi",
+    "Rifle",
+    "LZ (Loading Zone)",
+    "IO",
+    "LS",
+    "Elevate Tour",
+    "Dynamic Gold 97",
+    "Dynamic Gold 105",
+    "Dynamic Gold 120",
+    "Dynamic Gold S300",
+    "Dynamic Gold X100",
+    "Dynamic Gold HT",
+    "Dynamic Gold Tour Issue S400",
+    "Dynamic Gold Tour Issue X100",
+    "Dynamic Gold Mid 115",
+    "Project X Rifle",
+    "Project X 5.5",
+    "Project X 6.0",
+    "Project X 6.5",
+    "AMT Tour White",
+    "AMT Black"
+  ],
+  "Mitsubishi Chemical": [
+    "Diamana WB (White Board)",
+    "Diamana BB (Blue Board)",
+    "Diamana RB (Red Board)",
+    "Diamana GT",
+    "Diamana PD",
+    "Diamana TB",
+    "Diamana S+",
+    "Diamana ZF",
+    "Diamana \\",
+    "Diamana BF",
+    "Tensei AV Raw White",
+    "Tensei AV Raw Blue",
+    "Tensei AV Raw Orange",
+    "Tensei AV Raw White TXS",
+    "Tensei 1K Pro White",
+    "Tensei 1K Pro Blue",
+    "Tensei 1K Pro Orange",
+    "Tensei Pro Blue 1K",
+    "Tensei CK Pro Orange",
+    "Tensei CK Pro White",
+    "Tensei CK Pro Blue",
+    "Kai\\",
+    "Kuro Kage",
+    "VANQUISH VV",
+    "Fubuki MV",
+    "Bassara",
+    "MMT 55",
+    "MMT 65",
+    "MMT 80",
+    "MMT 105",
+    "MMT 125"
+  ],
+  "KBS": [
+    "Tour",
+    "Tour 90",
+    "Tour 2.0",
+    "Tour V",
+    "Tour Lite",
+    "Tour FLT",
+    "C-Taper",
+    "C-Taper 120",
+    "C-Taper Lite",
+    "$-Taper",
+    "$-Taper Lite",
+    "Hi-Rev 2.0",
+    "MAX",
+    "TGI (Tour Graphite Iron)",
+    "PGI (Players Graphite Iron)",
+    "MAX Graphite",
+    "TD",
+    "TGI Hybrid",
+    "CT Tour Putter",
+    "GPS Putter"
+  ],
+  "Nippon": [
+    "N.S.PRO Modus3 Tour 105",
+    "N.S.PRO Modus3 Tour 110",
+    "N.S.PRO Modus3 Tour 115",
+    "N.S.PRO Modus3 Tour 120",
+    "N.S.PRO Modus3 System3 Tour 125",
+    "N.S.PRO Modus3 Tour 130",
+    "N.S.PRO Modus3 Wedge",
+    "N.S.PRO 750GH Neo",
+    "N.S.PRO 850GH Neo",
+    "N.S.PRO 950GH Neo",
+    "N.S.PRO 750GH",
+    "N.S.PRO 850GH",
+    "N.S.PRO 950GH",
+    "N.S.PRO 950GH HT",
+    "N.S.PRO 1050GH",
+    "N.S.PRO 1150GH",
+    "N.S.PRO 1150GH Tour",
+    "N.S.PRO V90",
+    "N.S.PRO Zelos 6",
+    "N.S.PRO Zelos 7",
+    "N.S.PRO Zelos 8",
+    "N.S.PRO Zelos 7 Hybrid",
+    "N.S.PRO 850FW",
+    "N.S.PRO 950FW"
+  ],
+  "Graphite Design": [
+    "Tour AD UB",
+    "Tour AD HD",
+    "Tour AD XC",
+    "Tour AD VR",
+    "Tour AD IZ",
+    "Tour AD TP",
+    "Tour AD DI",
+    "Tour AD GP",
+    "Tour AD GC",
+    "Tour AD CQ",
+    "Tour AD FI",
+    "Tour AD M9003",
+    "Tour AD MJ",
+    "Tour AD BB",
+    "Tour AD SL II",
+    "Tour AD PT",
+    "Tour AD GT",
+    "Tour AD F-Series",
+    "Raune",
+    "Raune Fairway",
+    "Raune Hybrid",
+    "MAD Pro",
+    "MAD Standard",
+    "Tour AD VF",
+    "Tour AD IZ Hybrid",
+    "Tour AD Iron 55-95",
+    "aG33-3 Series"
+  ],
+  "Aldila": [
+    "Rogue Black",
+    "Rogue Silver",
+    "Rogue Max",
+    "Rogue Elite",
+    "Rogue White",
+    "NV Green",
+    "NV Orange",
+    "NV 2KXV Blue",
+    "NV 2KXV Green",
+    "NV 2KXV Orange",
+    "RIP Alpha",
+    "RIP Phenom",
+    "Synergy",
+    "Xtreme",
+    "Ascent"
+  ],
+  "UST Mamiya": [
+    "Recoil 660",
+    "Recoil 760",
+    "Recoil 780",
+    "Recoil 95",
+    "Proforce V2",
+    "ProForce VTS",
+    "LIN-Q",
+    "LIN-Q M40X Blue",
+    "LIN-Q M40X White",
+    "LIN-Q M40X Red",
+    "Helium"
+  ],
+  "Aerotech": [
+    "SteelFiber i70",
+    "SteelFiber i80",
+    "SteelFiber i95",
+    "SteelFiber i110",
+    "SteelFiber FC"
+  ],
+  "ACCRA": [
+    "TZ5",
+    "TZ6",
+    "TZ7",
+    "FX",
+    "FX 2.0",
+    "iSeries 85",
+    "iSeries 95",
+    "iSeries 105"
+  ],
+  "LA Golf": [
+    "Trono",
+    "Rebar",
+    "DGLO",
+    "P-Series",
+    "Bryson"
+  ],
+  "Oban": [
+    "Kiyoshi",
+    "Devotion",
+    "CT-125"
+  ],
+  "Paderson": [
+    "Kinetixx"
+  ],
+  "Grafalloy": [
+    "ProLaunch Blue",
+    "ProLaunch Red",
+    "ProLaunch Axis Blue",
+    "BiMatrix"
+  ],
+  "Matrix": [
+    "Ozik ALTUS 5.1",
+    "Ozik ALTUS Fairway",
+    "Ozik ALTUS Tour H8",
+    "Ozik XCON 5",
+    "Ozik XCON 6"
+  ],
+  "AutoFlex": [
+    "SF505",
+    "SF505X",
+    "Dream 7"
+  ],
+  "TPT Golf": [
+    "TPT 15",
+    "TPT 19",
+    "TPT 22"
+  ]
+};
+
+const SHAFT_MODELS_BY_BRAND_AND_TYPE_INTERNAL: Record<string, Record<string, string[]>> = {
+  "Drivers": {
+    "Fujikura": [
+      "Ventus Blue",
+      "Ventus Black",
+      "Ventus Red",
+      "Ventus White 2025",
+      "Ventus TR Blue",
+      "Ventus TR Blue 2.0",
+      "Ventus TR Black",
+      "Ventus TR Red",
+      "Speeder NX Blue",
+      "Speeder NX Green",
+      "Speeder NX Red",
+      "Speeder Evolution II",
+      "Speeder Evolution III",
+      "Speeder TR",
+      "Speeder Pro",
+      "Speeder Evolution 661",
+      "Speeder Evolution 757",
+      "Speeder Motore 661",
+      "Speeder Motore 757",
+      "Blur",
+      "Atmos Tour Spec Blue",
+      "Atmos Tour Spec Red",
+      "Atmos Tour Spec Black",
+      "Air Speeder",
+      "Vista Pro 45",
+      "Vista Pro 55",
+      "Vista Pro 65",
+      "Pro 2.0 Blue",
+      "Pro 2.0 Black",
+      "Motore X F1",
+      "Motore X F3",
+      "Motore X F5"
+    ],
+    "Project X": [
+      "HZRDUS Black Gen 5",
+      "HZRDUS Black Gen 4",
+      "HZRDUS Smoke Black",
+      "HZRDUS Silver Gen 4",
+      "HZRDUS Yellow",
+      "HZRDUS Green",
+      "HZRDUS Red CB Gen 4",
+      "HZRDUS Smoke Blue",
+      "HZRDUS Smoke Red",
+      "HZRDUS RDX Blue",
+      "HZRDUS RDX Black",
+      "EvenFlow Riptide",
+      "EvenFlow Black",
+      "EvenFlow Blue",
+      "Cypher"
+    ],
+    "Mitsubishi Chemical": [
+      "Diamana WB (White Board)",
+      "Diamana BB (Blue Board)",
+      "Diamana RB (Red Board)",
+      "Diamana GT",
+      "Diamana PD",
+      "Diamana TB",
+      "Diamana S+",
+      "Diamana ZF",
+      "Diamana \\",
+      "Diamana BF",
+      "Tensei AV Raw White",
+      "Tensei AV Raw Blue",
+      "Tensei AV Raw Orange",
+      "Tensei AV Raw White TXS",
+      "Tensei 1K Pro White",
+      "Tensei 1K Pro Blue",
+      "Tensei 1K Pro Orange",
+      "Tensei Pro Blue 1K",
+      "Tensei CK Pro Orange",
+      "Tensei CK Pro White",
+      "Tensei CK Pro Blue",
+      "Kai\\",
+      "Kuro Kage",
+      "VANQUISH VV",
+      "Fubuki MV",
+      "Bassara"
+    ],
+    "Graphite Design": [
+      "Tour AD UB",
+      "Tour AD HD",
+      "Tour AD XC",
+      "Tour AD VR",
+      "Tour AD IZ",
+      "Tour AD TP",
+      "Tour AD DI",
+      "Tour AD GP",
+      "Tour AD GC",
+      "Tour AD CQ",
+      "Tour AD FI",
+      "Tour AD M9003",
+      "Tour AD MJ",
+      "Tour AD BB",
+      "Tour AD SL II",
+      "Tour AD PT",
+      "Tour AD GT",
+      "Raune",
+      "MAD Pro",
+      "MAD Standard",
+      "aG33-3 Series"
+    ],
+    "Aldila": [
+      "Rogue Black",
+      "Rogue Silver",
+      "Rogue Max",
+      "Rogue Elite",
+      "Rogue White",
+      "NV Green",
+      "NV Orange",
+      "NV 2KXV Blue",
+      "NV 2KXV Green",
+      "RIP Alpha",
+      "RIP Phenom",
+      "Synergy",
+      "Xtreme",
+      "Ascent"
+    ],
+    "UST Mamiya": [
+      "Proforce V2",
+      "ProForce VTS",
+      "LIN-Q",
+      "LIN-Q M40X Blue",
+      "LIN-Q M40X White",
+      "LIN-Q M40X Red",
+      "Helium"
+    ],
+    "ACCRA": [
+      "TZ5",
+      "TZ6",
+      "TZ7",
+      "FX",
+      "FX 2.0"
+    ],
+    "LA Golf": [
+      "Trono",
+      "DGLO",
+      "P-Series",
+      "Bryson"
+    ],
+    "Oban": [
+      "Kiyoshi",
+      "Devotion"
+    ],
+    "Paderson": [
+      "Kinetixx"
+    ],
+    "Grafalloy": [
+      "ProLaunch Blue",
+      "ProLaunch Red",
+      "ProLaunch Axis Blue",
+      "BiMatrix"
+    ],
+    "Matrix": [
+      "Ozik ALTUS 5.1",
+      "Ozik XCON 5",
+      "Ozik XCON 6"
+    ],
+    "AutoFlex": [
+      "SF505",
+      "SF505X",
+      "Dream 7"
+    ],
+    "TPT Golf": [
+      "TPT 15",
+      "TPT 19",
+      "TPT 22"
+    ]
+  },
+  "Fairway Woods": {
+    "Fujikura": [
+      "Ventus Blue",
+      "Ventus Black",
+      "Ventus Red",
+      "Ventus White 2025",
+      "Ventus TR Blue",
+      "Ventus TR Blue 2.0",
+      "Ventus TR Black",
+      "Ventus TR Red",
+      "Speeder NX Blue",
+      "Speeder NX Green",
+      "Speeder NX Red",
+      "Speeder Evolution II",
+      "Speeder Evolution III",
+      "Speeder TR",
+      "Speeder Pro",
+      "Speeder Evolution 661",
+      "Speeder Evolution 757",
+      "Speeder Motore 661",
+      "Speeder Motore 757",
+      "Blur",
+      "Atmos Tour Spec Blue",
+      "Atmos Tour Spec Red",
+      "Atmos Tour Spec Black",
+      "Air Speeder",
+      "Vista Pro 45",
+      "Vista Pro 55",
+      "Vista Pro 65",
+      "Pro 2.0 Blue",
+      "Pro 2.0 Black",
+      "Motore X F1",
+      "Motore X F3",
+      "Motore X F5"
+    ],
+    "Project X": [
+      "HZRDUS Black Gen 5",
+      "HZRDUS Black Gen 4",
+      "HZRDUS Smoke Black",
+      "HZRDUS Silver Gen 4",
+      "HZRDUS Yellow",
+      "HZRDUS Green",
+      "HZRDUS Red CB Gen 4",
+      "HZRDUS Smoke Blue",
+      "HZRDUS Smoke Red",
+      "HZRDUS Smoke Fairway",
+      "HZRDUS RDX Blue",
+      "HZRDUS RDX Black",
+      "EvenFlow Riptide",
+      "EvenFlow Black",
+      "EvenFlow Blue",
+      "Cypher"
+    ],
+    "Mitsubishi Chemical": [
+      "Diamana WB (White Board)",
+      "Diamana BB (Blue Board)",
+      "Diamana RB (Red Board)",
+      "Diamana GT",
+      "Diamana PD",
+      "Diamana TB",
+      "Diamana S+",
+      "Diamana ZF",
+      "Diamana \\",
+      "Diamana BF",
+      "Tensei AV Raw White",
+      "Tensei AV Raw Blue",
+      "Tensei AV Raw Orange",
+      "Tensei AV Raw White TXS",
+      "Tensei 1K Pro White",
+      "Tensei 1K Pro Blue",
+      "Tensei 1K Pro Orange",
+      "Tensei Pro Blue 1K",
+      "Tensei CK Pro Orange",
+      "Tensei CK Pro White",
+      "Tensei CK Pro Blue",
+      "Kai\\",
+      "Kuro Kage",
+      "VANQUISH VV",
+      "Fubuki MV",
+      "Bassara"
+    ],
+    "Nippon": [
+      "N.S.PRO 850FW",
+      "N.S.PRO 950FW"
+    ],
+    "Graphite Design": [
+      "Tour AD UB",
+      "Tour AD HD",
+      "Tour AD XC",
+      "Tour AD VR",
+      "Tour AD IZ",
+      "Tour AD TP",
+      "Tour AD DI",
+      "Tour AD GP",
+      "Tour AD GC",
+      "Tour AD CQ",
+      "Tour AD FI",
+      "Tour AD M9003",
+      "Tour AD MJ",
+      "Tour AD BB",
+      "Tour AD SL II",
+      "Tour AD PT",
+      "Tour AD GT",
+      "Tour AD F-Series",
+      "Raune",
+      "Raune Fairway",
+      "MAD Pro",
+      "MAD Standard",
+      "aG33-3 Series"
+    ],
+    "Aldila": [
+      "Rogue Black",
+      "Rogue Silver",
+      "Rogue Max",
+      "Rogue Elite",
+      "Rogue White",
+      "NV Green",
+      "NV Orange",
+      "NV 2KXV Blue",
+      "NV 2KXV Green",
+      "RIP Alpha",
+      "RIP Phenom",
+      "Synergy",
+      "Xtreme",
+      "Ascent"
+    ],
+    "UST Mamiya": [
+      "Proforce V2",
+      "ProForce VTS",
+      "LIN-Q",
+      "LIN-Q M40X Blue",
+      "LIN-Q M40X White",
+      "LIN-Q M40X Red",
+      "Helium"
+    ],
+    "ACCRA": [
+      "TZ5",
+      "TZ6",
+      "TZ7",
+      "FX",
+      "FX 2.0"
+    ],
+    "LA Golf": [
+      "Trono",
+      "DGLO",
+      "P-Series",
+      "Bryson"
+    ],
+    "Oban": [
+      "Kiyoshi",
+      "Devotion"
+    ],
+    "Paderson": [
+      "Kinetixx"
+    ],
+    "Grafalloy": [
+      "ProLaunch Blue",
+      "ProLaunch Red",
+      "ProLaunch Axis Blue",
+      "BiMatrix"
+    ],
+    "Matrix": [
+      "Ozik ALTUS 5.1",
+      "Ozik ALTUS Fairway",
+      "Ozik XCON 5",
+      "Ozik XCON 6"
+    ],
+    "AutoFlex": [
+      "SF505",
+      "SF505X",
+      "Dream 7"
+    ],
+    "TPT Golf": [
+      "TPT 15",
+      "TPT 19",
+      "TPT 22"
+    ]
+  },
+  "Hybrids": {
+    "Fujikura": [
+      "Ventus HB",
+      "Speeder HB"
+    ],
+    "KBS": [
+      "TD",
+      "TGI Hybrid"
+    ],
+    "Nippon": [
+      "N.S.PRO Zelos 7 Hybrid"
+    ],
+    "Graphite Design": [
+      "Raune Hybrid",
+      "Tour AD VF",
+      "Tour AD IZ Hybrid"
+    ],
+    "Aldila": [
+      "NV 2KXV Orange"
+    ],
+    "Matrix": [
+      "Ozik ALTUS Tour H8"
+    ]
+  },
+  "Irons": {
+    "Project X": [
+      "Catalyst 60",
+      "Catalyst 70",
+      "Catalyst 80",
+      "PXi",
+      "Rifle",
+      "LZ (Loading Zone)",
+      "IO",
+      "LS",
+      "Elevate Tour",
+      "Dynamic Gold 97",
+      "Dynamic Gold 105",
+      "Dynamic Gold 120",
+      "Dynamic Gold S300",
+      "Dynamic Gold X100",
+      "Dynamic Gold HT",
+      "Dynamic Gold Tour Issue S400",
+      "Dynamic Gold Tour Issue X100",
+      "Dynamic Gold Mid 115",
+      "Project X Rifle",
+      "Project X 5.5",
+      "Project X 6.0",
+      "Project X 6.5",
+      "AMT Tour White",
+      "AMT Black"
+    ],
+    "Mitsubishi Chemical": [
+      "MMT 55",
+      "MMT 65",
+      "MMT 80",
+      "MMT 105",
+      "MMT 125"
+    ],
+    "KBS": [
+      "Tour",
+      "Tour 90",
+      "Tour 2.0",
+      "Tour V",
+      "Tour Lite",
+      "Tour FLT",
+      "C-Taper",
+      "C-Taper 120",
+      "C-Taper Lite",
+      "$-Taper",
+      "$-Taper Lite",
+      "Hi-Rev 2.0",
+      "MAX",
+      "TGI (Tour Graphite Iron)",
+      "PGI (Players Graphite Iron)",
+      "MAX Graphite"
+    ],
+    "Nippon": [
+      "N.S.PRO Modus3 Tour 105",
+      "N.S.PRO Modus3 Tour 110",
+      "N.S.PRO Modus3 Tour 115",
+      "N.S.PRO Modus3 Tour 120",
+      "N.S.PRO Modus3 System3 Tour 125",
+      "N.S.PRO Modus3 Tour 130",
+      "N.S.PRO 750GH Neo",
+      "N.S.PRO 850GH Neo",
+      "N.S.PRO 950GH Neo",
+      "N.S.PRO 750GH",
+      "N.S.PRO 850GH",
+      "N.S.PRO 950GH",
+      "N.S.PRO 950GH HT",
+      "N.S.PRO 1050GH",
+      "N.S.PRO 1150GH",
+      "N.S.PRO 1150GH Tour",
+      "N.S.PRO V90",
+      "N.S.PRO Zelos 6",
+      "N.S.PRO Zelos 7",
+      "N.S.PRO Zelos 8"
+    ],
+    "Graphite Design": [
+      "Tour AD Iron 55-95"
+    ],
+    "UST Mamiya": [
+      "Recoil 660",
+      "Recoil 760",
+      "Recoil 780",
+      "Recoil 95"
+    ],
+    "Aerotech": [
+      "SteelFiber i70",
+      "SteelFiber i80",
+      "SteelFiber i95",
+      "SteelFiber i110",
+      "SteelFiber FC"
+    ],
+    "ACCRA": [
+      "iSeries 85",
+      "iSeries 95",
+      "iSeries 105"
+    ],
+    "LA Golf": [
+      "Rebar"
+    ],
+    "Oban": [
+      "CT-125"
+    ]
+  },
+  "Wedges": {
+    "Project X": [
+      "Catalyst 60",
+      "Catalyst 70",
+      "Catalyst 80",
+      "PXi",
+      "Rifle",
+      "LZ (Loading Zone)",
+      "IO",
+      "LS",
+      "Elevate Tour",
+      "Dynamic Gold 97",
+      "Dynamic Gold 105",
+      "Dynamic Gold 120",
+      "Dynamic Gold S300",
+      "Dynamic Gold X100",
+      "Dynamic Gold HT",
+      "Dynamic Gold Tour Issue S400",
+      "Dynamic Gold Tour Issue X100",
+      "Dynamic Gold Mid 115",
+      "Project X Rifle",
+      "Project X 5.5",
+      "Project X 6.0",
+      "Project X 6.5",
+      "AMT Tour White",
+      "AMT Black"
+    ],
+    "Mitsubishi Chemical": [
+      "MMT 55",
+      "MMT 65",
+      "MMT 80",
+      "MMT 105",
+      "MMT 125"
+    ],
+    "KBS": [
+      "Tour",
+      "Tour 90",
+      "Tour 2.0",
+      "Tour V",
+      "Tour Lite",
+      "Tour FLT",
+      "C-Taper",
+      "C-Taper 120",
+      "C-Taper Lite",
+      "$-Taper",
+      "$-Taper Lite",
+      "Hi-Rev 2.0",
+      "MAX",
+      "TGI (Tour Graphite Iron)",
+      "PGI (Players Graphite Iron)",
+      "MAX Graphite"
+    ],
+    "Nippon": [
+      "N.S.PRO Modus3 Tour 105",
+      "N.S.PRO Modus3 Tour 110",
+      "N.S.PRO Modus3 Tour 115",
+      "N.S.PRO Modus3 Tour 120",
+      "N.S.PRO Modus3 System3 Tour 125",
+      "N.S.PRO Modus3 Tour 130",
+      "N.S.PRO Modus3 Wedge",
+      "N.S.PRO 750GH Neo",
+      "N.S.PRO 850GH Neo",
+      "N.S.PRO 950GH Neo",
+      "N.S.PRO 750GH",
+      "N.S.PRO 850GH",
+      "N.S.PRO 950GH",
+      "N.S.PRO 950GH HT",
+      "N.S.PRO 1050GH",
+      "N.S.PRO 1150GH",
+      "N.S.PRO 1150GH Tour",
+      "N.S.PRO V90",
+      "N.S.PRO Zelos 6",
+      "N.S.PRO Zelos 7",
+      "N.S.PRO Zelos 8"
+    ],
+    "Graphite Design": [
+      "Tour AD Iron 55-95"
+    ],
+    "UST Mamiya": [
+      "Recoil 660",
+      "Recoil 760",
+      "Recoil 780",
+      "Recoil 95"
+    ],
+    "Aerotech": [
+      "SteelFiber i70",
+      "SteelFiber i80",
+      "SteelFiber i95",
+      "SteelFiber i110",
+      "SteelFiber FC"
+    ],
+    "ACCRA": [
+      "iSeries 85",
+      "iSeries 95",
+      "iSeries 105"
+    ],
+    "LA Golf": [
+      "Rebar"
+    ],
+    "Oban": [
+      "CT-125"
+    ]
+  },
+  "Putters": {
+    "KBS": [
+      "CT Tour Putter",
+      "GPS Putter"
+    ]
+  }
+};
+
+/**
+ * Shaft brands to offer for a given Club subcategory, or — when used from the
+ * Shafts category — pass undefined / null to get the full brand list.
+ *
+ * "Other" is always appended as the final option.
+ */
+export function getShaftBrands(clubSubcategory?: string | null): string[] {
+  if (!clubSubcategory) {
+    return [...ALL_SHAFT_BRANDS_INTERNAL, 'Other'];
+  }
+  const filtered = SHAFT_BRANDS_BY_CLUB_TYPE_INTERNAL[clubSubcategory];
+  if (filtered && filtered.length) return [...filtered, 'Other'];
+  return [...ALL_SHAFT_BRANDS_INTERNAL, 'Other'];
+}
+
+/**
+ * Shaft models for a brand, optionally filtered by Club subcategory so that
+ * e.g. Driver listings only see Wood/Fairway shafts for that brand. If the
+ * club-type filter produces an empty list the helper falls back to the
+ * brand's full model list.
+ *
+ * "Other" is always appended as the final option.
+ */
+export function getShaftModels(
+  shaftBrand: string,
+  clubSubcategory?: string | null,
+): string[] {
+  if (!shaftBrand || shaftBrand === 'Other') return ['Other'];
+  if (clubSubcategory) {
+    const scoped = SHAFT_MODELS_BY_BRAND_AND_TYPE_INTERNAL[clubSubcategory]?.[shaftBrand];
+    if (scoped && scoped.length) return [...scoped, 'Other'];
+  }
+  const all = SHAFT_MODELS_BY_BRAND_INTERNAL[shaftBrand];
+  if (all && all.length) return [...all, 'Other'];
+  return ['Other'];
+}
+
+/** True when a real shaft-model dropdown is worth showing. */
+export function hasShaftModels(
+  shaftBrand: string,
+  clubSubcategory?: string | null,
+): boolean {
+  return getShaftModels(shaftBrand, clubSubcategory).length > 1;
+}

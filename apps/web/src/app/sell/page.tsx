@@ -16,7 +16,7 @@ import {
   type SpecField, type ParcelOption,
 } from '@/lib/listingCategories';
 import { getBrandsFor } from '@/lib/brands';
-import { getModelsFor, hasModelsFor } from '@/lib/models';
+import { getModelsFor, hasModelsFor, getShaftBrands, getShaftModels, hasShaftModels } from '@/lib/models';
 import {
   createListing, uploadListingImage,
   type CreateListingData,
@@ -40,6 +40,14 @@ interface FormState {
   model: string;
   modelIsOther: boolean;
   customModel: string;
+  // Cascading shaft selection (Brief 6L — shafts). Applies to all Club
+  // subcategories and to Shafts/Grips/Heads → Shafts.
+  shaftBrand: string;
+  shaftBrandIsOther: boolean;
+  customShaftBrand: string;
+  shaftModel: string;
+  shaftModelIsOther: boolean;
+  customShaftModel: string;
   specs: Specifications;
   // Step 3
   conditionOverall: number;
@@ -94,6 +102,12 @@ function initialState(defaultLocation: string): FormState {
     model: '',
     modelIsOther: false,
     customModel: '',
+    shaftBrand: '',
+    shaftBrandIsOther: false,
+    customShaftBrand: '',
+    shaftModel: '',
+    shaftModelIsOther: false,
+    customShaftModel: '',
     specs: {},
     conditionOverall: 3,
     conditionHead: 3,
@@ -325,6 +339,14 @@ export default function SellPage() {
       const specifications: Specifications = { ...form.specs };
       if (isVariableSize) specifications.sizeQuantities = form.sizeQuantities;
 
+      // Shaft cascade → specifications (Brief 6L — shafts)
+      if (shaftCascadeApplies(form.category, form.subcategory)) {
+        const effectiveShaftBrand = form.shaftBrandIsOther ? form.customShaftBrand.trim() : form.shaftBrand;
+        const effectiveShaftModel = form.shaftModelIsOther ? form.customShaftModel.trim() : form.shaftModel;
+        if (effectiveShaftBrand) specifications.shaftBrand = effectiveShaftBrand;
+        if (effectiveShaftModel && effectiveShaftModel !== 'Other') specifications.shaftModel = effectiveShaftModel;
+      }
+
       const payload: CreateListingData = {
         title: form.title.trim(),
         description: form.description.trim(),
@@ -552,6 +574,8 @@ function Step1Basics({
               ...f, category: e.target.value, subcategory: '', specs: {},
               brand: '', brandIsOther: false, customBrand: '',
               model: '', modelIsOther: false, customModel: '',
+              shaftBrand: '', shaftBrandIsOther: false, customShaftBrand: '',
+              shaftModel: '', shaftModelIsOther: false, customShaftModel: '',
             }))}
             style={inputStyle}
           >
@@ -568,6 +592,8 @@ function Step1Basics({
               ...f, subcategory: e.target.value, specs: {},
               brand: '', brandIsOther: false, customBrand: '',
               model: '', modelIsOther: false, customModel: '',
+              shaftBrand: '', shaftBrandIsOther: false, customShaftBrand: '',
+              shaftModel: '', shaftModelIsOther: false, customShaftModel: '',
             }))}
             disabled={!form.category}
             style={inputStyle}
@@ -678,6 +704,9 @@ function Step2Details({
 
       <ModelField form={form} setForm={setForm} />
 
+      {shaftCascadeApplies(form.category, form.subcategory) && (
+        <ShaftCascade form={form} setForm={setForm} />
+      )}
 
       {specFields.length > 0 && (
         <div style={{
@@ -1407,6 +1436,111 @@ function ModelField({
         maxLength={100}
       />
     </Field>
+  );
+}
+
+/* ───── Shaft cascade (Brief 6L — shafts) ───── */
+
+function shaftCascadeApplies(category: string, subcategory: string | null | undefined): boolean {
+  if (category === 'Clubs') return true;
+  if (category === 'Shafts, Grips & Heads' && subcategory === 'Shafts') return true;
+  return false;
+}
+
+function ShaftCascade({
+  form, setForm,
+}: {
+  form: FormState;
+  setForm: React.Dispatch<React.SetStateAction<FormState>>;
+}) {
+  // Club subcategory filters the shaft brand list. For the Shafts subcategory
+  // of "Shafts, Grips & Heads", pass undefined to show all brands.
+  const clubSub = form.category === 'Clubs' ? form.subcategory : null;
+  const shaftBrandList = useMemo(() => getShaftBrands(clubSub), [clubSub]);
+  const effectiveShaftBrand = form.shaftBrandIsOther ? form.customShaftBrand.trim() : form.shaftBrand;
+  const showModelDropdown = !!effectiveShaftBrand && !form.shaftBrandIsOther && hasShaftModels(effectiveShaftBrand, clubSub);
+  const shaftModelList = useMemo(
+    () => (showModelDropdown ? getShaftModels(effectiveShaftBrand, clubSub) : []),
+    [showModelDropdown, effectiveShaftBrand, clubSub],
+  );
+
+  return (
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+      gap: 16,
+      marginBottom: 16,
+    }}>
+      <Field label="Shaft Brand" hint="Optional">
+        <SearchableCombobox
+          options={shaftBrandList}
+          value={form.shaftBrand}
+          placeholder="Search shaft brands…"
+          onChange={(v) => setForm(f => ({
+            ...f,
+            shaftBrand: v,
+            shaftBrandIsOther: v === 'Other',
+            customShaftBrand: v === 'Other' ? f.customShaftBrand : '',
+            // Shaft brand changed → clear shaft model
+            shaftModel: '',
+            shaftModelIsOther: false,
+            customShaftModel: '',
+          }))}
+        />
+        {form.shaftBrandIsOther && (
+          <input
+            type="text"
+            value={form.customShaftBrand}
+            onChange={e => setForm(f => ({ ...f, customShaftBrand: e.target.value.slice(0, 100) }))}
+            placeholder="Enter shaft brand"
+            style={{ ...inputStyle, marginTop: 8 }}
+            maxLength={100}
+          />
+        )}
+      </Field>
+
+      {showModelDropdown ? (
+        <Field label="Shaft Model" hint="Optional">
+          <SearchableCombobox
+            options={shaftModelList}
+            value={form.shaftModel}
+            placeholder="Search shaft models…"
+            onChange={(v) => setForm(f => ({
+              ...f,
+              shaftModel: v,
+              shaftModelIsOther: v === 'Other',
+              customShaftModel: v === 'Other' ? f.customShaftModel : '',
+            }))}
+          />
+          {form.shaftModelIsOther && (
+            <input
+              type="text"
+              value={form.customShaftModel}
+              onChange={e => setForm(f => ({ ...f, customShaftModel: e.target.value.slice(0, 100) }))}
+              placeholder="Enter shaft model"
+              style={{ ...inputStyle, marginTop: 8 }}
+              maxLength={100}
+            />
+          )}
+        </Field>
+      ) : (
+        <Field label="Shaft Model" hint="Optional">
+          <input
+            type="text"
+            value={form.shaftModel}
+            onChange={e => setForm(f => ({
+              ...f,
+              shaftModel: e.target.value.slice(0, 100),
+              shaftModelIsOther: false,
+              customShaftModel: '',
+            }))}
+            placeholder="e.g. Ventus TR Blue 6S"
+            style={inputStyle}
+            maxLength={100}
+          />
+        </Field>
+      )}
+    </div>
   );
 }
 
