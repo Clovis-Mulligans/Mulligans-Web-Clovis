@@ -16,6 +16,7 @@ import {
   type SpecField, type ParcelOption,
 } from '@/lib/listingCategories';
 import { getBrandsFor } from '@/lib/brands';
+import { getModelsFor, hasModelsFor } from '@/lib/models';
 import {
   createListing, uploadListingImage,
   type CreateListingData,
@@ -37,6 +38,8 @@ interface FormState {
   brandIsOther: boolean;
   customBrand: string;
   model: string;
+  modelIsOther: boolean;
+  customModel: string;
   specs: Specifications;
   // Step 3
   conditionOverall: number;
@@ -89,6 +92,8 @@ function initialState(defaultLocation: string): FormState {
     brandIsOther: false,
     customBrand: '',
     model: '',
+    modelIsOther: false,
+    customModel: '',
     specs: {},
     conditionOverall: 3,
     conditionHead: 3,
@@ -326,7 +331,7 @@ export default function SellPage() {
         category: form.category,
         subcategory: form.subcategory,
         brand: effectiveBrand || undefined,
-        model: form.model.trim() || undefined,
+        model: (form.modelIsOther ? form.customModel.trim() : form.model.trim()) || undefined,
         price: priceNum,
         location: form.location.trim() || 'UK',
         is_negotiable: form.isNegotiable,
@@ -543,7 +548,11 @@ function Step1Basics({
         <Field label="Category" required error={errors.category}>
           <select
             value={form.category}
-            onChange={e => setForm(f => ({ ...f, category: e.target.value, subcategory: '', specs: {} }))}
+            onChange={e => setForm(f => ({
+              ...f, category: e.target.value, subcategory: '', specs: {},
+              brand: '', brandIsOther: false, customBrand: '',
+              model: '', modelIsOther: false, customModel: '',
+            }))}
             style={inputStyle}
           >
             <option value="">Choose a category…</option>
@@ -555,7 +564,11 @@ function Step1Basics({
         <Field label="Subcategory" required error={errors.subcategory}>
           <select
             value={form.subcategory}
-            onChange={e => setForm(f => ({ ...f, subcategory: e.target.value, specs: {} }))}
+            onChange={e => setForm(f => ({
+              ...f, subcategory: e.target.value, specs: {},
+              brand: '', brandIsOther: false, customBrand: '',
+              model: '', modelIsOther: false, customModel: '',
+            }))}
             disabled={!form.category}
             style={inputStyle}
           >
@@ -636,14 +649,19 @@ function Step2Details({
       <SectionTitle>Details &amp; Specifications</SectionTitle>
 
       <Field label="Brand" required error={errors.brand}>
-        <BrandCombobox
+        <SearchableCombobox
           options={brandList}
           value={form.brand}
+          placeholder="Search brands…"
           onChange={(v) => setForm(f => ({
             ...f,
             brand: v,
             brandIsOther: v === 'Other',
             customBrand: v === 'Other' ? f.customBrand : '',
+            // Brand changed → clear model
+            model: '',
+            modelIsOther: false,
+            customModel: '',
           }))}
         />
         {form.brandIsOther && (
@@ -658,16 +676,8 @@ function Step2Details({
         )}
       </Field>
 
-      <Field label="Model" hint="Optional — but helps buyers find your item">
-        <input
-          type="text"
-          value={form.model}
-          onChange={e => setForm(f => ({ ...f, model: e.target.value.slice(0, 100) }))}
-          placeholder="e.g. T100, Stealth 2, Pro V1"
-          style={inputStyle}
-          maxLength={100}
-        />
-      </Field>
+      <ModelField form={form} setForm={setForm} />
+
 
       {specFields.length > 0 && (
         <div style={{
@@ -1186,7 +1196,11 @@ function Step5PriceShipping({
         <ReviewRow label="Category" value={`${form.category} › ${form.subcategory}`} onEdit={() => onJump(1)} />
         <ReviewRow
           label="Brand"
-          value={(form.brandIsOther ? form.customBrand : form.brand) + (form.model ? ` · ${form.model}` : '')}
+          value={(() => {
+            const b = form.brandIsOther ? form.customBrand : form.brand;
+            const m = form.modelIsOther ? form.customModel : form.model;
+            return b + (m ? ` · ${m}` : '');
+          })()}
           onEdit={() => onJump(2)}
         />
         <ReviewRow label="Photos" value={`${form.images.length} added`} onEdit={() => onJump(4)} />
@@ -1340,9 +1354,65 @@ function ButtonRow({
   );
 }
 
-function BrandCombobox({
-  options, value, onChange,
-}: { options: string[]; value: string; onChange: (v: string) => void }) {
+function ModelField({
+  form, setForm,
+}: {
+  form: FormState;
+  setForm: React.Dispatch<React.SetStateAction<FormState>>;
+}) {
+  const effectiveBrand = form.brandIsOther ? form.customBrand.trim() : form.brand;
+  const showDropdown = !!effectiveBrand && !form.brandIsOther && hasModelsFor(form.category, form.subcategory, effectiveBrand);
+  const models = useMemo(
+    () => (showDropdown ? getModelsFor(form.category, form.subcategory, effectiveBrand) : []),
+    [showDropdown, form.category, form.subcategory, effectiveBrand],
+  );
+
+  if (showDropdown) {
+    return (
+      <Field label="Model" hint="Optional — pick from the list or choose Other">
+        <SearchableCombobox
+          options={models}
+          value={form.model}
+          placeholder="Search models…"
+          onChange={(v) => setForm(f => ({
+            ...f,
+            model: v,
+            modelIsOther: v === 'Other',
+            customModel: v === 'Other' ? f.customModel : '',
+          }))}
+        />
+        {form.modelIsOther && (
+          <input
+            type="text"
+            value={form.customModel}
+            onChange={e => setForm(f => ({ ...f, customModel: e.target.value.slice(0, 100) }))}
+            placeholder="Enter model name"
+            style={{ ...inputStyle, marginTop: 8 }}
+            maxLength={100}
+          />
+        )}
+      </Field>
+    );
+  }
+
+  // No model data for this combination — free text
+  return (
+    <Field label="Model" hint="Optional — but helps buyers find your item">
+      <input
+        type="text"
+        value={form.model}
+        onChange={e => setForm(f => ({ ...f, model: e.target.value.slice(0, 100), modelIsOther: false, customModel: '' }))}
+        placeholder="e.g. T100, Stealth 2, Pro V1"
+        style={inputStyle}
+        maxLength={100}
+      />
+    </Field>
+  );
+}
+
+function SearchableCombobox({
+  options, value, onChange, placeholder,
+}: { options: string[]; value: string; onChange: (v: string) => void; placeholder?: string }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -1368,7 +1438,7 @@ function BrandCombobox({
         value={open ? query : value}
         onChange={e => { setQuery(e.target.value); setOpen(true); }}
         onFocus={() => { setQuery(''); setOpen(true); }}
-        placeholder="Search brands…"
+        placeholder={placeholder || 'Search…'}
         style={inputStyle}
       />
       {open && (
