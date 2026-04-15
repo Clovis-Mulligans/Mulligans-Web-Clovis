@@ -28,14 +28,24 @@ export interface CreateListingData {
   title: string;
   description?: string;
   category: string;
+  subcategory?: string;
   brand?: string;
   model?: string;
   price: number;
-  condition_overall?: number;
+  /** Defaults to "UK" server-side if omitted */
+  location?: string;
+  /** Defaults to true on the web /sell flow to match mobile UX */
   is_negotiable?: boolean;
   parcel_size?: string;
   shipping_cost?: number;
-  subcategory?: string;
+  /** 1–5. For Clubs, server auto-computes from head/shaft/grip if omitted. */
+  condition_overall?: number;
+  /** Clubs only — 1–5 */
+  condition_head?: number;
+  /** Clubs only — 1–5 */
+  condition_shaft?: number;
+  /** Clubs only — 1–5 */
+  condition_grip?: number;
   specifications?: Record<string, unknown>;
   status?: 'active' | 'draft';
   quantity?: number;
@@ -96,7 +106,6 @@ export async function createListing(data: CreateListingData): Promise<Listing> {
 /**
  * Update a listing.
  * Backend route: PUT /api/listings/:id
- * Note: Backend uses PUT, not PATCH.
  */
 export async function updateListing(
   id: string,
@@ -114,16 +123,19 @@ export async function deleteListing(id: string): Promise<void> {
 }
 
 /**
- * Upload an image to a listing.
+ * Upload a single image to a listing.
  * Backend route: POST /api/listings/:id/images
- * Note: This uses FormData, not JSON.
+ *
+ * Backend uses multer.array('images', 5) — the form-data field name MUST be
+ * 'images' (plural), even when sending one file at a time. Mobile uploads
+ * one-per-request to avoid 413 payload errors; web does the same.
  */
 export async function uploadListingImage(
   listingId: string,
   file: File
-): Promise<{ id: string; image_url: string }> {
+): Promise<{ message: string; count: number }> {
   const formData = new FormData();
-  formData.append('image', file);
+  formData.append('images', file);
 
   const baseUrl =
     typeof window !== 'undefined'
@@ -167,20 +179,12 @@ export async function deleteListingImage(
 // See output/questions.md for suggested route implementations.
 // The frontend code below is ready and will work once the endpoints exist.
 
-/**
- * Bulk update listings (status, price).
- * Backend route: PATCH /api/listings/bulk — DOES NOT EXIST YET
- */
 export async function bulkUpdateListings(
   data: BulkUpdateData
 ): Promise<{ updated: number }> {
   return apiClient.patch<{ updated: number }>('/api/listings/bulk', data);
 }
 
-/**
- * Bulk delete listings.
- * Backend route: DELETE /api/listings/bulk — DOES NOT EXIST YET
- */
 export async function bulkDeleteListings(
   ids: string[]
 ): Promise<{ deleted: number }> {
@@ -199,4 +203,3 @@ export function getSellerListings(
     { params: params as Record<string, string | number | boolean | undefined> }
   );
 }
-
