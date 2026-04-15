@@ -54,16 +54,21 @@ export default function FavouritesPage() {
     try {
       const res = await getFavourites();
       const list =
+        (res as unknown as { listings?: unknown[] }).listings ||
         (res as unknown as { favourites?: unknown[] }).favourites ||
         (res as unknown as { favorites?: unknown[] }).favorites ||
         (Array.isArray(res) ? (res as unknown[]) : []);
       const normalised: FavouriteRow[] = (list as Array<Record<string, unknown>>)
-        .filter(r => r && (r.listing || r.listings))
-        .map(r => ({
-          id: String(r.id ?? r.listing_id ?? ''),
-          created_at: String(r.created_at ?? ''),
-          listing: (r.listing || r.listings) as FavouriteRow['listing'],
-        }));
+        .filter(Boolean)
+        .map((item, idx) => {
+          // Backend returns flat listings (not favourite rows with nested listing)
+          const listing = (item as any).listing || item;
+          return {
+            id: (item as any).id || `fav-${idx}`,
+            created_at: (item as any).created_at || new Date().toISOString(),
+            listing: listing as FavouriteRow['listing'],
+          };
+        });
       setRows(normalised);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load favourites');
