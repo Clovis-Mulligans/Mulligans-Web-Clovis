@@ -16,7 +16,6 @@ import {
   changePassword,
   getAuthProfile,
   updateMyProfile,
-  uploadAvatar,
   clearAuthToken,
   type User,
 } from '@mulligans/api-client';
@@ -242,9 +241,19 @@ function ProfileTab({ user, onSaved }: { user: User; onSaved: () => void }) {
     e.target.value = '';
     if (!file) return;
     if (!/^image\//.test(file.type)) { setMsg({ kind: 'err', text: 'Please pick an image file' }); return; }
-    setUploading(true); setMsg(null);
+   setUploading(true); setMsg(null);
     try {
-      const res = await uploadAvatar(file);
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.mulligans.uk.com';
+      const token = localStorage.getItem('mulligans_auth_token');
+      const fd = new FormData();
+      fd.append('avatar', file);
+      const resp = await fetch(`${baseUrl}/api/users/me/avatar`, {
+        method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: fd,
+      });
+      if (!resp.ok) throw new Error('Upload failed');
+      const res = await resp.json();
       setAvatarUrl(res.avatar_url);
       onSaved();
       setMsg({ kind: 'ok', text: 'Avatar updated' });
