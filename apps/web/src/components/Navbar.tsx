@@ -83,6 +83,9 @@ export function Navbar() {
           </form>
 
           <div className="flex items-center gap-2">
+            <Link href="/sell" className="hidden sm:flex items-center gap-1.5 rounded-[10px] px-4 py-2 text-sm font-bold text-white transition-colors hover:opacity-90" style={{ backgroundColor: '#1DC690', fontFamily: 'var(--font-sans)' }}>
+  + Sell
+</Link>
             <Link href="/favourites" className="hidden sm:flex items-center justify-center w-10 h-10 rounded-lg hover:bg-[#F4F4F0] transition-colors" aria-label="Favourites">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0D0D0D" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
             </Link>
@@ -122,6 +125,7 @@ export function Navbar() {
                         { label: 'My Offers', href: '/offers' },
                         { label: 'Messages', href: '/messages' },
                         { label: 'Settings', href: '/settings' },
+                        { label: 'Sell an Item', href: '/sell' },
                       ].map((item) => (
                         <Link key={item.href} href={item.href} onClick={() => setShowDropdown(false)} className="block px-4 py-2 text-sm text-[#0D0D0D] hover:bg-[#F4F4F0] transition-colors" style={{ fontFamily: 'var(--font-sans)' }}>{item.label}</Link>
                       ))}
@@ -181,6 +185,7 @@ export function Navbar() {
                     { label: 'Favourites', href: '/favourites' },
                     { label: 'Notifications', href: '/notifications' },
                     { label: 'Settings', href: '/settings' },
+                    { label: 'Sell an Item', href: '/sell' },
                   ].map((item) => (
                     <Link key={item.href} href={item.href} onClick={() => setShowMobileMenu(false)} className="block py-3 text-sm font-medium text-[#0D0D0D] hover:text-[#1DC690] transition-colors" style={{ fontFamily: 'var(--font-sans)', borderBottom: '1px solid #E0E0D8' }}>{item.label}</Link>
                   ))}

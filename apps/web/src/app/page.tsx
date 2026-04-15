@@ -56,7 +56,7 @@ export default async function HomePage() {
                 <Link href="/search" className="inline-flex items-center rounded-[10px] px-5 py-2.5 text-sm font-bold transition-colors hover:opacity-90" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, backgroundColor: '#FFFFFF', color: '#1DC690' }}>
                   Browse Listings
                 </Link>
-                <Link href="/signup" className="inline-flex items-center rounded-[10px] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-white/10" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, border: '1.5px solid rgba(255,255,255,0.5)' }}>
+                <Link href="/sell" className="inline-flex items-center rounded-[10px] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-white/10" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, border: '1.5px solid rgba(255,255,255,0.5)' }}>
                   Start Selling
                 </Link>
               </div>
