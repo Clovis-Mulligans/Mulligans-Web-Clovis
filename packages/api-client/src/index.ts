@@ -291,3 +291,16 @@ export { createConversation } from './endpoints/messages';
 
 // Endpoints — Listings (additions)
 export { getSellerListings } from './endpoints/listings';
+
+// Types — Notification
+export type {
+  Notification,
+  NotificationsResponse,
+} from './types/notification';
+
+// Endpoints — Notifications
+export {
+  getNotifications,
+  markNotificationRead,
+  markAllNotificationsRead,
+} from './endpoints/notifications';
