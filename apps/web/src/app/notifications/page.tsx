@@ -30,6 +30,7 @@ import {
   UserCircle,
   Wallet,
   CheckCheck,
+  Search,
 } from 'lucide-react';
 
 import { useAuth } from '@/hooks/useAuth';
@@ -176,6 +177,9 @@ export default function NotificationsPage() {
   const [error, setError] = useState<string | null>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [markingAll, setMarkingAll] = useState(false);
+  const [query, setQuery] = useState('');
+  const [filter, setFilter] = useState<string>('all');
+  const [unreadOnly, setUnreadOnly] = useState(false);
 
   // Auth gate — redirect unauthenticated users.
   useEffect(() => {
@@ -205,6 +209,32 @@ export default function NotificationsPage() {
     () => notifications.filter(n => !n.is_read).length,
     [notifications],
   );
+
+  const FILTER_CATEGORIES: { key: string; label: string; types: string[] }[] = [
+    { key: 'all', label: 'All', types: [] },
+    { key: 'orders', label: 'Orders', types: ['order', 'sale', 'payout', 'payout_pending', 'shipped', 'order_shipped', 'delivered', 'order_delivered', 'cancelled', 'order_cancelled', 'refund', 'payment_processing', 'payment_received', 'shipping_label_created'] },
+    { key: 'offers', label: 'Offers', types: ['offer', 'new_offer', 'offer_received', 'offer_accepted', 'offer_declined', 'offer_expiring', 'offer_expired', 'offer_countered', 'counter_offer', 'purchase_expired', 'offer_void'] },
+    { key: 'disputes', label: 'Disputes', types: ['dispute', 'dispute_update', 'dispute_counter', 'dispute_escalated', 'dispute_resolved'] },
+    { key: 'messages', label: 'Messages', types: ['message'] },
+    { key: 'system', label: 'System', types: ['verified_status', 'badge', 'achievement', 'welcome', 'system', 'promotion', 'update', 'account', 'favorite'] },
+  ];
+
+  const filtered = useMemo(() => {
+    let list = notifications;
+    if (filter !== 'all') {
+      const cat = FILTER_CATEGORIES.find(c => c.key === filter);
+      if (cat) list = list.filter(n => cat.types.includes(n.type));
+    }
+    if (unreadOnly) list = list.filter(n => !n.is_read);
+    if (query.trim()) {
+      const q = query.toLowerCase();
+      list = list.filter(n =>
+        (n.title || '').toLowerCase().includes(q) ||
+        (n.message || '').toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [notifications, filter, unreadOnly, query]);
 
   // ─── Navigation — mirrors mobile activity.tsx handleNotificationPress ───
   const navigateForNotification = useCallback(async (n: Notification) => {
@@ -327,6 +357,68 @@ export default function NotificationsPage() {
       <div style={{ maxWidth: 800, margin: '0 auto' }}>
         <PageHeader title="Notifications" action={markAllAction} />
 
+        {/* Search + Filters */}
+        <div style={{ marginBottom: 16 }}>
+          {/* Search bar */}
+          <div style={{ position: 'relative', marginBottom: 12 }}>
+            <Search size={16} color={PALETTE.textLight} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
+            <input
+              type="text"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder="Search notifications..."
+              style={{
+                width: '100%', padding: '10px 12px 10px 36px',
+                border: `1px solid ${PALETTE.border}`, borderRadius: 8,
+                fontSize: 14, backgroundColor: PALETTE.card, outline: 'none',
+                boxSizing: 'border-box',
+              }}
+            />
+          </div>
+          {/* Category chips + unread toggle */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            {FILTER_CATEGORIES.map(cat => {
+              const active = filter === cat.key;
+              return (
+                <button
+                  key={cat.key}
+                  onClick={() => setFilter(cat.key)}
+                  style={{
+                    padding: '6px 14px', borderRadius: 20,
+                    border: active ? 'none' : `1px solid ${PALETTE.border}`,
+                    backgroundColor: active ? PALETTE.green : PALETTE.card,
+                    color: active ? '#fff' : PALETTE.textMid,
+                    fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  {cat.label}
+                </button>
+              );
+            })}
+            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <button
+                onClick={() => setUnreadOnly(!unreadOnly)}
+                style={{
+                  padding: '6px 14px', borderRadius: 20,
+                  border: unreadOnly ? 'none' : `1px solid ${PALETTE.border}`,
+                  backgroundColor: unreadOnly ? PALETTE.blue : PALETTE.card,
+                  color: unreadOnly ? '#fff' : PALETTE.textMid,
+                  fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                  fontFamily: 'inherit',
+                }}
+              >
+                Unread only
+              </button>
+              {!loading && (
+                <span style={{ fontSize: 12, color: PALETTE.textLight }}>
+                  {filtered.length} of {notifications.length}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
         {error && (
           <div style={{
             backgroundColor: '#FEF2F2',
@@ -345,9 +437,17 @@ export default function NotificationsPage() {
           <NotificationSkeletons />
         ) : notifications.length === 0 ? (
           <EmptyState />
+        ) : filtered.length === 0 ? (
+          <div style={{
+            padding: 48, textAlign: 'center', backgroundColor: PALETTE.card,
+            borderRadius: 12, border: `1px solid ${PALETTE.border}`,
+            color: PALETTE.textMid, fontSize: 14,
+          }}>
+            No notifications match your filters.
+          </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {notifications.map(n => (
+            {filtered.map(n => (
               <NotificationCard
                 key={n.id}
                 notification={n}
