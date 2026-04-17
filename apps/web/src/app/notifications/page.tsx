@@ -123,7 +123,7 @@ function formatTime(iso: string): string {
 }
 
 // Lucide equivalent of each Ionicons entry from mobile activity.tsx.
-function getIconAndColor(type: string): { Icon: React.ComponentType<{ size?: number; color?: string }>; color: string } {
+function getIconAndColor(type: string): { Icon: React.ComponentType<{ size?: number | string; color?: string }>; color: string } {
   switch (type) {
     case 'message': return { Icon: MessageCircle, color: '#1C4670' };
     case 'favorite': return { Icon: Heart, color: '#EF4444' };
