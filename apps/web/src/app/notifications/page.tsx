@@ -387,7 +387,7 @@ export default function NotificationsPage() {
                     padding: '6px 14px', borderRadius: 20,
                     border: active ? 'none' : `1px solid ${PALETTE.border}`,
                     backgroundColor: active ? PALETTE.green : PALETTE.card,
-                    color: active ? '#fff' : PALETTE.textMid,
+                    color: active ? '#fff' : PALETTE.textDark,
                     fontSize: 13, fontWeight: 600, cursor: 'pointer',
                     fontFamily: 'inherit',
                   }}
@@ -403,7 +403,7 @@ export default function NotificationsPage() {
                   padding: '6px 14px', borderRadius: 20,
                   border: unreadOnly ? 'none' : `1px solid ${PALETTE.border}`,
                   backgroundColor: unreadOnly ? PALETTE.blue : PALETTE.card,
-                  color: unreadOnly ? '#fff' : PALETTE.textMid,
+                  color: unreadOnly ? '#fff' : PALETTE.textDark,
                   fontSize: 13, fontWeight: 600, cursor: 'pointer',
                   fontFamily: 'inherit',
                 }}
@@ -441,7 +441,7 @@ export default function NotificationsPage() {
           <div style={{
             padding: 48, textAlign: 'center', backgroundColor: PALETTE.card,
             borderRadius: 12, border: `1px solid ${PALETTE.border}`,
-            color: PALETTE.textMid, fontSize: 14,
+            color: PALETTE.textDark, fontSize: 14,
           }}>
             No notifications match your filters.
           </div>
