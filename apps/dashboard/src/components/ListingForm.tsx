@@ -848,7 +848,7 @@ export default function ListingForm({ initialData, isEditing = false }: ListingF
         setImages((prev) =>
           prev.map((s) =>
             s.key === slot.key
-              ? { ...s, id: result.id, url: result.image_url, preview: undefined, file: undefined }
+              ? { ...s, url: s.preview || s.url, preview: undefined, file: undefined }
               : s
           )
         );
