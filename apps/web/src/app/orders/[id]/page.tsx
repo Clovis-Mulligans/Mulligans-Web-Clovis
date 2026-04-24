@@ -50,10 +50,15 @@ import type { OrderDetail, OrderDispute, OrderParty } from '@mulligans/api-clien
 
 const BRAND_GREEN = '#1DC690';
 const BRAND_BLUE = '#278AB0';
-const PAGE_BG = '#EAEAE0';
-const CARD_BORDER = '#E5E7EB';
-const TEXT_DARK = '#111827';
-const TEXT_MUTED = '#6B7280';
+const DARK_BLUE = '#1C4670';
+const PAGE_BG = '#FFFFFF';
+const CARD_BG = '#FFFFFF';
+const CARD_BORDER = '#F0F0F0';
+const TEXT_PRIMARY = '#06070A';
+const TEXT_MUTED = '#9CA3AF';
+const TEXT_HINT = '#D1D5DB';
+const SURFACE = '#F7F7F5';
+const BORDER_HOVER = '#E5E7EB';
 
 type StatusKey =
   | 'pending'
@@ -499,8 +504,8 @@ export default function OrderDetailPage() {
             style={{
               fontFamily: 'var(--font-sans)',
               fontSize: 17,
-              fontWeight: 700,
-              color: TEXT_DARK,
+              fontWeight: 500,
+              color: TEXT_PRIMARY,
               margin: '16px 0 6px',
             }}
           >
@@ -521,7 +526,7 @@ export default function OrderDetailPage() {
             style={{
               fontFamily: 'var(--font-sans)',
               fontSize: 14,
-              fontWeight: 600,
+              fontWeight: 500,
               color: BRAND_GREEN,
               textDecoration: 'none',
             }}
@@ -633,20 +638,20 @@ export default function OrderDetailPage() {
 
   /* ── Card / style helpers ── */
   const cardBase: React.CSSProperties = {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 24,
+    backgroundColor: CARD_BG,
+    borderRadius: 14,
+    padding: 20,
     border: `1px solid ${CARD_BORDER}`,
   };
 
   const sectionTitle: React.CSSProperties = {
     fontFamily: 'var(--font-sans)',
-    fontSize: 13,
-    fontWeight: 700,
-    color: TEXT_MUTED,
-    margin: '0 0 12px',
+    fontSize: 11,
+    fontWeight: 500,
+    color: BRAND_BLUE,
+    margin: '0 0 14px',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: '0.08em',
   };
 
   /* ══ RENDER ════════════════════════════════════════════ */
@@ -666,13 +671,14 @@ export default function OrderDetailPage() {
           style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: 6,
+            gap: 8,
             fontFamily: 'var(--font-sans)',
-            fontSize: 14,
-            fontWeight: 600,
+            fontSize: 13,
+            fontWeight: 500,
             color: BRAND_GREEN,
             textDecoration: 'none',
-            marginBottom: 16,
+            marginBottom: 24,
+            letterSpacing: '0.02em',
           }}
         >
           <ArrowLeft size={16} />
@@ -684,42 +690,66 @@ export default function OrderDetailPage() {
           subtitle={`Order #${order.id.slice(-8).toUpperCase()}`}
         />
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {/* 1. STATUS BANNER */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 14,
-              padding: '16px 20px',
-              borderRadius: 12,
-              backgroundColor: statusCfg.bg,
-            }}
-          >
-            <StatusIcon size={24} color={statusCfg.color} />
-            <div style={{ flex: 1, minWidth: 0 }}>
+          {(() => {
+            const isError = ['cancelled', 'refunded', 'delivery_failed', 'returned'].includes(status);
+            const isWarning = ['disputed'].includes(status);
+            const gradientBg = isError
+              ? 'linear-gradient(135deg, #7F1D1D 0%, #991B1B 100%)'
+              : isWarning
+              ? 'linear-gradient(135deg, #78350F 0%, #92400E 100%)'
+              : `linear-gradient(135deg, ${DARK_BLUE} 0%, ${BRAND_BLUE} 100%)`;
+            return (
               <div
                 style={{
-                  fontFamily: 'var(--font-sans)',
-                  fontSize: 16,
-                  fontWeight: 700,
-                  color: statusCfg.color,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 14,
+                  padding: '20px 24px',
+                  borderRadius: 14,
+                  background: gradientBg,
                 }}
               >
-                {statusCfg.label}
+                <div
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: '50%',
+                    background: isError || isWarning ? 'rgba(255,255,255,0.15)' : 'rgba(29,198,144,0.25)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <StatusIcon size={20} color={isError || isWarning ? '#fff' : BRAND_GREEN} />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div
+                    style={{
+                      fontFamily: 'var(--font-sans)',
+                      fontSize: 16,
+                      fontWeight: 500,
+                      color: '#fff',
+                    }}
+                  >
+                    {statusCfg.label}
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: 'var(--font-sans)',
+                      fontSize: 13,
+                      color: 'rgba(255,255,255,0.65)',
+                      marginTop: 2,
+                    }}
+                  >
+                    {isBuyer ? statusCfg.buyerMessage : statusCfg.sellerMessage}
+                  </div>
+                </div>
               </div>
-              <div
-                style={{
-                  fontFamily: 'var(--font-sans)',
-                  fontSize: 13,
-                  color: TEXT_MUTED,
-                  marginTop: 2,
-                }}
-              >
-                {isBuyer ? statusCfg.buyerMessage : statusCfg.sellerMessage}
-              </div>
-            </div>
-          </div>
+            );
+          })()}
 
           {/* 2. REFUND INFO (buyer + cancelled) */}
           {isBuyer && status === 'cancelled' && (
@@ -743,7 +773,7 @@ export default function OrderDetailPage() {
                   style={{
                     fontFamily: 'var(--font-sans)',
                     fontSize: 16,
-                    fontWeight: 700,
+                    fontWeight: 500,
                     color: '#065F46',
                     margin: 0,
                   }}
@@ -809,7 +839,7 @@ export default function OrderDetailPage() {
                 alignItems: 'flex-start',
                 gap: 14,
                 padding: 20,
-                borderRadius: 12,
+                borderRadius: 14,
                 backgroundColor: '#ECFDF5',
                 border: '1px solid #A7F3D0',
               }}
@@ -833,7 +863,7 @@ export default function OrderDetailPage() {
                   style={{
                     fontFamily: 'var(--font-sans)',
                     fontSize: 15,
-                    fontWeight: 700,
+                    fontWeight: 500,
                     color: '#065F46',
                   }}
                 >
@@ -876,7 +906,7 @@ export default function OrderDetailPage() {
                 alignItems: 'flex-start',
                 gap: 14,
                 padding: 20,
-                borderRadius: 12,
+                borderRadius: 14,
                 backgroundColor: '#FEF3C7',
                 border: '1px solid #FDE68A',
               }}
@@ -887,7 +917,7 @@ export default function OrderDetailPage() {
                   style={{
                     fontFamily: 'var(--font-sans)',
                     fontSize: 15,
-                    fontWeight: 700,
+                    fontWeight: 500,
                     color: '#92400E',
                   }}
                 >
@@ -922,7 +952,7 @@ export default function OrderDetailPage() {
                 alignItems: 'center',
                 gap: 14,
                 padding: 20,
-                borderRadius: 12,
+                borderRadius: 14,
                 backgroundColor: '#ECFDF5',
                 border: '1px solid #A7F3D0',
                 textDecoration: 'none',
@@ -947,7 +977,7 @@ export default function OrderDetailPage() {
                   style={{
                     fontFamily: 'var(--font-sans)',
                     fontSize: 15,
-                    fontWeight: 700,
+                    fontWeight: 500,
                     color: '#065F46',
                   }}
                 >
@@ -990,7 +1020,7 @@ export default function OrderDetailPage() {
                     style={{
                       fontFamily: 'var(--font-sans)',
                       fontSize: 15,
-                      fontWeight: 700,
+                      fontWeight: 500,
                       color: '#991B1B',
                     }}
                   >
@@ -1022,7 +1052,7 @@ export default function OrderDetailPage() {
                       borderRadius: 8,
                       fontFamily: 'var(--font-sans)',
                       fontSize: 13,
-                      fontWeight: 600,
+                      fontWeight: 500,
                       textDecoration: 'none',
                     }}
                   >
@@ -1083,8 +1113,8 @@ export default function OrderDetailPage() {
                     style={{
                       fontFamily: 'var(--font-sans)',
                       fontSize: 15,
-                      fontWeight: 600,
-                      color: TEXT_DARK,
+                      fontWeight: 500,
+                      color: TEXT_PRIMARY,
                       lineHeight: 1.3,
                     }}
                   >
@@ -1121,7 +1151,7 @@ export default function OrderDetailPage() {
                     style={{
                       fontFamily: 'var(--font-sans)',
                       fontSize: 18,
-                      fontWeight: 700,
+                      fontWeight: 500,
                       color: BRAND_GREEN,
                       marginTop: 8,
                     }}
@@ -1228,7 +1258,7 @@ export default function OrderDetailPage() {
                         style={{
                           fontFamily: 'var(--font-sans)',
                           fontSize: 14,
-                          fontWeight: 600,
+                          fontWeight: 500,
                           color: BRAND_GREEN,
                           textDecoration: 'underline',
                           overflow: 'hidden',
@@ -1244,7 +1274,7 @@ export default function OrderDetailPage() {
                           fontFamily: 'var(--font-sans)',
                           fontSize: 14,
                           fontWeight: 500,
-                          color: TEXT_DARK,
+                          color: TEXT_PRIMARY,
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap',
@@ -1282,7 +1312,7 @@ export default function OrderDetailPage() {
                       marginTop: 4,
                       fontFamily: 'var(--font-sans)',
                       fontSize: 13,
-                      fontWeight: 600,
+                      fontWeight: 500,
                       color: BRAND_GREEN,
                       textDecoration: 'none',
                     }}
@@ -1366,7 +1396,7 @@ export default function OrderDetailPage() {
                   justifyContent: 'center',
                   color: '#fff',
                   fontSize: 16,
-                  fontWeight: 700,
+                  fontWeight: 500,
                   fontFamily: 'var(--font-sans)',
                   flexShrink: 0,
                   overflow: 'hidden',
@@ -1395,8 +1425,8 @@ export default function OrderDetailPage() {
                     style={{
                       fontFamily: 'var(--font-sans)',
                       fontSize: 15,
-                      fontWeight: 700,
-                      color: TEXT_DARK,
+                      fontWeight: 500,
+                      color: TEXT_PRIMARY,
                     }}
                   >
                     {counterpartyName}
@@ -1421,7 +1451,7 @@ export default function OrderDetailPage() {
                           fontFamily: 'var(--font-sans)',
                           fontSize: 13,
                           color: TEXT_MUTED,
-                          fontWeight: 600,
+                          fontWeight: 500,
                         }}
                       >
                         {counterpartyRating.toFixed(1)}
@@ -1465,7 +1495,7 @@ export default function OrderDetailPage() {
                 style={{
                   fontFamily: 'var(--font-sans)',
                   fontSize: 13,
-                  fontWeight: 600,
+                  fontWeight: 500,
                   color: BRAND_GREEN,
                   textDecoration: 'none',
                   flexShrink: 0,
@@ -1485,7 +1515,7 @@ export default function OrderDetailPage() {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: 20,
-                borderRadius: 12,
+                borderRadius: 14,
                 backgroundColor: '#FFFBEB',
                 border: '1px solid #FDE68A',
                 textDecoration: 'none',
@@ -1498,7 +1528,7 @@ export default function OrderDetailPage() {
                     style={{
                       fontFamily: 'var(--font-sans)',
                       fontSize: 15,
-                      fontWeight: 700,
+                      fontWeight: 500,
                       color: '#92400E',
                     }}
                   >
@@ -1525,7 +1555,7 @@ export default function OrderDetailPage() {
             <div
               style={{
                 padding: '12px 16px',
-                borderRadius: 10,
+                borderRadius: 12,
                 backgroundColor: '#FEF2F2',
                 border: '1px solid #FECACA',
                 display: 'flex',
@@ -1682,7 +1712,7 @@ function DetailRow({
           fontFamily: mono ? 'Menlo, Consolas, monospace' : 'var(--font-sans)',
           fontSize: 13,
           fontWeight: 500,
-          color: TEXT_DARK,
+          color: TEXT_PRIMARY,
           textAlign: 'right',
           maxWidth: '60%',
           overflow: 'hidden',
@@ -1722,7 +1752,7 @@ function PaymentRow({
             fontFamily: 'var(--font-sans)',
             fontSize: bold ? 15 : 14,
             fontWeight: bold ? 700 : 400,
-            color: bold ? TEXT_DARK : TEXT_MUTED,
+            color: bold ? TEXT_PRIMARY : TEXT_MUTED,
           }}
         >
           {label}
@@ -1745,7 +1775,7 @@ function PaymentRow({
           fontFamily: 'var(--font-sans)',
           fontSize: bold ? 16 : 14,
           fontWeight: bold ? 700 : 500,
-          color: bold ? BRAND_GREEN : TEXT_DARK,
+          color: bold ? BRAND_GREEN : TEXT_PRIMARY,
         }}
       >
         {value}
@@ -1762,7 +1792,7 @@ function ShippingAddressBlock({
   const textStyle: React.CSSProperties = {
     fontFamily: 'var(--font-sans)',
     fontSize: 14,
-    color: TEXT_DARK,
+    color: TEXT_PRIMARY,
     lineHeight: 1.5,
   };
 
@@ -1773,7 +1803,7 @@ function ShippingAddressBlock({
   return (
     <div style={textStyle}>
       {a.name && (
-        <div style={{ fontWeight: 600 }}>{String(a.name)}</div>
+        <div style={{ fontWeight: 500 }}>{String(a.name)}</div>
       )}
       {a.line1 && <div>{String(a.line1)}</div>}
       {a.line2 && <div>{String(a.line2)}</div>}
@@ -1802,7 +1832,7 @@ function DisputeCard({
     <div
       style={{
         backgroundColor: '#fff',
-        borderRadius: 12,
+        borderRadius: 14,
         padding: 24,
         border: `1px solid ${CARD_BORDER}`,
       }}
@@ -1833,7 +1863,7 @@ function DisputeCard({
             style={{
               fontFamily: 'var(--font-sans)',
               fontSize: 15,
-              fontWeight: 700,
+              fontWeight: 500,
               color: outcome.color,
             }}
           >
@@ -1860,7 +1890,7 @@ function DisputeCard({
               borderRadius: 4,
               fontFamily: 'var(--font-sans)',
               fontSize: 11,
-              fontWeight: 700,
+              fontWeight: 500,
               color: '#92400E',
             }}
           >
@@ -1961,7 +1991,7 @@ function DisputeCard({
               style={{
                 fontFamily: 'var(--font-sans)',
                 fontSize: 14,
-                fontWeight: 700,
+                fontWeight: 500,
                 color: finalAmount === 0 ? '#065F46' : '#991B1B',
               }}
             >
@@ -1971,7 +2001,7 @@ function DisputeCard({
               style={{
                 fontFamily: 'var(--font-sans)',
                 fontSize: 15,
-                fontWeight: 700,
+                fontWeight: 500,
                 color: finalAmount === 0 ? '#065F46' : '#991B1B',
               }}
             >
@@ -1998,7 +2028,7 @@ function DisputeCard({
               style={{
                 fontFamily: 'var(--font-sans)',
                 fontSize: 12,
-                fontWeight: 600,
+                fontWeight: 500,
                 color: TEXT_MUTED,
                 marginBottom: 4,
               }}
@@ -2087,7 +2117,7 @@ function InsuranceCard({
     <div
       style={{
         backgroundColor: '#F5F3FF',
-        borderRadius: 12,
+        borderRadius: 14,
         padding: 20,
         border: '1px solid #DDD6FE',
       }}
@@ -2118,7 +2148,7 @@ function InsuranceCard({
             style={{
               fontFamily: 'var(--font-sans)',
               fontSize: 15,
-              fontWeight: 700,
+              fontWeight: 500,
               color: cfg.color,
             }}
           >
@@ -2230,7 +2260,7 @@ function SellerPayoutStatus({ order }: { order: OrderDetail }) {
         borderRadius: 20,
         fontFamily: 'var(--font-sans)',
         fontSize: 12,
-        fontWeight: 700,
+        fontWeight: 500,
         marginTop: 4,
       }}
     >
@@ -2324,10 +2354,11 @@ function TimelineView({ order }: { order: OrderDetail }) {
     <div style={{ position: 'relative' }}>
       {steps.map((step, idx) => {
         const isLast = idx === steps.length - 1;
+        const paletteColors = [BRAND_GREEN, BRAND_GREEN, BRAND_BLUE, DARK_BLUE, DARK_BLUE];
         const dotColour = step.colour
           ? step.colour
           : step.completed
-          ? BRAND_GREEN
+          ? paletteColors[Math.min(idx, paletteColors.length - 1)]
           : '#E5E7EB';
         const lineColour = step.completed ? BRAND_GREEN : '#E5E7EB';
         const lineStyle = step.completed ? 'solid' : 'dashed';
@@ -2339,26 +2370,30 @@ function TimelineView({ order }: { order: OrderDetail }) {
               display: 'flex',
               gap: 14,
               position: 'relative',
-              paddingBottom: isLast ? 0 : 20,
+              paddingBottom: isLast ? 0 : 22,
             }}
           >
             {!isLast && (
               <div
                 style={{
                   position: 'absolute',
-                  left: 9,
+                  left: 8,
                   top: 22,
                   bottom: 0,
                   width: 2,
-                  borderLeft: `2px ${lineStyle} ${lineColour}`,
+                  background: step.completed
+                    ? `linear-gradient(180deg, ${BRAND_GREEN} 0%, ${BRAND_BLUE} 100%)`
+                    : undefined,
+                  borderLeft: step.completed ? undefined : `2px ${lineStyle} ${lineColour}`,
+                  borderRadius: 1,
                 }}
               />
             )}
             <div
               style={{
-                width: 20,
-                height: 20,
-                borderRadius: 10,
+                width: 18,
+                height: 18,
+                borderRadius: '50%',
                 backgroundColor: dotColour,
                 flexShrink: 0,
                 marginTop: 1,
@@ -2369,16 +2404,16 @@ function TimelineView({ order }: { order: OrderDetail }) {
               }}
             >
               {step.completed && !step.colour && (
-                <CheckCircle2 size={12} color="#fff" />
+                <CheckCircle2 size={10} color="#fff" />
               )}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div
                 style={{
                   fontFamily: 'var(--font-sans)',
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: step.completed ? TEXT_DARK : '#9CA3AF',
+                  fontSize: 13,
+                  fontWeight: 500,
+                  color: step.completed ? TEXT_PRIMARY : TEXT_MUTED,
                 }}
               >
                 {step.label}
@@ -2388,7 +2423,7 @@ function TimelineView({ order }: { order: OrderDetail }) {
                   style={{
                     fontFamily: 'var(--font-sans)',
                     fontSize: 12,
-                    color: '#9CA3AF',
+                    color: TEXT_HINT,
                     marginTop: 2,
                   }}
                 >
@@ -2649,16 +2684,18 @@ function PrimaryButton({
         alignItems: 'center',
         justifyContent: 'center',
         gap: 8,
-        padding: '14px 16px',
+        height: 46,
+        padding: '0 16px',
         backgroundColor: BRAND_GREEN,
         color: '#fff',
         border: 'none',
-        borderRadius: 10,
-        fontSize: 15,
-        fontWeight: 700,
+        borderRadius: 12,
+        fontSize: 14,
+        fontWeight: 500,
         fontFamily: 'var(--font-sans)',
         cursor: loading ? 'not-allowed' : 'pointer',
         opacity: loading ? 0.6 : 1,
+        letterSpacing: '0.01em',
       }}
     >
       {icon}
@@ -2688,13 +2725,14 @@ function WarningButton({
         alignItems: 'center',
         justifyContent: 'center',
         gap: 8,
-        padding: '14px 16px',
-        backgroundColor: '#FEE2E2',
+        height: 46,
+        padding: '0 16px',
+        backgroundColor: '#fff',
         color: '#DC2626',
-        border: 'none',
-        borderRadius: 10,
-        fontSize: 15,
-        fontWeight: 700,
+        border: '1px solid #FCA5A5',
+        borderRadius: 12,
+        fontSize: 14,
+        fontWeight: 500,
         fontFamily: 'var(--font-sans)',
         cursor: loading ? 'not-allowed' : 'pointer',
         opacity: loading ? 0.6 : 1,
@@ -2723,13 +2761,14 @@ function CancelButton({
         alignItems: 'center',
         justifyContent: 'center',
         gap: 8,
-        padding: '14px 16px',
-        backgroundColor: '#FEE2E2',
-        color: '#991B1B',
-        border: 'none',
-        borderRadius: 10,
-        fontSize: 15,
-        fontWeight: 700,
+        height: 46,
+        padding: '0 16px',
+        backgroundColor: '#fff',
+        color: '#DC2626',
+        border: '1px solid #FCA5A5',
+        borderRadius: 12,
+        fontSize: 14,
+        fontWeight: 500,
         fontFamily: 'var(--font-sans)',
         cursor: loading ? 'not-allowed' : 'pointer',
         opacity: loading ? 0.6 : 1,
@@ -2756,15 +2795,16 @@ function DisabledButton({
         alignItems: 'center',
         justifyContent: 'center',
         gap: 8,
-        padding: '14px 16px',
-        backgroundColor: '#E5E7EB',
-        color: '#9CA3AF',
-        border: 'none',
-        borderRadius: 10,
-        fontSize: 15,
-        fontWeight: 700,
+        height: 46,
+        padding: '0 16px',
+        backgroundColor: SURFACE,
+        color: TEXT_MUTED,
+        border: `1px solid ${CARD_BORDER}`,
+        borderRadius: 12,
+        fontSize: 14,
+        fontWeight: 500,
         fontFamily: 'var(--font-sans)',
-        opacity: 0.8,
+        opacity: 0.7,
       }}
     >
       {icon}
@@ -2788,8 +2828,9 @@ function PrimaryLinkButton({
   secondary?: boolean;
   colour?: string;
 }) {
-  const bg = secondary ? '#F3F4F6' : colour || BRAND_GREEN;
-  const fg = secondary ? '#374151' : '#fff';
+  const bg = secondary ? '#fff' : colour || BRAND_GREEN;
+  const fg = secondary ? DARK_BLUE : '#fff';
+  const border = secondary ? `1px solid ${BORDER_HOVER}` : 'none';
   return (
     <Link
       href={href}
@@ -2801,14 +2842,17 @@ function PrimaryLinkButton({
         alignItems: 'center',
         justifyContent: 'center',
         gap: 8,
-        padding: '14px 16px',
+        height: 46,
+        padding: '0 16px',
         backgroundColor: bg,
         color: fg,
-        borderRadius: 10,
-        fontSize: 15,
-        fontWeight: 700,
+        border,
+        borderRadius: 12,
+        fontSize: 14,
+        fontWeight: 500,
         fontFamily: 'var(--font-sans)',
         textDecoration: 'none',
+        letterSpacing: '0.01em',
       }}
     >
       {icon}
@@ -2864,8 +2908,8 @@ function CancelModal({
               display: 'block',
               fontFamily: 'var(--font-sans)',
               fontSize: 13,
-              fontWeight: 600,
-              color: TEXT_DARK,
+              fontWeight: 500,
+              color: TEXT_PRIMARY,
               marginBottom: 6,
             }}
           >
@@ -2898,8 +2942,8 @@ function CancelModal({
               display: 'block',
               fontFamily: 'var(--font-sans)',
               fontSize: 13,
-              fontWeight: 600,
-              color: TEXT_DARK,
+              fontWeight: 500,
+              color: TEXT_PRIMARY,
               marginBottom: 6,
             }}
           >
@@ -2932,9 +2976,9 @@ function CancelModal({
               backgroundColor: '#F3F4F6',
               color: '#374151',
               border: 'none',
-              borderRadius: 10,
+              borderRadius: 12,
               fontSize: 14,
-              fontWeight: 600,
+              fontWeight: 500,
               fontFamily: 'var(--font-sans)',
               cursor: loading ? 'not-allowed' : 'pointer',
             }}
@@ -2950,9 +2994,9 @@ function CancelModal({
               backgroundColor: '#DC2626',
               color: '#fff',
               border: 'none',
-              borderRadius: 10,
+              borderRadius: 12,
               fontSize: 14,
-              fontWeight: 700,
+              fontWeight: 500,
               fontFamily: 'var(--font-sans)',
               cursor: loading ? 'not-allowed' : 'pointer',
               opacity: loading ? 0.6 : 1,
@@ -3002,9 +3046,9 @@ function ConfirmReceiptModal({
               backgroundColor: '#F3F4F6',
               color: '#374151',
               border: 'none',
-              borderRadius: 10,
+              borderRadius: 12,
               fontSize: 14,
-              fontWeight: 600,
+              fontWeight: 500,
               fontFamily: 'var(--font-sans)',
               cursor: loading ? 'not-allowed' : 'pointer',
             }}
@@ -3020,9 +3064,9 @@ function ConfirmReceiptModal({
               backgroundColor: BRAND_GREEN,
               color: '#fff',
               border: 'none',
-              borderRadius: 10,
+              borderRadius: 12,
               fontSize: 14,
-              fontWeight: 700,
+              fontWeight: 500,
               fontFamily: 'var(--font-sans)',
               cursor: loading ? 'not-allowed' : 'pointer',
               opacity: loading ? 0.6 : 1,
@@ -3072,9 +3116,9 @@ function ReportLostModal({
               backgroundColor: '#F3F4F6',
               color: '#374151',
               border: 'none',
-              borderRadius: 10,
+              borderRadius: 12,
               fontSize: 14,
-              fontWeight: 600,
+              fontWeight: 500,
               fontFamily: 'var(--font-sans)',
               cursor: loading ? 'not-allowed' : 'pointer',
             }}
@@ -3090,9 +3134,9 @@ function ReportLostModal({
               backgroundColor: '#DC2626',
               color: '#fff',
               border: 'none',
-              borderRadius: 10,
+              borderRadius: 12,
               fontSize: 14,
-              fontWeight: 700,
+              fontWeight: 500,
               fontFamily: 'var(--font-sans)',
               cursor: loading ? 'not-allowed' : 'pointer',
               opacity: loading ? 0.6 : 1,
