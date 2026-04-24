@@ -36,6 +36,34 @@ export interface ReviewStats {
   };
 }
 
+export interface CreateReviewRequest {
+  order_id: string;
+  reviewed_user_id: string;
+  rating: number;
+  review_text?: string;
+  review_type?: string;
+}
+
+export interface CreateReviewResponse {
+  success: boolean;
+  review: {
+    id: string;
+    order_id: string;
+    reviewer_id: string;
+    reviewed_user_id: string;
+    rating: number;
+    review_text: string | null;
+    review_type: string;
+    is_public: boolean;
+    created_at: string;
+  };
+}
+
+/** POST /api/reviews — create a new review */
+export function createReview(data: CreateReviewRequest) {
+  return apiClient.post<CreateReviewResponse>('/api/reviews', data);
+}
+
 /** GET /api/reviews/user/:userId — paginated reviews for a user */
 export function getUserReviews(
   userId: string,
