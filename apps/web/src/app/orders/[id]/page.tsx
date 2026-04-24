@@ -641,8 +641,7 @@ export default function OrderDetailPage() {
     backgroundColor: CARD_BG,
     borderRadius: 14,
     padding: 20,
-    border: `1px solid ${CARD_BORDER}`,
-    boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)',
+    border: '1px solid #E0E0E0',
   };
 
   const sectionTitle: React.CSSProperties = {
@@ -1088,9 +1087,9 @@ export default function OrderDetailPage() {
               >
                 <div
                   style={{
-                    width: 80,
-                    height: 80,
-                    borderRadius: 8,
+                    width: 90,
+                    height: 90,
+                    borderRadius: 10,
                     overflow: 'hidden',
                     backgroundColor: '#F3F4F6',
                     flexShrink: 0,
@@ -1113,8 +1112,8 @@ export default function OrderDetailPage() {
                   <div
                     style={{
                       fontFamily: 'var(--font-sans)',
-                      fontSize: 15,
-                      fontWeight: 500,
+                      fontSize: 16,
+                      fontWeight: 600,
                       color: TEXT_PRIMARY,
                       lineHeight: 1.3,
                     }}
@@ -1151,8 +1150,8 @@ export default function OrderDetailPage() {
                   <div
                     style={{
                       fontFamily: 'var(--font-sans)',
-                      fontSize: 18,
-                      fontWeight: 500,
+                      fontSize: 20,
+                      fontWeight: 600,
                       color: BRAND_GREEN,
                       marginTop: 8,
                     }}
@@ -1351,13 +1350,6 @@ export default function OrderDetailPage() {
               {isBuyer && insurancePremium > 0 && (
                 <PaymentRow label="Insurance Premium" value={fp(insurancePremium)} />
               )}
-              <div
-                style={{
-                  height: 1,
-                  backgroundColor: CARD_BORDER,
-                  margin: '4px 0',
-                }}
-              />
               {isBuyer ? (
                 <PaymentRow label="Total Paid" value={fp(totalPaid)} bold />
               ) : (
@@ -1702,7 +1694,7 @@ function DetailRow({
       <span
         style={{
           fontFamily: 'var(--font-sans)',
-          fontSize: 13,
+          fontSize: 14,
           color: TEXT_MUTED,
         }}
       >
@@ -1711,8 +1703,8 @@ function DetailRow({
       <span
         style={{
           fontFamily: mono ? 'Menlo, Consolas, monospace' : 'var(--font-sans)',
-          fontSize: 13,
-          fontWeight: 500,
+          fontSize: 14,
+          fontWeight: 600,
           color: TEXT_PRIMARY,
           textAlign: 'right',
           maxWidth: '60%',
@@ -1745,15 +1737,16 @@ function PaymentRow({
         justifyContent: 'space-between',
         alignItems: 'flex-start',
         gap: 12,
+        ...(bold ? { borderTop: '1px solid #E0E0E0', paddingTop: 14, marginTop: 6 } : {}),
       }}
     >
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         <span
           style={{
             fontFamily: 'var(--font-sans)',
-            fontSize: bold ? 15 : 14,
-            fontWeight: bold ? 700 : 400,
-            color: bold ? TEXT_PRIMARY : TEXT_MUTED,
+            fontSize: bold ? 16 : 14,
+            fontWeight: bold ? 600 : 400,
+            color: bold ? TEXT_PRIMARY : '#6B7280',
           }}
         >
           {label}
@@ -1774,8 +1767,8 @@ function PaymentRow({
       <span
         style={{
           fontFamily: 'var(--font-sans)',
-          fontSize: bold ? 16 : 14,
-          fontWeight: bold ? 700 : 500,
+          fontSize: bold ? 18 : 14,
+          fontWeight: bold ? 600 : 500,
           color: bold ? BRAND_GREEN : TEXT_PRIMARY,
         }}
       >
