@@ -24,6 +24,11 @@ export interface OpenDisputeData {
   requestedRefundPercent: number;
 }
 
+export interface CancelOrderData {
+  reason: string;
+  reasonText: string;
+}
+
 // --- Endpoint Functions ---
 
 /** GET /api/orders/my-sales — seller's sold orders */
@@ -40,7 +45,7 @@ export function getMyPurchases(params?: GetMyPurchasesParams) {
   });
 }
 
-/** GET /api/orders/:id — full order detail */
+/** GET /api/orders/:id — full order detail. Backend wraps response in { order }. */
 export function getOrder(id: string) {
   return apiClient.get<OrderDetail>(`/api/orders/${id}`);
 }
@@ -53,6 +58,21 @@ export function markAsShipped(id: string, data: MarkAsShippedData) {
 /** PUT /api/orders/:id/confirm-receipt — buyer confirms delivery (releases escrow) */
 export function confirmReceipt(id: string) {
   return apiClient.put<{ message: string }>(`/api/orders/${id}/confirm-receipt`);
+}
+
+/** PUT /api/orders/:id/cancel — buyer or seller cancels before label purchased */
+export function cancelOrder(id: string, data: CancelOrderData) {
+  return apiClient.put<{ message: string }>(`/api/orders/${id}/cancel`, data);
+}
+
+/** PUT /api/orders/:id/report-lost — buyer reports item as lost after 14+ days in transit */
+export function reportLost(id: string) {
+  return apiClient.put<{ message: string }>(`/api/orders/${id}/report-lost`);
+}
+
+/** PUT /api/orders/:id/viewed — mark order as viewed (clears buyer badge) */
+export function markOrderViewed(id: string) {
+  return apiClient.put<{ message: string }>(`/api/orders/${id}/viewed`);
 }
 
 /** GET /api/orders/counts — order badge counts */

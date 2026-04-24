@@ -85,6 +85,7 @@ export type {
   GetMySalesParams,
   GetMyPurchasesParams,
   MarkAsShippedData,
+  CancelOrderData,
 } from './endpoints/orders';
 
 // Endpoints — Orders
@@ -94,6 +95,9 @@ export {
   getOrder,
   markAsShipped,
   confirmReceipt,
+  cancelOrder,
+  reportLost,
+  markOrderViewed,
   getOrderCounts,
   openDispute,
 } from './endpoints/orders';
