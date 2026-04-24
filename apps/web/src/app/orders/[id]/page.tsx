@@ -75,7 +75,7 @@ const STATUS_CONFIG: Record<
     bg: string;
     color: string;
     label: string;
-    icon: React.ComponentType<{ size?: number; color?: string }>;
+    icon: React.ComponentType<{ size?: number | string; color?: string }>;
     buyerMessage: string;
     sellerMessage: string;
   }
