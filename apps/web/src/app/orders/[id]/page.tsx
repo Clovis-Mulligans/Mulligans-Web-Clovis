@@ -53,7 +53,7 @@ const BRAND_BLUE = '#278AB0';
 const DARK_BLUE = '#1C4670';
 const PAGE_BG = '#FFFFFF';
 const CARD_BG = '#FFFFFF';
-const CARD_BORDER = '#F0F0F0';
+const CARD_BORDER = '#E5E7EB';
 const TEXT_PRIMARY = '#06070A';
 const TEXT_MUTED = '#9CA3AF';
 const TEXT_HINT = '#D1D5DB';
@@ -642,6 +642,7 @@ export default function OrderDetailPage() {
     borderRadius: 14,
     padding: 20,
     border: `1px solid ${CARD_BORDER}`,
+    boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)',
   };
 
   const sectionTitle: React.CSSProperties = {
