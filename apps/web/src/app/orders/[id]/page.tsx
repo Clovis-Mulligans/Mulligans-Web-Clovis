@@ -2589,7 +2589,7 @@ function ActionBar({
     buttons.push(
       <PrimaryLinkButton
         key="report-issue"
-        href={`/orders/${orderId}/report`}
+        href={`/orders/${orderId}/dispute`}
         secondary
         icon={<AlertCircle size={18} />}
         label="Report Issue"
