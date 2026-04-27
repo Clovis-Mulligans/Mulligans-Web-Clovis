@@ -16,7 +16,6 @@ import type {
   SoldOrder,
   OrderCounts,
 } from '@mulligans/api-client';
-import OrderStatusBadge from '@/components/OrderStatusBadge';
 
 /* ── Helpers ──────────────────────────────────────────── */
 
@@ -40,7 +39,6 @@ const FILTER_CHIPS: { key: FilterKey; label: string }[] = [
   { key: 'completed', label: 'Completed' },
 ];
 
-/** Status values that count as "in progress" for client-side filtering */
 const IN_PROGRESS_STATUSES = [
   'pending',
   'paid',
@@ -61,6 +59,49 @@ function filterOrders(orders: AnyOrder[], filter: FilterKey): AnyOrder[] {
   if (filter === 'completed')
     return orders.filter((o) => o.status === 'completed');
   return orders;
+}
+
+/* ── Status Badge ─────────────────────────────────────── */
+
+const STATUS_BADGE_CONFIG: Record<
+  string,
+  { bg: string; color: string; label: string }
+> = {
+  pending:    { bg: 'rgba(39,138,176,0.1)',  color: '#278AB0', label: 'Pending'    },
+  paid:       { bg: 'rgba(39,138,176,0.1)',  color: '#278AB0', label: 'Paid'       },
+  to_ship:    { bg: 'rgba(39,138,176,0.1)',  color: '#278AB0', label: 'To Ship'    },
+  in_transit: { bg: 'rgba(39,138,176,0.1)',  color: '#278AB0', label: 'In Transit' },
+  shipped:    { bg: 'rgba(39,138,176,0.1)',  color: '#278AB0', label: 'Shipped'    },
+  delivered:  { bg: 'rgba(29,198,144,0.1)',  color: '#059669', label: 'Delivered'  },
+  completed:  { bg: 'rgba(29,198,144,0.1)',  color: '#059669', label: 'Completed'  },
+  cancelled:  { bg: 'rgba(239,68,68,0.08)', color: '#DC2626', label: 'Cancelled'  },
+  disputed:   { bg: 'rgba(245,158,11,0.1)', color: '#D97706', label: 'Disputed'   },
+  refunded:   { bg: 'rgba(124,92,191,0.1)', color: '#7C5CBF', label: 'Refunded'   },
+};
+
+function StatusBadge({ status }: { status: string }) {
+  const c = STATUS_BADGE_CONFIG[status] ?? {
+    bg: 'rgba(156,163,175,0.1)',
+    color: '#6B7280',
+    label: status.replace(/_/g, ' '),
+  };
+  return (
+    <span
+      style={{
+        display: 'inline-block',
+        backgroundColor: c.bg,
+        color: c.color,
+        borderRadius: 20,
+        padding: '4px 10px',
+        fontSize: 12,
+        fontWeight: 500,
+        fontFamily: 'var(--font-sans)',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {c.label}
+    </span>
+  );
 }
 
 /* ══ PAGE ══════════════════════════════════════════════ */
@@ -96,10 +137,12 @@ export default function OrdersPage() {
     try {
       if (tab === 'purchases') {
         const res = await getMyPurchases();
-        setOrders(res.orders);
+        const d = res?.data?.data ?? res?.data ?? res;
+        setOrders(d.orders ?? []);
       } else {
         const res = await getMySales();
-        setOrders(res.orders);
+        const d = res?.data?.data ?? res?.data ?? res;
+        setOrders(d.orders ?? []);
       }
     } catch (err) {
       console.error('Failed to fetch orders:', err);
@@ -121,15 +164,22 @@ export default function OrdersPage() {
   /* Auth loading */
   if (isLoading || !isAuthenticated) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '96px 0' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          padding: '96px 0',
+          backgroundColor: '#FFFFFF',
+        }}
+      >
         <div
+          className="animate-spin"
           style={{
             width: 32,
             height: 32,
             border: '2px solid #1DC690',
             borderTopColor: 'transparent',
             borderRadius: '50%',
-            animation: 'spin 0.8s linear infinite',
           }}
         />
       </div>
@@ -139,26 +189,18 @@ export default function OrdersPage() {
   const filtered = filterOrders(orders, filter);
 
   return (
-    <div style={{ backgroundColor: '#EAEAE0' }}>
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @media (max-width: 767px) {
-          .orders-page { padding-left: 12px !important; padding-right: 12px !important; }
-        }
-      `}</style>
-
+    <div style={{ backgroundColor: '#FFFFFF', minHeight: '100vh' }}>
       <div
-        className="orders-page"
-        style={{ maxWidth: 680, margin: '0 auto', padding: '32px 16px 48px' }}
+        style={{ maxWidth: 900, margin: '0 auto', padding: '32px 16px 48px' }}
       >
         {/* Title */}
-       <PageHeader title="Orders" />
+        <PageHeader title="Orders" />
 
         {/* ── Tabs ── */}
         <div
           style={{
             display: 'flex',
-            borderBottom: '2px solid #e0e0d8',
+            borderBottom: '1px solid #E5E7EB',
             marginBottom: 16,
           }}
         >
@@ -186,47 +228,18 @@ export default function OrdersPage() {
           }}
         >
           {FILTER_CHIPS.map((chip) => (
-            <button
+            <FilterPill
               key={chip.key}
+              active={filter === chip.key}
+              label={chip.label}
               onClick={() => setFilter(chip.key)}
-              style={{
-                fontFamily: 'var(--font-sans)',
-                fontSize: 13,
-                fontWeight: 600,
-                padding: '6px 16px',
-                borderRadius: 20,
-                border:
-                  filter === chip.key ? 'none' : '1px solid #e0e0e0',
-                backgroundColor:
-                  filter === chip.key ? '#1DC690' : '#fff',
-                color: filter === chip.key ? '#fff' : '#555',
-                cursor: 'pointer',
-                transition: 'all 0.15s',
-              }}
-            >
-              {chip.label}
-            </button>
+            />
           ))}
         </div>
 
         {/* ── Order list ── */}
         {loading ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                style={{
-                  height: 90,
-                  borderRadius: 12,
-                  backgroundColor: '#e0e0d8',
-                  animation: 'spin 1.5s ease-in-out infinite',
-                  animationName: 'none',
-                  opacity: 0.6,
-                }}
-                className="animate-pulse"
-              />
-            ))}
-          </div>
+          <SkeletonList />
         ) : filtered.length === 0 ? (
           <EmptyOrders tab={tab} filter={filter} />
         ) : (
@@ -238,6 +251,41 @@ export default function OrdersPage() {
         )}
       </div>
     </div>
+  );
+}
+
+/* ══ FILTER PILL ═══════════════════════════════════════ */
+
+function FilterPill({
+  active,
+  label,
+  onClick,
+}: {
+  active: boolean;
+  label: string;
+  onClick: () => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        fontFamily: 'var(--font-sans)',
+        fontSize: 13,
+        fontWeight: 500,
+        padding: '8px 16px',
+        borderRadius: 20,
+        border: active ? 'none' : `1px solid ${hovered ? '#D1D5DB' : '#E5E7EB'}`,
+        backgroundColor: active ? '#06070A' : '#FFFFFF',
+        color: active ? '#FFFFFF' : '#6B7280',
+        cursor: 'pointer',
+        transition: 'all 0.15s',
+      }}
+    >
+      {label}
+    </button>
   );
 }
 
@@ -262,13 +310,13 @@ function TabButton({
         padding: '10px 0',
         fontFamily: 'var(--font-sans)',
         fontSize: 15,
-        fontWeight: 600,
-        color: '#06070A',
+        fontWeight: active ? 600 : 400,
+        color: active ? '#06070A' : '#9CA3AF',
         background: 'none',
         border: 'none',
-        borderBottom: active ? '3px solid #1DC690' : '3px solid transparent',
+        borderBottom: active ? '2px solid #1DC690' : '2px solid transparent',
         cursor: 'pointer',
-        transition: 'border-color 0.15s',
+        transition: 'all 0.15s',
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -281,9 +329,9 @@ function TabButton({
           style={{
             backgroundColor: '#1DC690',
             color: '#fff',
-            fontSize: 10,
-            fontWeight: 700,
-            padding: '1px 6px',
+            fontSize: 11,
+            fontWeight: 500,
+            padding: '2px 6px',
             borderRadius: 10,
             lineHeight: '16px',
           }}
@@ -295,19 +343,95 @@ function TabButton({
   );
 }
 
+/* ══ SKELETON LIST ═════════════════════════════════════ */
+
+function SkeletonList() {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {[1, 2, 3, 4].map((i) => (
+        <div
+          key={i}
+          className="animate-pulse"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+            backgroundColor: '#F7F7F5',
+            borderRadius: 14,
+            padding: 16,
+          }}
+        >
+          <div
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: 10,
+              backgroundColor: '#E5E7EB',
+              flexShrink: 0,
+            }}
+          />
+          <div
+            style={{
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8,
+            }}
+          >
+            <div
+              style={{
+                height: 14,
+                borderRadius: 6,
+                backgroundColor: '#E5E7EB',
+                width: '60%',
+              }}
+            />
+            <div
+              style={{
+                height: 12,
+                borderRadius: 6,
+                backgroundColor: '#E5E7EB',
+                width: '40%',
+              }}
+            />
+            <div
+              style={{
+                height: 14,
+                borderRadius: 6,
+                backgroundColor: '#E5E7EB',
+                width: '30%',
+              }}
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /* ══ ORDER CARD ════════════════════════════════════════ */
 
 function OrderCard({ order, tab }: { order: AnyOrder; tab: TabKey }) {
+  const [hovered, setHovered] = useState(false);
   const raw = Number(order.amount);
   const buyerPrice = raw * 1.075 + 0.99;
   const isSold = tab === 'sold';
 
-  /* Determine counterparty name */
   const counterpartyName = isSold
     ? (order as SoldOrder).buyer_name
     : (order as PurchasedOrder).seller_name;
-
   const roleLabel = isSold ? 'Buyer' : 'Seller';
+
+  /* Image extraction — prefer images array, fall back to flat field */
+  const imgs = (order as any).listing?.images as
+    | { image_url: string; display_order?: number }[]
+    | undefined;
+  const sorted = imgs?.length
+    ? [...imgs].sort(
+        (a, b) => (a.display_order ?? 99) - (b.display_order ?? 99)
+      )
+    : [];
+  const imageUrl = sorted[0]?.image_url || (order as any).listing_image || null;
 
   return (
     <Link
@@ -315,57 +439,42 @@ function OrderCard({ order, tab }: { order: AnyOrder; tab: TabKey }) {
       style={{ textDecoration: 'none', display: 'block' }}
     >
       <div
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 12,
-          backgroundColor: '#fff',
-          borderRadius: 12,
-          border: '0.5px solid #e8e8e4',
-          padding: 14,
+          gap: 14,
+          backgroundColor: '#FFFFFF',
+          borderRadius: 14,
+          border: `1px solid ${hovered ? '#D1D5DB' : '#E0E0E0'}`,
+          padding: 16,
           cursor: 'pointer',
-          transition: 'background-color 0.15s',
+          transition: 'border-color 0.15s',
         }}
-        onMouseEnter={(e) =>
-          (e.currentTarget.style.backgroundColor = '#fafaf8')
-        }
-        onMouseLeave={(e) =>
-          (e.currentTarget.style.backgroundColor = '#fff')
-        }
       >
         {/* Image */}
         <div
           style={{
-            width: 72,
-            height: 72,
-            borderRadius: 8,
+            width: 64,
+            height: 64,
+            borderRadius: 10,
             overflow: 'hidden',
-            backgroundColor: '#f0f0ec',
+            backgroundColor: '#F7F7F5',
             flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
         >
-          {order.listing_image ? (
+          {imageUrl ? (
             <img
-              src={order.listing_image}
+              src={imageUrl}
               alt=""
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-              }}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
           ) : (
-            <div
-              style={{
-                width: '100%',
-                height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Package size={28} color="#ccc" />
-            </div>
+            <Package size={24} color="#9CA3AF" />
           )}
         </div>
 
@@ -374,7 +483,7 @@ function OrderCard({ order, tab }: { order: AnyOrder; tab: TabKey }) {
           <div
             style={{
               fontFamily: 'var(--font-sans)',
-              fontSize: 14,
+              fontSize: 15,
               fontWeight: 600,
               color: '#06070A',
               overflow: 'hidden',
@@ -387,8 +496,8 @@ function OrderCard({ order, tab }: { order: AnyOrder; tab: TabKey }) {
           <div
             style={{
               fontFamily: 'var(--font-sans)',
-              fontSize: 12,
-              color: '#888',
+              fontSize: 13,
+              color: '#9CA3AF',
               marginTop: 2,
             }}
           >
@@ -398,7 +507,7 @@ function OrderCard({ order, tab }: { order: AnyOrder; tab: TabKey }) {
             style={{
               fontFamily: 'var(--font-sans)',
               fontSize: 15,
-              fontWeight: 700,
+              fontWeight: 600,
               color: '#1DC690',
               marginTop: 3,
             }}
@@ -408,8 +517,8 @@ function OrderCard({ order, tab }: { order: AnyOrder; tab: TabKey }) {
           <div
             style={{
               fontFamily: 'var(--font-sans)',
-              fontSize: 11,
-              color: '#aaa',
+              fontSize: 12,
+              color: '#D1D5DB',
               marginTop: 2,
             }}
           >
@@ -427,8 +536,8 @@ function OrderCard({ order, tab }: { order: AnyOrder; tab: TabKey }) {
             flexShrink: 0,
           }}
         >
-          <OrderStatusBadge status={order.status} />
-          <ChevronRight size={16} color="#ccc" />
+          <StatusBadge status={order.status} />
+          <ChevronRight size={18} color="#D1D5DB" />
         </div>
       </div>
     </Link>
@@ -440,10 +549,7 @@ function OrderCard({ order, tab }: { order: AnyOrder; tab: TabKey }) {
 function EmptyOrders({ tab, filter }: { tab: TabKey; filter: FilterKey }) {
   const messages: Record<FilterKey, { heading: string; sub: string }> = {
     all: {
-      heading:
-        tab === 'purchases'
-          ? 'No purchases yet'
-          : 'No sales yet',
+      heading: tab === 'purchases' ? 'No purchases yet' : 'No sales yet',
       sub:
         tab === 'purchases'
           ? 'When you buy something on Mulligans, it will appear here.'
@@ -472,40 +578,27 @@ function EmptyOrders({ tab, filter }: { tab: TabKey; filter: FilterKey }) {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '60px 20px',
+        padding: '60px 0',
         textAlign: 'center',
       }}
     >
-      <div
-        style={{
-          width: 64,
-          height: 64,
-          borderRadius: '50%',
-          backgroundColor: '#e0e0d8',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginBottom: 16,
-        }}
-      >
-        <Package size={28} color="#9a9a92" />
-      </div>
-      <h3
+      <Package size={48} color="#D1D5DB" style={{ marginBottom: 16 }} />
+      <p
         style={{
           fontFamily: 'var(--font-sans)',
-          fontSize: 17,
-          fontWeight: 700,
-          color: '#06070A',
+          fontSize: 16,
+          fontWeight: 500,
+          color: '#6B7280',
           margin: '0 0 6px',
         }}
       >
         {msg.heading}
-      </h3>
+      </p>
       <p
         style={{
           fontFamily: 'var(--font-sans)',
           fontSize: 13,
-          color: '#888',
+          color: '#9CA3AF',
           margin: 0,
           maxWidth: 280,
         }}
