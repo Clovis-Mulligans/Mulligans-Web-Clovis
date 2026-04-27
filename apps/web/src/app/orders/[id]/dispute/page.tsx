@@ -1008,9 +1008,13 @@ export default function DisputePage() {
 
     const bannerConfig = getStatusBannerConfig(d.status, disputeIsBuyer, d);
 
-    const listingImageUrl =
-      buildImageUrl(d.order?.listing_image) ??
-      buildImageUrl((order as any).listing?.images?.[0]?.image_url);
+    const sImgs = (order as any).listing?.images as
+      | { image_url: string; display_order?: number }[]
+      | undefined;
+    const sSorted = sImgs?.length
+      ? [...sImgs].sort((a, b) => (a.display_order ?? 99) - (b.display_order ?? 99))
+      : [];
+    const listingImageUrl = sSorted[0]?.image_url || null;
 
     // ── Shared: Order context card ─────────────────────────────────────────
 
@@ -1877,10 +1881,13 @@ export default function DisputePage() {
 
   // ── Creation form ────────────────────────────────────────────────────────
 
-  const imageUrl = buildImageUrl(
-    (order as any).listing?.images?.[0]?.image_url ??
-    (order as any).listing_image,
-  );
+  const imgs = (order as any).listing?.images as
+    | { image_url: string; display_order?: number }[]
+    | undefined;
+  const sorted = imgs?.length
+    ? [...imgs].sort((a, b) => (a.display_order ?? 99) - (b.display_order ?? 99))
+    : [];
+  const imageUrl = sorted[0]?.image_url || null;
 
   const descBorderColor = descFocused
     ? '#1DC690'
