@@ -102,6 +102,27 @@ export {
   openDispute,
 } from './endpoints/orders';
 
+// Types — Disputes
+export type {
+  DisputeStatus,
+  DisputeResolutionType,
+  DisputeResponseType,
+  DisputeImage,
+  Dispute,
+  RespondToDisputeData,
+  UploadDisputeImageResponse,
+} from './endpoints/disputes';
+
+// Endpoints — Disputes
+export {
+  getDisputeByOrder,
+  getDispute,
+  respondToDispute,
+  acceptCounterOffer,
+  escalateDispute,
+  uploadDisputeImage,
+} from './endpoints/disputes';
+
 // Types — Offers (endpoints)
 export type {
   CounterOfferData,
