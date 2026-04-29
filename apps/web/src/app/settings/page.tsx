@@ -23,13 +23,13 @@ import {
 /* ───────────────────────── Constants ───────────────────────── */
 
 const PALETTE = {
-  bg: '#EAEAE0',
+  bg: '#FFFFFF',
   card: '#FFFFFF',
   green: '#1DC690',
   textDark: '#111827',
   textMid: '#374151',
   textLight: '#6B7280',
-  border: '#E5E7EB',
+  border: '#E0E0E0',
   borderStrong: '#D1D5DB',
   error: '#EF4444',
   errorBg: '#FEF2F2',
@@ -194,7 +194,7 @@ function TabBar({ tab, onChange }: { tab: TabKey; onChange: (t: TabKey) => void 
   return (
     <div style={{
       display: 'flex', gap: 4, overflowX: 'auto',
-      backgroundColor: '#fff', borderRadius: 12,
+      backgroundColor: '#fff', borderRadius: 14,
       padding: 6, border: `1px solid ${PALETTE.border}`,
     }}>
       {TABS.map(t => {
@@ -296,7 +296,7 @@ function ProfileTab({ user, onSaved }: { user: User; onSaved: () => void }) {
           width: 72, height: 72, borderRadius: '50%',
           backgroundColor: '#F3F4F6', overflow: 'hidden',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: PALETTE.textLight, fontSize: 28, fontWeight: 700,
+          color: PALETTE.textLight, fontSize: 28, fontWeight: 600,
         }}>
           {avatarUrl ? (
             /* eslint-disable-next-line @next/next/no-img-element */
@@ -576,7 +576,7 @@ function ShippingTab({ user, onSaved }: { user: User; onSaved: () => void }) {
               <div style={{ fontSize: 14, fontWeight: 600, color: PALETTE.textDark }}>{p.name}</div>
               <div style={{ fontSize: 12, color: PALETTE.textLight }}>{p.desc}</div>
             </div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: PALETTE.green }}>{p.price}</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: PALETTE.green }}>{p.price}</div>
           </div>
         ))}
       </div>
@@ -743,7 +743,7 @@ function AccountTab({
           <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
             <AlertCircle size={18} color={PALETTE.warn} style={{ flexShrink: 0, marginTop: 1 }} />
             <div>
-              <div style={{ fontWeight: 700, color: PALETTE.textDark, marginBottom: 4 }}>
+              <div style={{ fontWeight: 600, color: PALETTE.textDark, marginBottom: 4 }}>
                 Account deletion scheduled
               </div>
               <div style={{ fontSize: 13, color: PALETTE.textMid }}>
@@ -792,7 +792,7 @@ function AccountTab({
               backgroundColor: PALETTE.errorBg,
               border: `1px solid ${PALETTE.error}`,
             }}>
-              <div style={{ fontWeight: 700, color: PALETTE.error, marginBottom: 8 }}>
+              <div style={{ fontWeight: 600, color: PALETTE.error, marginBottom: 8 }}>
                 Confirm account deletion
               </div>
               <ul style={{ fontSize: 13, color: PALETTE.textMid, margin: '0 0 12px', paddingLeft: 20 }}>
@@ -828,7 +828,7 @@ function AccountTab({
 function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
     <div style={{ marginBottom: 20 }}>
-      <h2 style={{ fontSize: 18, fontWeight: 700, color: PALETTE.textDark, margin: 0 }}>{title}</h2>
+      <h2 style={{ fontSize: 18, fontWeight: 600, color: PALETTE.textDark, margin: 0 }}>{title}</h2>
       {subtitle && <p style={{ fontSize: 13, color: PALETTE.textLight, margin: '4px 0 0' }}>{subtitle}</p>}
     </div>
   );
@@ -879,7 +879,6 @@ function Toggle({
           position: 'absolute', top: 3, left: checked ? 21 : 3,
           width: 20, height: 20, borderRadius: '50%',
           backgroundColor: '#fff', transition: 'left 0.15s',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.25)',
         }} />
       </button>
     </div>
@@ -930,17 +929,17 @@ function Banner({ kind, text }: { kind: 'ok' | 'err'; text: string }) {
 
 const cardStyle: React.CSSProperties = {
   backgroundColor: PALETTE.card,
-  borderRadius: 12,
+  borderRadius: 14,
   padding: 24,
   border: `1px solid ${PALETTE.border}`,
 };
 
 const sectionTitleStyle: React.CSSProperties = {
-  fontSize: 16, fontWeight: 700, color: PALETTE.textDark, margin: '0 0 12px',
+  fontSize: 16, fontWeight: 600, color: PALETTE.textDark, margin: '0 0 12px',
 };
 
 const subHeaderStyle: React.CSSProperties = {
-  fontSize: 14, fontWeight: 700, color: PALETTE.textDark, margin: '12px 0 10px',
+  fontSize: 14, fontWeight: 600, color: PALETTE.textDark, margin: '12px 0 10px',
 };
 
 const inputStyle: React.CSSProperties = {
@@ -971,7 +970,7 @@ function btnPrimary(disabled: boolean): React.CSSProperties {
     display: 'inline-flex', alignItems: 'center', gap: 6,
     padding: '12px 20px', borderRadius: 8, border: 'none',
     backgroundColor: disabled ? '#9CA3AF' : PALETTE.green,
-    color: '#fff', fontSize: 14, fontWeight: 700,
+    color: '#fff', fontSize: 14, fontWeight: 600,
     cursor: disabled ? 'not-allowed' : 'pointer',
   };
 }
@@ -993,7 +992,7 @@ function btnDanger(disabled: boolean): React.CSSProperties {
     display: 'inline-flex', alignItems: 'center', gap: 6,
     padding: '10px 16px', borderRadius: 8, border: 'none',
     backgroundColor: disabled ? '#FCA5A5' : PALETTE.error,
-    color: '#fff', fontSize: 13, fontWeight: 700,
+    color: '#fff', fontSize: 13, fontWeight: 600,
     cursor: disabled ? 'not-allowed' : 'pointer',
   };
 }

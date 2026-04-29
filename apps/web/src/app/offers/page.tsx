@@ -241,7 +241,7 @@ function CounterOfferModal({
             width: '100%',
             padding: '12px',
             borderRadius: 8,
-            border: error ? '1px solid #EF4444' : '1px solid #E5E7EB',
+            border: error ? '1px solid #EF4444' : '1px solid #E0E0E0',
             fontSize: 16,
             marginBottom: 8,
             boxSizing: 'border-box',
@@ -263,7 +263,7 @@ function CounterOfferModal({
           <button
             onClick={onClose}
             disabled={submitting}
-            style={{ flex: 1, padding: '12px', borderRadius: 8, border: '1px solid #E5E7EB', backgroundColor: '#fff', cursor: submitting ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14, color: '#374151' }}
+            style={{ flex: 1, padding: '12px', borderRadius: 8, border: '1px solid #E0E0E0', backgroundColor: '#fff', cursor: submitting ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14, color: '#374151' }}
           >
             Cancel
           </button>
@@ -365,7 +365,7 @@ function OfferCard({ offer, tab, onAction, onCounter }: OfferCardProps) {
       if (offer.status === 'PENDING') {
         return (
           <button onClick={() => handleAction(() => withdrawOffer(offer.id))} disabled={busy}
-            style={{ padding: '10px 24px', borderRadius: 8, border: '2px solid #E5E7EB', backgroundColor: '#F9FAFB', color: '#6B7280', cursor: busy ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14, opacity: busy ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            style={{ padding: '10px 24px', borderRadius: 8, border: '2px solid #E0E0E0', backgroundColor: '#F9FAFB', color: '#6B7280', cursor: busy ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14, opacity: busy ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
             <X size={15} /> Withdraw Offer
           </button>
         );
@@ -398,8 +398,8 @@ function OfferCard({ offer, tab, onAction, onCounter }: OfferCardProps) {
 
   return (
     <div style={{
-      backgroundColor: '#fff', borderRadius: 12, overflow: 'hidden',
-      border: statusActive ? '1px solid #E5E7EB' : '1px solid #F0F0EA',
+      backgroundColor: '#fff', borderRadius: 14, overflow: 'hidden',
+      border: `1px solid #E0E0E0`,
       opacity: statusActive ? 1 : 0.75,
     }}>
       {/* Card body */}
@@ -409,7 +409,7 @@ function OfferCard({ offer, tab, onAction, onCounter }: OfferCardProps) {
           {img ? (
             <img src={img} alt={offer.listing.title} style={{ width: 88, height: 88, borderRadius: 10, objectFit: 'cover' }} />
           ) : (
-            <div style={{ width: 88, height: 88, borderRadius: 10, backgroundColor: '#F4F4F0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: 88, height: 88, borderRadius: 10, backgroundColor: '#F7F7F5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Tag size={28} color="#D1D5DB" />
             </div>
           )}
@@ -420,7 +420,7 @@ function OfferCard({ offer, tab, onAction, onCounter }: OfferCardProps) {
           {/* Title + badge row */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 6 }}>
             <Link href={`/listings/${offer.listing_id}`} style={{ textDecoration: 'none', flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <p style={{ fontSize: 16, fontWeight: 600, color: '#111827', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {offer.listing.title}
               </p>
             </Link>
@@ -446,7 +446,7 @@ function OfferCard({ offer, tab, onAction, onCounter }: OfferCardProps) {
           <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'baseline' }}>
             <div>
               <div style={{ fontSize: 11, color: '#6B7280', marginBottom: 2 }}>{isBuyer ? 'Your offer (inc. fees)' : 'Offer'}</div>
-              <div style={{ fontSize: 17, fontWeight: 700, color: '#7C5CBF' }}>{formatPrice(offerDisplay)}</div>
+              <div style={{ fontSize: 17, fontWeight: 600, color: '#7C5CBF' }}>{formatPrice(offerDisplay)}</div>
             </div>
             <div>
               <div style={{ fontSize: 11, color: '#6B7280', marginBottom: 2 }}>{isBuyer ? 'List price (inc. fees)' : 'List price'}</div>
@@ -455,13 +455,13 @@ function OfferCard({ offer, tab, onAction, onCounter }: OfferCardProps) {
             {counterDisplay != null && (
               <div>
                 <div style={{ fontSize: 11, color: '#6B7280', marginBottom: 2 }}>{isBuyer ? 'Counter (inc. fees)' : 'Your counter'}</div>
-                <div style={{ fontSize: 17, fontWeight: 700, color: '#278AB0' }}>{formatPrice(counterDisplay)}</div>
+                <div style={{ fontSize: 17, fontWeight: 600, color: '#278AB0' }}>{formatPrice(counterDisplay)}</div>
               </div>
             )}
             {finalDisplay != null && (offer.status === 'ACCEPTED' || offer.status === 'COUNTER_ACCEPTED' || offer.status === 'PURCHASED') && (
               <div>
                 <div style={{ fontSize: 11, color: '#6B7280', marginBottom: 2 }}>{isBuyer ? 'You pay' : 'Agreed price'}</div>
-                <div style={{ fontSize: 17, fontWeight: 700, color: '#1DC690' }}>{formatPrice(finalDisplay)}</div>
+                <div style={{ fontSize: 17, fontWeight: 600, color: '#1DC690' }}>{formatPrice(finalDisplay)}</div>
               </div>
             )}
           </div>
@@ -470,7 +470,7 @@ function OfferCard({ offer, tab, onAction, onCounter }: OfferCardProps) {
 
       {/* Footer — timer + actions */}
       {statusActive && (
-        <div style={{ padding: '12px 20px', backgroundColor: '#FAFAF8', borderTop: '1px solid #F0F0EA', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+        <div style={{ padding: '12px 20px', backgroundColor: '#F9FAFB', borderTop: '1px solid #E0E0E0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
           {expiresTimestamp && <CountdownTimer expiresAt={expiresTimestamp} onExpire={onAction} />}
           <div>{renderActions()}</div>
         </div>
@@ -569,12 +569,12 @@ function OffersPageInner() {
   // ─── Loading state ───
   if (authLoading || (loading && isAuthenticated)) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#EAEAE0' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: '#FFFFFF' }}>
         <div style={{ maxWidth: 800, margin: '0 auto', padding: '32px 16px' }}>
           <div style={{ height: 32, width: 140, backgroundColor: '#E5E7EB', borderRadius: 8, marginBottom: 24 }} className="animate-pulse" />
           <div style={{ height: 48, backgroundColor: '#E5E7EB', borderRadius: 8, marginBottom: 24 }} className="animate-pulse" />
           {[1, 2, 3].map((i) => (
-            <div key={i} style={{ height: 180, backgroundColor: '#E5E7EB', borderRadius: 12, marginBottom: 12 }} className="animate-pulse" />
+            <div key={i} style={{ height: 180, backgroundColor: '#E5E7EB', borderRadius: 14, marginBottom: 12 }} className="animate-pulse" />
           ))}
         </div>
       </div>
@@ -592,7 +592,7 @@ function OffersPageInner() {
   const displayOffers = tab === 'received' ? sortOffers(received) : sortOffers(made);
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#EAEAE0' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#FFFFFF' }}>
       <div style={{ maxWidth: 800, margin: '0 auto', padding: '32px 16px 64px' }}>
         <PageHeader title="Offers" />
 
@@ -602,8 +602,9 @@ function OffersPageInner() {
           gap: 8,
           marginBottom: 24,
           backgroundColor: '#fff',
-          borderRadius: 10,
+          borderRadius: 14,
           padding: 4,
+          border: '1px solid #E0E0E0',
         }}>
           <button
             onClick={() => setTab('received')}
@@ -631,7 +632,7 @@ function OffersPageInner() {
                 borderRadius: 999,
                 padding: '2px 10px',
                 fontSize: 12,
-                fontWeight: 700,
+                fontWeight: 600,
               }}>
                 {activeReceivedCount}
               </span>
@@ -663,7 +664,7 @@ function OffersPageInner() {
                 borderRadius: 999,
                 padding: '2px 10px',
                 fontSize: 12,
-                fontWeight: 700,
+                fontWeight: 600,
               }}>
                 {activeMadeCount}
               </span>
@@ -675,9 +676,10 @@ function OffersPageInner() {
         {displayOffers.length === 0 ? (
           <div style={{
             backgroundColor: '#fff',
-            borderRadius: 12,
+            borderRadius: 14,
             padding: '60px 32px',
             textAlign: 'center',
+            border: '1px solid #E0E0E0',
           }}>
             <Tag size={48} color="#D1D5DB" style={{ margin: '0 auto 16px' }} />
             <p style={{ fontSize: 18, fontWeight: 600, color: '#111827', marginBottom: 8 }}>
@@ -719,7 +721,7 @@ function OffersPageInner() {
 export default function OffersPage() {
   return (
     <Suspense fallback={
-      <div style={{ minHeight: '100vh', backgroundColor: '#EAEAE0' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: '#FFFFFF' }}>
         <div style={{ maxWidth: 800, margin: '0 auto', padding: '32px 16px' }}>
           <div style={{ height: 32, width: 140, backgroundColor: '#E5E7EB', borderRadius: 8 }} className="animate-pulse" />
         </div>

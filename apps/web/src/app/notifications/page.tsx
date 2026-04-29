@@ -43,16 +43,15 @@ import {
   type Notification,
 } from '@mulligans/api-client';
 
-// Palette matches the brief's design system.
 const PALETTE = {
-  bg: '#EAEAE0',
+  bg: '#FFFFFF',
   card: '#FFFFFF',
   green: '#1DC690',
   blue: '#278AB0',
   offersPurple: '#7C5CBF',
   textDark: '#111827',
   textLight: '#6B7280',
-  border: '#E5E7EB',
+  border: '#E0E0E0',
   unreadBg: '#F0FDF4',
 };
 
@@ -440,7 +439,7 @@ export default function NotificationsPage() {
         ) : filtered.length === 0 ? (
           <div style={{
             padding: 48, textAlign: 'center', backgroundColor: PALETTE.card,
-            borderRadius: 12, border: `1px solid ${PALETTE.border}`,
+            borderRadius: 14, border: `1px solid ${PALETTE.border}`,
             color: PALETTE.textDark, fontSize: 14,
           }}>
             No notifications match your filters.
@@ -493,12 +492,12 @@ function NotificationCard({ notification, onClick }: {
         backgroundColor: unread ? PALETTE.unreadBg : PALETTE.card,
         border: `1px solid ${PALETTE.border}`,
         borderLeft: unread ? `3px solid ${PALETTE.green}` : `1px solid ${PALETTE.border}`,
-        borderRadius: 10,
+        borderRadius: 14,
         cursor: 'pointer',
         transition: 'background-color 120ms ease',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.backgroundColor = unread ? '#E6FBF0' : '#FAFAF6';
+        e.currentTarget.style.backgroundColor = unread ? '#E6FBF0' : '#F9FAFB';
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.backgroundColor = unread ? PALETTE.unreadBg : PALETTE.card;
@@ -558,7 +557,7 @@ function NotificationCard({ notification, onClick }: {
         </div>
         <div style={{
           fontSize: 14,
-          fontWeight: unread ? 700 : 600,
+          fontWeight: 600,
           color: PALETTE.textDark,
           lineHeight: 1.35,
           marginBottom: 2,
@@ -611,7 +610,7 @@ function NotificationSkeletons() {
             padding: '14px 16px',
             backgroundColor: PALETTE.card,
             border: `1px solid ${PALETTE.border}`,
-            borderRadius: 10,
+            borderRadius: 14,
           }}
         >
           <div style={{
@@ -624,8 +623,8 @@ function NotificationSkeletons() {
           }} />
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
             <div style={{ height: 12, width: '40%', backgroundColor: '#E5E7EB', borderRadius: 4 }} />
-            <div style={{ height: 10, width: '90%', backgroundColor: '#EFEFE9', borderRadius: 4 }} />
-            <div style={{ height: 10, width: '70%', backgroundColor: '#EFEFE9', borderRadius: 4 }} />
+            <div style={{ height: 10, width: '90%', backgroundColor: '#F3F4F6', borderRadius: 4 }} />
+            <div style={{ height: 10, width: '70%', backgroundColor: '#F3F4F6', borderRadius: 4 }} />
           </div>
         </div>
       ))}
@@ -638,7 +637,7 @@ function EmptyState() {
     <div style={{
       backgroundColor: PALETTE.card,
       border: `1px solid ${PALETTE.border}`,
-      borderRadius: 12,
+      borderRadius: 14,
       padding: '64px 24px',
       display: 'flex',
       flexDirection: 'column',

@@ -19,13 +19,13 @@ interface FavouriteRow {
 }
 
 const PALETTE = {
-  bg: '#EAEAE0',
+  bg: '#FFFFFF',
   card: '#FFFFFF',
   green: '#1DC690',
   textDark: '#111827',
   textMid: '#374151',
   textLight: '#6B7280',
-  border: '#E5E7EB',
+  border: '#E0E0E0',
   heartRed: '#EF4444',
   inputBg: '#FFFFFF',
 };
@@ -221,7 +221,7 @@ export default function FavouritesPage() {
         ) : visible.length === 0 ? (
           <div style={{
             padding: 48, textAlign: 'center',
-            backgroundColor: '#fff', borderRadius: 12,
+            backgroundColor: '#fff', borderRadius: 14,
             border: `1px solid ${PALETTE.border}`,
             color: PALETTE.textMid, fontSize: 14,
           }}>
@@ -259,8 +259,8 @@ function SkeletonGrid() {
       {Array.from({ length: 10 }).map((_, i) => (
         <div key={i} style={{
           aspectRatio: '3/4',
-          backgroundColor: '#F4F4F0',
-          borderRadius: 12,
+          backgroundColor: '#F7F7F5',
+          borderRadius: 14,
         }} />
       ))}
     </div>
@@ -273,7 +273,7 @@ function EmptyState() {
   return (
     <div style={{
       padding: '64px 24px', textAlign: 'center',
-      backgroundColor: '#fff', borderRadius: 12,
+      backgroundColor: '#fff', borderRadius: 14,
       border: `1px solid ${PALETTE.border}`,
     }}>
       <div style={{
@@ -284,7 +284,7 @@ function EmptyState() {
       }}>
         <Heart size={30} color={PALETTE.heartRed} />
       </div>
-      <h2 style={{ fontSize: 20, fontWeight: 700, color: PALETTE.textDark, margin: '0 0 8px' }}>
+      <h2 style={{ fontSize: 20, fontWeight: 600, color: PALETTE.textDark, margin: '0 0 8px' }}>
         No favourites yet
       </h2>
       <p style={{ fontSize: 14, color: PALETTE.textMid, margin: '0 0 20px' }}>
@@ -296,7 +296,7 @@ function EmptyState() {
           display: 'inline-block',
           padding: '10px 20px',
           backgroundColor: PALETTE.green,
-          color: '#fff', fontSize: 14, fontWeight: 700,
+          color: '#fff', fontSize: 14, fontWeight: 600,
           borderRadius: 8, textDecoration: 'none',
         }}
       >

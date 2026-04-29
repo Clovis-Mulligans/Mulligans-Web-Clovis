@@ -41,7 +41,7 @@ import SimpleModal from '@/components/SimpleModal';
 
 const API_ORIGIN = 'https://api.mulligans.uk.com';
 const COLOR = {
-  pageBg: '#EAEAE0',
+  pageBg: '#FFFFFF',
   panel: '#fff',
   green: '#1DC690',
   blue: '#278AB0',
@@ -49,7 +49,7 @@ const COLOR = {
   textDark: '#111827',
   textMed: '#374151',
   textLight: '#6B7280',
-  border: '#E5E7EB',
+  border: '#E0E0E0',
   selectedBg: '#F0FDF4',
   mutedBg: '#F9FAFB',
 };
@@ -153,7 +153,7 @@ function Avatar({ url, name, size = 40 }: { url: string | null; name: string | n
         alignItems: 'center',
         justifyContent: 'center',
         fontSize: size * 0.4,
-        fontWeight: 700,
+        fontWeight: 600,
         flexShrink: 0,
       }}
     >
@@ -630,7 +630,7 @@ function MessagesPageInner() {
                     padding: '14px 16px',
                     borderBottom: `1px solid ${COLOR.border}`,
                     fontSize: 18,
-                    fontWeight: 700,
+                    fontWeight: 600,
                     color: COLOR.textDark,
                   }}
                 >
@@ -722,7 +722,7 @@ function MessagesPageInner() {
                             <div
                               style={{
                                 fontSize: 15,
-                                fontWeight: isUnread ? 700 : 600,
+                                fontWeight: 600,
                                 color: COLOR.textDark,
                                 display: 'flex',
                                 alignItems: 'center',
@@ -849,7 +849,7 @@ function MessagesPageInner() {
                     }}
                   >
                     {/* Top row: back + user info + trust stats + menu */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderBottom: `1px solid #F5F5F0` }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderBottom: `1px solid ${COLOR.border}` }}>
                       {isMobile && (
                         <button
                           onClick={() => { setMobileView('list'); setSelectedId(null); }}
@@ -861,7 +861,7 @@ function MessagesPageInner() {
                       )}
                       <Avatar url={selectedConversation.other_user_avatar} name={selectedConversation.other_user_name} size={40} />
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 15, fontWeight: 700, color: COLOR.textDark, display: 'flex', alignItems: 'center', gap: 4, marginBottom: 2 }}>
+                        <div style={{ fontSize: 15, fontWeight: 600, color: COLOR.textDark, display: 'flex', alignItems: 'center', gap: 4, marginBottom: 2 }}>
                           {selectedConversation.other_user_name || 'Unknown'}
                           {selectedConversation.other_user_is_verified && <CheckCircle2 size={14} color={COLOR.green} />}
                         </div>
@@ -901,7 +901,7 @@ function MessagesPageInner() {
                         {showChatMenu && (
                           <>
                             <div style={{ position: 'fixed', inset: 0, zIndex: 40 }} onClick={() => setShowChatMenu(false)} />
-                            <div style={{ position: 'absolute', top: 38, right: 0, backgroundColor: '#fff', borderRadius: 12, boxShadow: '0 4px 20px rgba(0,0,0,0.15)', minWidth: 180, zIndex: 50, overflow: 'hidden' }}>
+                            <div style={{ position: 'absolute', top: 38, right: 0, backgroundColor: '#fff', borderRadius: 14, border: `1px solid ${COLOR.border}`, minWidth: 180, zIndex: 50, overflow: 'hidden' }}>
                               <button onClick={() => { setShowChatMenu(false); setShowReportModal(true); }} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', border: 'none', backgroundColor: 'transparent', cursor: 'pointer', fontSize: 14, color: COLOR.textMed }}>
                                 <Flag size={16} /> Report User
                               </button>
@@ -921,15 +921,15 @@ function MessagesPageInner() {
                           style={{
                             display: 'flex', alignItems: 'center', gap: 12,
                             padding: '10px 12px',
-                            backgroundColor: '#FAFAF8',
+                            backgroundColor: '#F9FAFB',
                             border: `1px solid ${COLOR.border}`,
-                            borderRadius: 10,
+                            borderRadius: 14,
                             textDecoration: 'none',
                           }}
                         >
                           <ListingThumb url={selectedConversation.listing_image} size={64} />
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 14, fontWeight: 700, color: COLOR.textDark, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            <div style={{ fontSize: 14, fontWeight: 600, color: COLOR.textDark, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                               {selectedConversation.listing_title}
                             </div>
                             {/* Brand from enriched data */}
@@ -939,7 +939,7 @@ function MessagesPageInner() {
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
                               {/* Price — try conversation first, then enriched listing */}
                               {(selectedConversation.listing_price != null || listingDetail?.price != null) && (
-                                <span style={{ fontSize: 16, fontWeight: 700, color: COLOR.green }}>
+                                <span style={{ fontSize: 16, fontWeight: 600, color: COLOR.green }}>
                                   {formatBuyerPrice(selectedConversation.listing_price ?? listingDetail?.price)}
                                 </span>
                               )}
@@ -1065,14 +1065,14 @@ function MessagesPageInner() {
                                         style={{
                                           fontSize: 11,
                                           color: COLOR.purple,
-                                          fontWeight: 700,
+                                          fontWeight: 600,
                                           textTransform: 'uppercase',
                                           letterSpacing: 0.5,
                                         }}
                                       >
                                         Offer
                                       </div>
-                                      <div style={{ fontSize: 15, fontWeight: 700 }}>
+                                      <div style={{ fontSize: 15, fontWeight: 600 }}>
                                         {formatBuyerPrice(msg.offer_amount)}
                                       </div>
                                       {msg.content && (
@@ -1191,7 +1191,7 @@ function MessagesPageInner() {
                           alignItems: 'center',
                           gap: 6,
                           fontSize: 14,
-                          fontWeight: 700,
+                          fontWeight: 600,
                           fontFamily: 'inherit',
                         }}
                       >
@@ -1211,12 +1211,12 @@ function MessagesPageInner() {
       <SimpleModal open={showReportModal} onClose={() => { setShowReportModal(false); setReportReason(''); setReportDetails(''); }} title="Report User">
         <div>
           <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 8 }}>Reason</label>
-          <select value={reportReason} onChange={(e) => setReportReason(e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #E5E7EB', fontSize: 14, marginBottom: 16, backgroundColor: '#fff' }}>
+          <select value={reportReason} onChange={(e) => setReportReason(e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #E0E0E0', fontSize: 14, marginBottom: 16, backgroundColor: '#fff' }}>
             <option value="">Select a reason...</option>
             {['Inappropriate content', 'Spam', 'Scam/fraud', 'Harassment', 'Other'].map(r => <option key={r} value={r}>{r}</option>)}
           </select>
           <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 8 }}>Details (optional)</label>
-          <textarea value={reportDetails} onChange={(e) => setReportDetails(e.target.value)} placeholder="Provide additional details..." rows={4} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #E5E7EB', fontSize: 14, resize: 'vertical', marginBottom: 16, boxSizing: 'border-box' }} />
+          <textarea value={reportDetails} onChange={(e) => setReportDetails(e.target.value)} placeholder="Provide additional details..." rows={4} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #E0E0E0', fontSize: 14, resize: 'vertical', marginBottom: 16, boxSizing: 'border-box' }} />
           <button onClick={handleReport} disabled={!reportReason || reportSubmitting} style={{ width: '100%', padding: '12px', borderRadius: 8, backgroundColor: !reportReason || reportSubmitting ? '#D1D5DB' : '#EF4444', color: '#fff', border: 'none', cursor: !reportReason || reportSubmitting ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14 }}>
             {reportSubmitting ? 'Submitting...' : 'Submit Report'}
           </button>
@@ -1232,7 +1232,7 @@ function MessagesPageInner() {
               : `Block ${selectedConversation?.other_user_name || 'this user'}? They won't be able to message you or see your listings.`}
           </p>
           <div style={{ display: 'flex', gap: 12 }}>
-            <button onClick={() => setShowBlockConfirm(false)} style={{ flex: 1, padding: '12px', borderRadius: 8, border: '1px solid #E5E7EB', backgroundColor: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: 14, color: '#374151' }}>Cancel</button>
+            <button onClick={() => setShowBlockConfirm(false)} style={{ flex: 1, padding: '12px', borderRadius: 8, border: '1px solid #E0E0E0', backgroundColor: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: 14, color: '#374151' }}>Cancel</button>
             <button onClick={handleBlock} style={{ flex: 1, padding: '12px', borderRadius: 8, border: 'none', backgroundColor: isBlocked ? COLOR.green : '#EF4444', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: 14 }}>{isBlocked ? 'Unblock' : 'Block'}</button>
           </div>
         </div>
