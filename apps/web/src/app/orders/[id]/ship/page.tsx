@@ -225,7 +225,7 @@ export default function ShipOrderPage() {
       setLoading(true);
       setFetchError(null);
       const res = await getOrder(orderId);
-      const d = res?.data?.data ?? res?.data ?? res;
+      const d = (res as any)?.data?.data ?? (res as any)?.data ?? res;
       const o: OrderDetail = (d as any)?.order ?? d;
       setOrder(o);
     } catch (err: any) {
@@ -257,7 +257,7 @@ export default function ShipOrderPage() {
       setRatesLoading(true);
       setRatesError(null);
       const res = await getShippingRates(orderId);
-      const d = res?.data?.data ?? res?.data ?? res;
+      const d = (res as any)?.data?.data ?? (res as any)?.data ?? res;
       const payload = (d as any)?.data ?? d;
       const rateList: ShippingRate[] = payload?.rates ?? [];
       setRates(rateList);
