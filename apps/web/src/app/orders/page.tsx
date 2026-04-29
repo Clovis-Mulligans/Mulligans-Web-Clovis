@@ -137,11 +137,11 @@ export default function OrdersPage() {
     try {
       if (tab === 'purchases') {
         const res = await getMyPurchases();
-        const d = res?.data?.data ?? res?.data ?? res;
+        const d = (res as any)?.data?.data ?? (res as any)?.data ?? res;
         setOrders(d.orders ?? []);
       } else {
         const res = await getMySales();
-        const d = res?.data?.data ?? res?.data ?? res;
+        const d = (res as any)?.data?.data ?? (res as any)?.data ?? res;
         setOrders(d.orders ?? []);
       }
     } catch (err) {
