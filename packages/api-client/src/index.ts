@@ -328,3 +328,23 @@ export {
   markNotificationRead,
   markAllNotificationsRead,
 } from './endpoints/notifications';
+
+// Types — Shipping
+export type {
+  ShippingRate,
+  ShippingLabel,
+  TrackingInfo,
+  TrackingEvent,
+  ParcelDetails,
+  ParcelSize,
+  ShippingRatesResponse,
+} from './endpoints/shipping';
+
+// Endpoints — Shipping
+export {
+  getShippingRates,
+  createShippingLabel,
+  markShipped,
+  getTrackingInfo,
+  getParcelSizes,
+} from './endpoints/shipping';
