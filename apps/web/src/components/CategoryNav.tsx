@@ -27,7 +27,7 @@ export function CategoryNav() {
       className="bg-white overflow-x-auto"
       style={{ borderBottom: '1px solid #E0E0D8', scrollbarWidth: 'none' }}
     >
-      <div className="mx-auto flex h-12 max-w-[1280px] items-center gap-1 px-4 sm:px-6 lg:px-8">
+      <div className="flex h-12 items-center gap-1 px-4 sm:px-6 lg:px-8">
         {CATEGORIES.map((cat) => {
           const isActive = cat.slug === activeSlug || (cat.slug === '' && pathname === '/');
           const href = cat.slug ? `/category/${cat.slug}` : '/';

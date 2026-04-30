@@ -38,7 +38,7 @@ export default async function HomePage() {
 
       {/* Hero */}
       <section className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1C4670 0%, #1DC690 100%)' }}>
-        <div className="mx-auto max-w-[1280px] px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
+        <div className="px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
           <div className="flex flex-col lg:flex-row items-center gap-8">
 
             {/* Left: text + stats */}

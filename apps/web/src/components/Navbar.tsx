@@ -88,7 +88,7 @@ export function Navbar() {
         className="sticky top-0 z-50 bg-white transition-shadow duration-150"
         style={{ borderBottom: '1px solid #E0E0D8', boxShadow: scrolled ? '0 2px 12px rgba(0,0,0,0.1)' : 'none' }}
       >
-        <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
           {/* FIX 1: Logo image replacing text span */}
           <Link href="/" className="flex-shrink-0" aria-label="Mulligans Home">
             <img src="https://mulligans-golf-images-mvp.s3.eu-west-2.amazonaws.com/email-assets/Asset+41x+transparent.png" alt="Mulligans" style={{ height: '36px', width: 'auto' }} />
