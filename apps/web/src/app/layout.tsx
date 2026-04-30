@@ -38,7 +38,7 @@ export default function RootLayout({
     <html lang="en" className={montserrat.variable}>
       <body
         className="min-h-screen font-sans antialiased"
-        style={{ fontFamily: 'var(--font-sans)', backgroundColor: '#EAEAE0' }}
+        style={{ fontFamily: 'var(--font-sans)', backgroundColor: '#FFFFFF' }}
       >
         <AuthProvider>
           <Navbar />
