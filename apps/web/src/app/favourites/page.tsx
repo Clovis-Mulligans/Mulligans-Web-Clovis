@@ -22,13 +22,16 @@ const PALETTE = {
   bg: '#FFFFFF',
   card: '#FFFFFF',
   green: '#1DC690',
-  textDark: '#111827',
-  textMid: '#374151',
+  textDark: '#06070A',
+  textMid: '#6B7280',
   textLight: '#6B7280',
-  border: '#E0E0E0',
+  border: '#E5E7EB',
   heartRed: '#EF4444',
   inputBg: '#FFFFFF',
 };
+
+const CARD_SHADOW = '0 4px 14px rgba(6,7,10,0.10), 0 2px 4px rgba(6,7,10,0.06)';
+const CARD_SHADOW_HOVER = '0 8px 24px rgba(6,7,10,0.12), 0 3px 6px rgba(6,7,10,0.08)';
 
 export default function FavouritesPage() {
   const router = useRouter();
@@ -147,8 +150,8 @@ export default function FavouritesPage() {
   }
 
   return (
-    <div style={{ backgroundColor: PALETTE.bg, minHeight: '100vh', padding: '24px 16px' }}>
-      <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+    <div style={{ backgroundColor: PALETTE.bg, minHeight: '100vh', padding: '32px 32px 64px' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
         <PageHeader
           title="Favourites"
           subtitle="Items you've saved"
@@ -173,7 +176,7 @@ export default function FavouritesPage() {
               style={{
                 width: '100%', padding: '10px 12px 10px 36px',
                 border: `1px solid ${PALETTE.border}`,
-                borderRadius: 8, fontSize: 14,
+                borderRadius: 10, fontSize: 14,
                 backgroundColor: PALETTE.inputBg, outline: 'none',
                 boxSizing: 'border-box',
               }}
@@ -186,7 +189,7 @@ export default function FavouritesPage() {
             style={{
               padding: '10px 12px',
               border: `1px solid ${PALETTE.border}`,
-              borderRadius: 8, fontSize: 14,
+              borderRadius: 10, fontSize: 14,
               backgroundColor: PALETTE.inputBg,
               color: PALETTE.textDark, outline: 'none', cursor: 'pointer',
             }}
@@ -207,7 +210,7 @@ export default function FavouritesPage() {
           <div style={{
             padding: '12px 16px', marginBottom: 16,
             backgroundColor: '#FEF2F2', color: '#B91C1C',
-            borderRadius: 8, fontSize: 14,
+            borderRadius: 10, fontSize: 14,
           }}>
             {error}
           </div>
@@ -221,9 +224,10 @@ export default function FavouritesPage() {
         ) : visible.length === 0 ? (
           <div style={{
             padding: 48, textAlign: 'center',
-            backgroundColor: '#fff', borderRadius: 14,
+            backgroundColor: '#fff', borderRadius: 16,
             border: `1px solid ${PALETTE.border}`,
-            color: PALETTE.textMid, fontSize: 14,
+            color: PALETTE.textDark, fontSize: 14,
+            boxShadow: CARD_SHADOW,
           }}>
             No favourites match &quot;{query}&quot;.
           </div>
@@ -257,10 +261,11 @@ function SkeletonGrid() {
   return (
     <div style={gridStyle}>
       {Array.from({ length: 10 }).map((_, i) => (
-        <div key={i} style={{
+        <div key={i} className="animate-pulse" style={{
           aspectRatio: '3/4',
           backgroundColor: '#F7F7F5',
-          borderRadius: 14,
+          borderRadius: 16,
+          boxShadow: CARD_SHADOW,
         }} />
       ))}
     </div>
@@ -272,9 +277,10 @@ function SkeletonGrid() {
 function EmptyState() {
   return (
     <div style={{
-      padding: '64px 24px', textAlign: 'center',
-      backgroundColor: '#fff', borderRadius: 14,
+      padding: '80px 24px', textAlign: 'center',
+      backgroundColor: '#fff', borderRadius: 16,
       border: `1px solid ${PALETTE.border}`,
+      boxShadow: CARD_SHADOW,
     }}>
       <div style={{
         width: 64, height: 64, borderRadius: '50%',
@@ -284,10 +290,10 @@ function EmptyState() {
       }}>
         <Heart size={30} color={PALETTE.heartRed} />
       </div>
-      <h2 style={{ fontSize: 20, fontWeight: 600, color: PALETTE.textDark, margin: '0 0 8px' }}>
+      <h2 style={{ fontSize: 20, fontWeight: 700, color: PALETTE.textDark, margin: '0 0 8px' }}>
         No favourites yet
       </h2>
-      <p style={{ fontSize: 14, color: PALETTE.textMid, margin: '0 0 20px' }}>
+      <p style={{ fontSize: 14, color: '#9CA3AF', margin: '0 0 20px' }}>
         Browse listings and tap the heart icon to save items you love.
       </p>
       <Link
@@ -296,8 +302,8 @@ function EmptyState() {
           display: 'inline-block',
           padding: '10px 20px',
           backgroundColor: PALETTE.green,
-          color: '#fff', fontSize: 14, fontWeight: 600,
-          borderRadius: 8, textDecoration: 'none',
+          color: '#fff', fontSize: 14, fontWeight: 700,
+          borderRadius: 12, textDecoration: 'none',
         }}
       >
         Browse Listings

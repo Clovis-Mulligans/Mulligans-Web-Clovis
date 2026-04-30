@@ -46,13 +46,14 @@ const COLOR = {
   green: '#1DC690',
   blue: '#278AB0',
   purple: '#7C5CBF',
-  textDark: '#111827',
-  textMed: '#374151',
+  textDark: '#06070A',
+  textMed: '#6B7280',
   textLight: '#6B7280',
-  border: '#E0E0E0',
+  border: '#E5E7EB',
   selectedBg: '#F0FDF4',
   mutedBg: '#F9FAFB',
 };
+const CARD_SHADOW = '0 4px 14px rgba(6,7,10,0.10), 0 2px 4px rgba(6,7,10,0.06)';
 const NAV_H = 64;
 const MOBILE_BREAKPOINT = 768;
 
@@ -147,13 +148,13 @@ function Avatar({ url, name, size = 40 }: { url: string | null; name: string | n
         width: size,
         height: size,
         borderRadius: '50%',
-        backgroundColor: COLOR.green,
+        background: 'linear-gradient(135deg, #278AB0, #1C4670)',
         color: '#fff',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         fontSize: size * 0.4,
-        fontWeight: 600,
+        fontWeight: 700,
         flexShrink: 0,
       }}
     >
@@ -196,6 +197,7 @@ function ListingThumb({ url, size = 40 }: { url: string | null; size?: number })
 function ConversationRowSkeleton() {
   return (
     <div
+      className="animate-pulse"
       style={{
         display: 'flex',
         gap: 10,
@@ -590,7 +592,7 @@ function MessagesPageInner() {
     >
       <div
         style={{
-          maxWidth: 1280,
+          maxWidth: 1200,
           margin: '0 auto',
           height: `calc(100vh - ${NAV_H}px${isMobile ? '' : ' - 16px'})`,
           display: 'flex',
@@ -598,7 +600,7 @@ function MessagesPageInner() {
         }}
       >
         {!isMobile && (
-          <div style={{ padding: '4px 4px 12px' }}>
+          <div style={{ padding: '4px 4px 16px' }}>
             <PageHeader title="Messages" subtitle="Talk to buyers and sellers" />
           </div>
         )}
@@ -608,9 +610,10 @@ function MessagesPageInner() {
             flex: 1,
             display: 'flex',
             backgroundColor: COLOR.panel,
-            borderRadius: isMobile ? 0 : 14,
+            borderRadius: isMobile ? 0 : 16,
             overflow: 'hidden',
             border: isMobile ? 'none' : `1px solid ${COLOR.border}`,
+            boxShadow: isMobile ? 'none' : CARD_SHADOW,
             minHeight: 0,
           }}
         >
@@ -630,7 +633,7 @@ function MessagesPageInner() {
                     padding: '14px 16px',
                     borderBottom: `1px solid ${COLOR.border}`,
                     fontSize: 18,
-                    fontWeight: 600,
+                    fontWeight: 700,
                     color: COLOR.textDark,
                   }}
                 >
@@ -657,8 +660,8 @@ function MessagesPageInner() {
                     <div
                       style={{
                         fontSize: 15,
-                        fontWeight: 600,
-                        color: COLOR.textMed,
+                        fontWeight: 700,
+                        color: '#06070A',
                         marginBottom: 4,
                       }}
                     >
@@ -722,7 +725,7 @@ function MessagesPageInner() {
                             <div
                               style={{
                                 fontSize: 15,
-                                fontWeight: 600,
+                                fontWeight: 700,
                                 color: COLOR.textDark,
                                 display: 'flex',
                                 alignItems: 'center',
@@ -777,7 +780,7 @@ function MessagesPageInner() {
                               style={{
                                 fontSize: 14,
                                 color: isUnread ? COLOR.textDark : COLOR.textLight,
-                                fontWeight: isUnread ? 600 : 400,
+                                fontWeight: isUnread ? 700 : 400,
                                 whiteSpace: 'nowrap',
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis',

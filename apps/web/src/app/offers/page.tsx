@@ -34,9 +34,13 @@ import {
   RotateCcw,
   ShieldCheck,
   Percent,
+  MessageCircle,
 } from 'lucide-react';
 
 const CLOUDFRONT_BASE = 'https://d1bhj4xuvi3dve.cloudfront.net';
+
+const CARD_SHADOW = '0 4px 14px rgba(6,7,10,0.10), 0 2px 4px rgba(6,7,10,0.06)';
+const CARD_SHADOW_HOVER = '0 8px 24px rgba(6,7,10,0.12), 0 3px 6px rgba(6,7,10,0.08)';
 
 // ─── Status badge config (defined locally per brief rule #149) ───
 const STATUS_CONFIG: Record<OfferStatus, { bg: string; text: string; label: string }> = {
@@ -47,7 +51,7 @@ const STATUS_CONFIG: Record<OfferStatus, { bg: string; text: string; label: stri
   DECLINED: { bg: '#FEE2E2', text: '#991B1B', label: 'Declined' },
   COUNTER_DECLINED: { bg: '#FEE2E2', text: '#991B1B', label: 'Counter Declined' },
   EXPIRED: { bg: '#F3F4F6', text: '#6B7280', label: 'Expired' },
-  VOID: { bg: '#F3F4F6', text: '#6B7280', label: 'Void' },
+  VOID: { bg: 'rgba(156,163,175,0.10)', text: '#6B7280', label: 'Listing unavailable' },
   WITHDRAWN: { bg: '#F3F4F6', text: '#6B7280', label: 'Withdrawn' },
   PURCHASED: { bg: '#D1FAE5', text: '#065F46', label: 'Purchased' },
 };
@@ -137,7 +141,7 @@ function StatusBadge({ status }: { status: OfferStatus }) {
   return (
     <span style={{
       display: 'inline-block',
-      padding: '4px 12px',
+      padding: '5px 12px',
       borderRadius: 999,
       fontSize: 12,
       fontWeight: 600,
@@ -208,7 +212,7 @@ function CounterOfferModal({
     <SimpleModal open={open} onClose={onClose} title="Counter Offer">
       <div>
         {/* Listing summary */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, padding: 12, backgroundColor: '#F9FAFB', borderRadius: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, padding: 12, backgroundColor: '#FAFAF8', borderRadius: 12 }}>
           {img ? (
             <img src={img} alt={offer.listing.title} style={{ width: 48, height: 48, borderRadius: 6, objectFit: 'cover' }} />
           ) : (
@@ -217,7 +221,7 @@ function CounterOfferModal({
             </div>
           )}
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ fontSize: 14, fontWeight: 600, color: '#111827', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <p style={{ fontSize: 14, fontWeight: 700, color: '#06070A', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {offer.listing.title}
             </p>
             <p style={{ fontSize: 13, color: '#6B7280', margin: '2px 0 0' }}>
@@ -226,7 +230,7 @@ function CounterOfferModal({
           </div>
         </div>
 
-        <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 8 }}>
+        <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#06070A', marginBottom: 8 }}>
           Your counter (£)
         </label>
         <input
@@ -240,8 +244,8 @@ function CounterOfferModal({
           style={{
             width: '100%',
             padding: '12px',
-            borderRadius: 8,
-            border: error ? '1px solid #EF4444' : '1px solid #E0E0E0',
+            borderRadius: 10,
+            border: error ? '1px solid #EF4444' : '1px solid #E5E7EB',
             fontSize: 16,
             marginBottom: 8,
             boxSizing: 'border-box',
@@ -253,7 +257,7 @@ function CounterOfferModal({
         </p>
 
         {error && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: 10, backgroundColor: '#FEE2E2', borderRadius: 8, marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: 10, backgroundColor: '#FEE2E2', borderRadius: 10, marginBottom: 16 }}>
             <AlertCircle size={16} color="#991B1B" />
             <span style={{ fontSize: 13, color: '#991B1B' }}>{error}</span>
           </div>
@@ -263,7 +267,7 @@ function CounterOfferModal({
           <button
             onClick={onClose}
             disabled={submitting}
-            style={{ flex: 1, padding: '12px', borderRadius: 8, border: '1px solid #E0E0E0', backgroundColor: '#fff', cursor: submitting ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14, color: '#374151' }}
+            style={{ flex: 1, padding: '12px', borderRadius: 12, border: '1px solid #E5E7EB', backgroundColor: '#fff', cursor: submitting ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14, color: '#1C4670' }}
           >
             Cancel
           </button>
@@ -273,12 +277,12 @@ function CounterOfferModal({
             style={{
               flex: 1,
               padding: '12px',
-              borderRadius: 8,
+              borderRadius: 12,
               border: 'none',
               backgroundColor: submitting || !amount ? '#D1D5DB' : '#1DC690',
               color: '#fff',
               cursor: submitting || !amount ? 'not-allowed' : 'pointer',
-              fontWeight: 600,
+              fontWeight: 700,
               fontSize: 14,
             }}
           >
@@ -302,6 +306,7 @@ interface OfferCardProps {
 
 function OfferCard({ offer, tab, onAction, onCounter }: OfferCardProps) {
   const [busy, setBusy] = useState(false);
+  const [hovered, setHovered] = useState(false);
   const statusActive = isActive(offer.status);
   const img = resolveImage(offer.listing.image);
   const isBuyer = tab === 'made';
@@ -341,15 +346,15 @@ function OfferCard({ offer, tab, onAction, onCounter }: OfferCardProps) {
         return (
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button onClick={() => handleAction(() => acceptOffer(offer.id))} disabled={busy}
-              style={{ padding: '10px 24px', borderRadius: 8, border: 'none', backgroundColor: '#1DC690', color: '#fff', cursor: busy ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14, opacity: busy ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              style={{ padding: '10px 24px', borderRadius: 12, border: 'none', backgroundColor: '#1DC690', color: '#fff', cursor: busy ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14, opacity: busy ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
               <ShieldCheck size={15} /> Accept
             </button>
             <button onClick={() => onCounter(offer as ReceivedOffer)} disabled={busy}
-              style={{ padding: '10px 24px', borderRadius: 8, border: '2px solid #278AB0', backgroundColor: '#EDF5FA', color: '#278AB0', cursor: busy ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14, opacity: busy ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              style={{ padding: '10px 24px', borderRadius: 12, border: '2px solid #278AB0', backgroundColor: '#EDF5FA', color: '#278AB0', cursor: busy ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14, opacity: busy ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
               <RotateCcw size={15} /> Counter
             </button>
             <button onClick={() => handleAction(() => declineOffer(offer.id))} disabled={busy}
-              style={{ padding: '10px 24px', borderRadius: 8, border: '2px solid #FEE2E2', backgroundColor: '#FEF2F2', color: '#EF4444', cursor: busy ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14, opacity: busy ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              style={{ padding: '10px 24px', borderRadius: 12, border: '2px solid #FEE2E2', backgroundColor: '#FEF2F2', color: '#EF4444', cursor: busy ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14, opacity: busy ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
               <X size={15} /> Decline
             </button>
           </div>
@@ -365,7 +370,7 @@ function OfferCard({ offer, tab, onAction, onCounter }: OfferCardProps) {
       if (offer.status === 'PENDING') {
         return (
           <button onClick={() => handleAction(() => withdrawOffer(offer.id))} disabled={busy}
-            style={{ padding: '10px 24px', borderRadius: 8, border: '2px solid #E0E0E0', backgroundColor: '#F9FAFB', color: '#6B7280', cursor: busy ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14, opacity: busy ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            style={{ padding: '10px 24px', borderRadius: 12, border: '2px solid #E5E7EB', backgroundColor: '#F9FAFB', color: '#6B7280', cursor: busy ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14, opacity: busy ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
             <X size={15} /> Withdraw Offer
           </button>
         );
@@ -374,11 +379,11 @@ function OfferCard({ offer, tab, onAction, onCounter }: OfferCardProps) {
         return (
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button onClick={() => handleAction(() => acceptCounter(offer.id))} disabled={busy}
-              style={{ padding: '10px 24px', borderRadius: 8, border: 'none', backgroundColor: '#1DC690', color: '#fff', cursor: busy ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14, opacity: busy ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              style={{ padding: '10px 24px', borderRadius: 12, border: 'none', backgroundColor: '#1DC690', color: '#fff', cursor: busy ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14, opacity: busy ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
               <ShieldCheck size={15} /> Accept Counter
             </button>
             <button onClick={() => handleAction(() => declineCounter(offer.id))} disabled={busy}
-              style={{ padding: '10px 24px', borderRadius: 8, border: '2px solid #FEE2E2', backgroundColor: '#FEF2F2', color: '#EF4444', cursor: busy ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14, opacity: busy ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              style={{ padding: '10px 24px', borderRadius: 12, border: '2px solid #FEE2E2', backgroundColor: '#FEF2F2', color: '#EF4444', cursor: busy ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14, opacity: busy ? 0.6 : 1, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
               <X size={15} /> Decline Counter
             </button>
           </div>
@@ -387,7 +392,7 @@ function OfferCard({ offer, tab, onAction, onCounter }: OfferCardProps) {
       if (offer.status === 'ACCEPTED' || offer.status === 'COUNTER_ACCEPTED') {
         return (
           <Link href={`/listings/${offer.listing_id}`}
-            style={{ padding: '10px 24px', borderRadius: 8, backgroundColor: '#1DC690', color: '#fff', fontWeight: 600, fontSize: 14, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            style={{ padding: '10px 24px', borderRadius: 12, backgroundColor: '#1DC690', color: '#fff', fontWeight: 600, fontSize: 14, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
             <ShoppingCart size={16} /> Buy Now
           </Link>
         );
@@ -397,19 +402,25 @@ function OfferCard({ offer, tab, onAction, onCounter }: OfferCardProps) {
   };
 
   return (
-    <div style={{
-      backgroundColor: '#fff', borderRadius: 14, overflow: 'hidden',
-      border: `1px solid #E0E0E0`,
-      opacity: statusActive ? 1 : 0.75,
-    }}>
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden',
+        border: `1px solid ${hovered ? '#D1D5DB' : '#E5E7EB'}`,
+        opacity: statusActive ? 1 : 0.75,
+        boxShadow: hovered ? CARD_SHADOW_HOVER : CARD_SHADOW,
+        transform: hovered ? 'translateY(-2px)' : 'none',
+        transition: 'box-shadow 0.2s, border-color 0.2s, transform 0.2s',
+      }}>
       {/* Card body */}
-      <div style={{ padding: 20, display: 'flex', gap: 16 }}>
+      <div style={{ padding: '20px 22px', display: 'flex', gap: 16 }}>
         {/* Image — larger */}
         <Link href={`/listings/${offer.listing_id}`} style={{ flexShrink: 0 }}>
           {img ? (
-            <img src={img} alt={offer.listing.title} style={{ width: 88, height: 88, borderRadius: 10, objectFit: 'cover' }} />
+            <img src={img} alt={offer.listing.title} style={{ width: 130, height: 130, borderRadius: 14, objectFit: 'cover' }} />
           ) : (
-            <div style={{ width: 88, height: 88, borderRadius: 10, backgroundColor: '#F7F7F5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: 130, height: 130, borderRadius: 14, backgroundColor: '#F7F7F5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Tag size={28} color="#D1D5DB" />
             </div>
           )}
@@ -420,7 +431,7 @@ function OfferCard({ offer, tab, onAction, onCounter }: OfferCardProps) {
           {/* Title + badge row */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 6 }}>
             <Link href={`/listings/${offer.listing_id}`} style={{ textDecoration: 'none', flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: 16, fontWeight: 600, color: '#111827', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <p style={{ fontSize: 18, fontWeight: 700, color: '#06070A', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', letterSpacing: '-0.005em' }}>
                 {offer.listing.title}
               </p>
             </Link>
@@ -446,7 +457,7 @@ function OfferCard({ offer, tab, onAction, onCounter }: OfferCardProps) {
           <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'baseline' }}>
             <div>
               <div style={{ fontSize: 11, color: '#6B7280', marginBottom: 2 }}>{isBuyer ? 'Your offer (inc. fees)' : 'Offer'}</div>
-              <div style={{ fontSize: 17, fontWeight: 600, color: '#7C5CBF' }}>{formatPrice(offerDisplay)}</div>
+              <div style={{ fontSize: 17, fontWeight: 700, color: '#7C5CBF' }}>{formatPrice(offerDisplay)}</div>
             </div>
             <div>
               <div style={{ fontSize: 11, color: '#6B7280', marginBottom: 2 }}>{isBuyer ? 'List price (inc. fees)' : 'List price'}</div>
@@ -455,22 +466,60 @@ function OfferCard({ offer, tab, onAction, onCounter }: OfferCardProps) {
             {counterDisplay != null && (
               <div>
                 <div style={{ fontSize: 11, color: '#6B7280', marginBottom: 2 }}>{isBuyer ? 'Counter (inc. fees)' : 'Your counter'}</div>
-                <div style={{ fontSize: 17, fontWeight: 600, color: '#278AB0' }}>{formatPrice(counterDisplay)}</div>
+                <div style={{ fontSize: 17, fontWeight: 700, color: '#278AB0' }}>{formatPrice(counterDisplay)}</div>
               </div>
             )}
             {finalDisplay != null && (offer.status === 'ACCEPTED' || offer.status === 'COUNTER_ACCEPTED' || offer.status === 'PURCHASED') && (
               <div>
                 <div style={{ fontSize: 11, color: '#6B7280', marginBottom: 2 }}>{isBuyer ? 'You pay' : 'Agreed price'}</div>
-                <div style={{ fontSize: 17, fontWeight: 600, color: '#1DC690' }}>{formatPrice(finalDisplay)}</div>
+                <div style={{ fontSize: 17, fontWeight: 700, color: '#1DC690' }}>{formatPrice(finalDisplay)}</div>
               </div>
             )}
           </div>
+
+          {/* Next-action pill */}
+          {offer.status === 'PENDING' && tab === 'received' && (
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 7,
+              backgroundColor: 'rgba(29,198,144,0.10)',
+              color: '#065F46',
+              padding: '7px 13px',
+              borderRadius: 8,
+              fontSize: 13,
+              fontWeight: 600,
+              width: 'fit-content',
+              marginTop: 6,
+            }}>
+              <MessageCircle size={14} color="#065F46" />
+              <span>Respond to offer</span>
+            </div>
+          )}
+          {offer.status === 'PENDING' && tab === 'made' && (
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 7,
+              backgroundColor: 'rgba(39,138,176,0.08)',
+              color: '#1C4670',
+              padding: '7px 13px',
+              borderRadius: 8,
+              fontSize: 13,
+              fontWeight: 600,
+              width: 'fit-content',
+              marginTop: 6,
+            }}>
+              <Clock size={14} color="#1C4670" />
+              <span>Awaiting seller response</span>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Footer — timer + actions */}
       {statusActive && (
-        <div style={{ padding: '12px 20px', backgroundColor: '#F9FAFB', borderTop: '1px solid #E0E0E0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+        <div style={{ padding: '12px 20px', backgroundColor: '#F9FAFB', borderTop: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
           {expiresTimestamp && <CountdownTimer expiresAt={expiresTimestamp} onExpire={onAction} />}
           <div>{renderActions()}</div>
         </div>
@@ -570,11 +619,11 @@ function OffersPageInner() {
   if (authLoading || (loading && isAuthenticated)) {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#FFFFFF' }}>
-        <div style={{ maxWidth: 800, margin: '0 auto', padding: '32px 16px' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '32px 32px' }}>
           <div style={{ height: 32, width: 140, backgroundColor: '#E5E7EB', borderRadius: 8, marginBottom: 24 }} className="animate-pulse" />
           <div style={{ height: 48, backgroundColor: '#E5E7EB', borderRadius: 8, marginBottom: 24 }} className="animate-pulse" />
           {[1, 2, 3].map((i) => (
-            <div key={i} style={{ height: 180, backgroundColor: '#E5E7EB', borderRadius: 14, marginBottom: 12 }} className="animate-pulse" />
+            <div key={i} style={{ height: 180, backgroundColor: '#E5E7EB', borderRadius: 16, marginBottom: 12 }} className="animate-pulse" />
           ))}
         </div>
       </div>
@@ -593,32 +642,30 @@ function OffersPageInner() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#FFFFFF' }}>
-      <div style={{ maxWidth: 800, margin: '0 auto', padding: '32px 16px 64px' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '32px 32px 64px' }}>
         <PageHeader title="Offers" />
 
-        {/* Tabs */}
+        {/* Tabs — underline style per platform standard */}
         <div style={{
           display: 'flex',
-          gap: 8,
+          borderBottom: '1px solid #E5E7EB',
           marginBottom: 24,
-          backgroundColor: '#fff',
-          borderRadius: 14,
-          padding: 4,
-          border: '1px solid #E0E0E0',
         }}>
           <button
             onClick={() => setTab('received')}
             style={{
               flex: 1,
-              padding: '12px 16px',
-              borderRadius: 8,
+              padding: '14px 0',
+              fontFamily: 'var(--font-sans)',
+              fontSize: 16,
+              fontWeight: tab === 'received' ? 700 : 500,
+              color: tab === 'received' ? '#06070A' : '#9CA3AF',
+              background: 'none',
               border: 'none',
-              backgroundColor: tab === 'received' ? '#1DC690' : 'transparent',
-              color: tab === 'received' ? '#fff' : '#6B7280',
-              fontSize: 15,
-              fontWeight: 600,
+              borderBottom: tab === 'received' ? '2px solid #1DC690' : '2px solid transparent',
               cursor: 'pointer',
-              display: 'flex',
+              transition: 'all 0.15s',
+              display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: 8,
@@ -627,12 +674,13 @@ function OffersPageInner() {
             Received
             {activeReceivedCount > 0 && (
               <span style={{
-                backgroundColor: tab === 'received' ? 'rgba(255,255,255,0.25)' : '#1DC690',
+                backgroundColor: '#1DC690',
                 color: '#fff',
-                borderRadius: 999,
-                padding: '2px 10px',
                 fontSize: 12,
-                fontWeight: 600,
+                fontWeight: 700,
+                padding: '2px 8px',
+                borderRadius: 10,
+                lineHeight: '16px',
               }}>
                 {activeReceivedCount}
               </span>
@@ -642,15 +690,17 @@ function OffersPageInner() {
             onClick={() => setTab('made')}
             style={{
               flex: 1,
-              padding: '12px 16px',
-              borderRadius: 8,
+              padding: '14px 0',
+              fontFamily: 'var(--font-sans)',
+              fontSize: 16,
+              fontWeight: tab === 'made' ? 700 : 500,
+              color: tab === 'made' ? '#06070A' : '#9CA3AF',
+              background: 'none',
               border: 'none',
-              backgroundColor: tab === 'made' ? '#1DC690' : 'transparent',
-              color: tab === 'made' ? '#fff' : '#6B7280',
-              fontSize: 15,
-              fontWeight: 600,
+              borderBottom: tab === 'made' ? '2px solid #1DC690' : '2px solid transparent',
               cursor: 'pointer',
-              display: 'flex',
+              transition: 'all 0.15s',
+              display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: 8,
@@ -659,12 +709,13 @@ function OffersPageInner() {
             Made
             {activeMadeCount > 0 && (
               <span style={{
-                backgroundColor: tab === 'made' ? 'rgba(255,255,255,0.25)' : '#1DC690',
+                backgroundColor: '#1DC690',
                 color: '#fff',
-                borderRadius: 999,
-                padding: '2px 10px',
                 fontSize: 12,
-                fontWeight: 600,
+                fontWeight: 700,
+                padding: '2px 8px',
+                borderRadius: 10,
+                lineHeight: '16px',
               }}>
                 {activeMadeCount}
               </span>
@@ -676,13 +727,14 @@ function OffersPageInner() {
         {displayOffers.length === 0 ? (
           <div style={{
             backgroundColor: '#fff',
-            borderRadius: 14,
-            padding: '60px 32px',
+            borderRadius: 16,
+            padding: '80px 0',
             textAlign: 'center',
-            border: '1px solid #E0E0E0',
+            border: '1px solid #E5E7EB',
+            boxShadow: CARD_SHADOW,
           }}>
             <Tag size={48} color="#D1D5DB" style={{ margin: '0 auto 16px' }} />
-            <p style={{ fontSize: 18, fontWeight: 600, color: '#111827', marginBottom: 8 }}>
+            <p style={{ fontSize: 18, fontWeight: 700, color: '#06070A', marginBottom: 8 }}>
               {tab === 'received' ? 'No offers received' : 'No offers made'}
             </p>
             <p style={{ fontSize: 14, color: '#6B7280', margin: 0 }}>
@@ -692,7 +744,7 @@ function OffersPageInner() {
             </p>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {displayOffers.map((offer) => (
               <OfferCard
                 key={offer.id}
@@ -722,7 +774,7 @@ export default function OffersPage() {
   return (
     <Suspense fallback={
       <div style={{ minHeight: '100vh', backgroundColor: '#FFFFFF' }}>
-        <div style={{ maxWidth: 800, margin: '0 auto', padding: '32px 16px' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '32px 32px' }}>
           <div style={{ height: 32, width: 140, backgroundColor: '#E5E7EB', borderRadius: 8 }} className="animate-pulse" />
         </div>
       </div>

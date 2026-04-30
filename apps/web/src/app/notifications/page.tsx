@@ -49,11 +49,14 @@ const PALETTE = {
   green: '#1DC690',
   blue: '#278AB0',
   offersPurple: '#7C5CBF',
-  textDark: '#111827',
+  textDark: '#06070A',
   textLight: '#6B7280',
-  border: '#E0E0E0',
+  border: '#E5E7EB',
   unreadBg: '#F0FDF4',
 };
+
+const CARD_SHADOW = '0 4px 14px rgba(6,7,10,0.10), 0 2px 4px rgba(6,7,10,0.06)';
+const CARD_SHADOW_HOVER = '0 8px 24px rgba(6,7,10,0.12), 0 3px 6px rgba(6,7,10,0.08)';
 
 // CloudFront CDN for any S3 image paths stored as relative keys.
 const CLOUDFRONT_BASE = 'https://d1bhj4xuvi3dve.cloudfront.net';
@@ -321,7 +324,7 @@ export default function NotificationsPage() {
         minHeight: '60vh', display: 'flex', alignItems: 'center',
         justifyContent: 'center', color: PALETTE.textLight, fontSize: 14,
       }}>
-        Loading…
+        Loading...
       </div>
     );
   }
@@ -336,7 +339,7 @@ export default function NotificationsPage() {
         alignItems: 'center',
         gap: 6,
         padding: '8px 14px',
-        borderRadius: 8,
+        borderRadius: 10,
         border: `1px solid ${PALETTE.border}`,
         backgroundColor: PALETTE.card,
         color: PALETTE.blue,
@@ -352,8 +355,8 @@ export default function NotificationsPage() {
   ) : null;
 
   return (
-    <div style={{ backgroundColor: PALETTE.bg, minHeight: '100vh', padding: '24px 16px' }}>
-      <div style={{ maxWidth: 800, margin: '0 auto' }}>
+    <div style={{ backgroundColor: PALETTE.bg, minHeight: '100vh', padding: '32px 32px 64px' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
         <PageHeader title="Notifications" action={markAllAction} />
 
         {/* Search + Filters */}
@@ -368,7 +371,7 @@ export default function NotificationsPage() {
               placeholder="Search notifications..."
               style={{
                 width: '100%', padding: '10px 12px 10px 36px',
-                border: `1px solid ${PALETTE.border}`, borderRadius: 8,
+                border: `1px solid ${PALETTE.border}`, borderRadius: 10,
                 fontSize: 14, backgroundColor: PALETTE.card, outline: 'none',
                 boxSizing: 'border-box',
               }}
@@ -383,11 +386,11 @@ export default function NotificationsPage() {
                   key={cat.key}
                   onClick={() => setFilter(cat.key)}
                   style={{
-                    padding: '6px 14px', borderRadius: 20,
+                    padding: '10px 18px', borderRadius: 22,
                     border: active ? 'none' : `1px solid ${PALETTE.border}`,
-                    backgroundColor: active ? PALETTE.green : PALETTE.card,
+                    backgroundColor: active ? '#06070A' : PALETTE.card,
                     color: active ? '#fff' : PALETTE.textDark,
-                    fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                    fontSize: 14, fontWeight: 600, cursor: 'pointer',
                     fontFamily: 'inherit',
                   }}
                 >
@@ -399,11 +402,11 @@ export default function NotificationsPage() {
               <button
                 onClick={() => setUnreadOnly(!unreadOnly)}
                 style={{
-                  padding: '6px 14px', borderRadius: 20,
+                  padding: '10px 18px', borderRadius: 22,
                   border: unreadOnly ? 'none' : `1px solid ${PALETTE.border}`,
-                  backgroundColor: unreadOnly ? PALETTE.blue : PALETTE.card,
+                  backgroundColor: unreadOnly ? '#06070A' : PALETTE.card,
                   color: unreadOnly ? '#fff' : PALETTE.textDark,
-                  fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                  fontSize: 14, fontWeight: 600, cursor: 'pointer',
                   fontFamily: 'inherit',
                 }}
               >
@@ -423,7 +426,7 @@ export default function NotificationsPage() {
             backgroundColor: '#FEF2F2',
             border: '1px solid #FECACA',
             color: '#991B1B',
-            borderRadius: 8,
+            borderRadius: 10,
             padding: '10px 14px',
             marginBottom: 16,
             fontSize: 13,
@@ -439,13 +442,14 @@ export default function NotificationsPage() {
         ) : filtered.length === 0 ? (
           <div style={{
             padding: 48, textAlign: 'center', backgroundColor: PALETTE.card,
-            borderRadius: 14, border: `1px solid ${PALETTE.border}`,
-            color: PALETTE.textDark, fontSize: 14,
+            borderRadius: 16, border: `1px solid ${PALETTE.border}`,
+            boxShadow: CARD_SHADOW,
+            color: '#06070A', fontSize: 14,
           }}>
             No notifications match your filters.
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {filtered.map(n => (
               <NotificationCard
                 key={n.id}
@@ -466,6 +470,7 @@ function NotificationCard({ notification, onClick }: {
   notification: Notification;
   onClick: () => void;
 }) {
+  const [hovered, setHovered] = useState(false);
   const { Icon, color } = getIconAndColor(notification.type);
   const isSystem = isSystemType(notification.type);
   const title = fixTitle(notification.title || '', notification.type);
@@ -488,20 +493,20 @@ function NotificationCard({ notification, onClick }: {
         display: 'flex',
         alignItems: 'center',
         gap: 12,
-        padding: '14px 16px',
-        backgroundColor: unread ? PALETTE.unreadBg : PALETTE.card,
-        border: `1px solid ${PALETTE.border}`,
-        borderLeft: unread ? `3px solid ${PALETTE.green}` : `1px solid ${PALETTE.border}`,
-        borderRadius: 14,
+        padding: '20px 22px',
+        backgroundColor: unread
+          ? (hovered ? '#E6FBF0' : PALETTE.unreadBg)
+          : (hovered ? '#F9FAFB' : PALETTE.card),
+        border: `1px solid ${hovered ? '#D1D5DB' : PALETTE.border}`,
+        borderLeft: unread ? `3px solid ${PALETTE.green}` : `1px solid ${hovered ? '#D1D5DB' : PALETTE.border}`,
+        borderRadius: 16,
+        boxShadow: hovered ? CARD_SHADOW_HOVER : CARD_SHADOW,
+        transform: hovered ? 'translateY(-2px)' : 'none',
         cursor: 'pointer',
-        transition: 'background-color 120ms ease',
+        transition: 'box-shadow 0.18s ease, transform 0.18s ease, border-color 0.18s ease',
       }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.backgroundColor = unread ? '#E6FBF0' : '#F9FAFB';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.backgroundColor = unread ? PALETTE.unreadBg : PALETTE.card;
-      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
     >
       {/* Icon circle */}
       <div style={{
@@ -557,7 +562,7 @@ function NotificationCard({ notification, onClick }: {
         </div>
         <div style={{
           fontSize: 14,
-          fontWeight: 600,
+          fontWeight: 700,
           color: PALETTE.textDark,
           lineHeight: 1.35,
           marginBottom: 2,
@@ -570,7 +575,7 @@ function NotificationCard({ notification, onClick }: {
         </div>
         <div style={{
           fontSize: 13,
-          color: '#374151',
+          color: '#6B7280',
           lineHeight: 1.4,
           display: '-webkit-box',
           WebkitLineClamp: 4,
@@ -599,32 +604,34 @@ function NotificationCard({ notification, onClick }: {
 function NotificationSkeletons() {
   const rows = [0, 1, 2, 3, 4];
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {rows.map(i => (
         <div
           key={i}
+          className="animate-pulse"
           style={{
             display: 'flex',
             alignItems: 'center',
             gap: 12,
-            padding: '14px 16px',
+            padding: '20px 22px',
             backgroundColor: PALETTE.card,
             border: `1px solid ${PALETTE.border}`,
-            borderRadius: 14,
+            borderRadius: 16,
+            boxShadow: CARD_SHADOW,
           }}
         >
-          <div style={{
+          <div className="animate-pulse" style={{
             width: 40, height: 40, borderRadius: 20,
             backgroundColor: '#E5E7EB',
           }} />
-          <div style={{
+          <div className="animate-pulse" style={{
             width: 48, height: 48, borderRadius: 8,
             backgroundColor: '#E5E7EB',
           }} />
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <div style={{ height: 12, width: '40%', backgroundColor: '#E5E7EB', borderRadius: 4 }} />
-            <div style={{ height: 10, width: '90%', backgroundColor: '#F3F4F6', borderRadius: 4 }} />
-            <div style={{ height: 10, width: '70%', backgroundColor: '#F3F4F6', borderRadius: 4 }} />
+            <div className="animate-pulse" style={{ height: 12, width: '40%', backgroundColor: '#E5E7EB', borderRadius: 4 }} />
+            <div className="animate-pulse" style={{ height: 10, width: '90%', backgroundColor: '#F3F4F6', borderRadius: 4 }} />
+            <div className="animate-pulse" style={{ height: 10, width: '70%', backgroundColor: '#F3F4F6', borderRadius: 4 }} />
           </div>
         </div>
       ))}
@@ -637,8 +644,9 @@ function EmptyState() {
     <div style={{
       backgroundColor: PALETTE.card,
       border: `1px solid ${PALETTE.border}`,
-      borderRadius: 14,
-      padding: '64px 24px',
+      borderRadius: 16,
+      boxShadow: CARD_SHADOW,
+      padding: '80px 0',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
@@ -658,15 +666,15 @@ function EmptyState() {
       </div>
       <div style={{
         fontSize: 18,
-        fontWeight: 600,
-        color: PALETTE.textDark,
+        fontWeight: 700,
+        color: '#06070A',
         marginBottom: 6,
       }}>
         No notifications yet
       </div>
       <div style={{
         fontSize: 13,
-        color: PALETTE.textLight,
+        color: '#9CA3AF',
         maxWidth: 360,
         lineHeight: 1.5,
       }}>

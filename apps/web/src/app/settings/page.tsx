@@ -26,10 +26,10 @@ const PALETTE = {
   bg: '#FFFFFF',
   card: '#FFFFFF',
   green: '#1DC690',
-  textDark: '#111827',
-  textMid: '#374151',
+  textDark: '#06070A',
+  textMid: '#6B7280',
   textLight: '#6B7280',
-  border: '#E0E0E0',
+  border: '#E5E7EB',
   borderStrong: '#D1D5DB',
   error: '#EF4444',
   errorBg: '#FEF2F2',
@@ -41,6 +41,9 @@ const PALETTE = {
   toggleOff: '#D1D5DB',
   selectedBg: '#ECFDF5',
 };
+
+const CARD_SHADOW = '0 4px 14px rgba(6,7,10,0.10), 0 2px 4px rgba(6,7,10,0.06)';
+const CARD_SHADOW_HOVER = '0 8px 24px rgba(6,7,10,0.12), 0 3px 6px rgba(6,7,10,0.08)';
 
 type TabKey =
   | 'profile' | 'notifications' | 'sizing'
@@ -146,8 +149,8 @@ export default function SettingsPage() {
   }
 
   return (
-    <div style={{ backgroundColor: PALETTE.bg, minHeight: '100vh', padding: '24px 16px' }}>
-      <div style={{ maxWidth: 800, margin: '0 auto' }}>
+    <div style={{ backgroundColor: PALETTE.bg, minHeight: '100vh', padding: '32px 32px 64px' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
         <PageHeader title="Settings" subtitle="Manage your account and preferences" />
 
         <TabBar tab={tab} onChange={setTab} />
@@ -193,9 +196,10 @@ export default function SettingsPage() {
 function TabBar({ tab, onChange }: { tab: TabKey; onChange: (t: TabKey) => void }) {
   return (
     <div style={{
-      display: 'flex', gap: 4, overflowX: 'auto',
-      backgroundColor: '#fff', borderRadius: 14,
-      padding: 6, border: `1px solid ${PALETTE.border}`,
+      display: 'flex',
+      borderBottom: '1px solid #E5E7EB',
+      marginBottom: 20,
+      overflowX: 'auto',
     }}>
       {TABS.map(t => {
         const Icon = t.icon;
@@ -207,13 +211,21 @@ function TabBar({ tab, onChange }: { tab: TabKey; onChange: (t: TabKey) => void 
             onClick={() => onChange(t.key)}
             style={{
               flex: '1 1 auto',
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-              gap: 6, padding: '10px 12px', borderRadius: 8, border: 'none',
-              backgroundColor: active ? PALETTE.selectedBg : 'transparent',
-              color: active ? PALETTE.green : PALETTE.textMid,
-              fontSize: 13, fontWeight: 600, cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 6,
+              padding: '14px 12px',
+              border: 'none',
+              background: 'none',
+              borderBottom: active ? '2px solid #1DC690' : '2px solid transparent',
+              color: active ? '#06070A' : '#9CA3AF',
+              fontSize: 14,
+              fontWeight: active ? 700 : 500,
+              cursor: 'pointer',
               whiteSpace: 'nowrap',
-              borderBottom: active ? `2px solid ${PALETTE.green}` : '2px solid transparent',
+              transition: 'all 0.15s',
+              fontFamily: 'var(--font-sans)',
             }}
           >
             <Icon size={16} /> {t.label}
@@ -296,7 +308,7 @@ function ProfileTab({ user, onSaved }: { user: User; onSaved: () => void }) {
           width: 72, height: 72, borderRadius: '50%',
           backgroundColor: '#F3F4F6', overflow: 'hidden',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: PALETTE.textLight, fontSize: 28, fontWeight: 600,
+          color: PALETTE.textLight, fontSize: 28, fontWeight: 700,
         }}>
           {avatarUrl ? (
             /* eslint-disable-next-line @next/next/no-img-element */
@@ -499,7 +511,7 @@ function SizingTab({ user, onSaved }: { user: User; onSaved: () => void }) {
 
       <div style={{
         display: 'flex', alignItems: 'flex-start', gap: 8,
-        padding: 12, borderRadius: 8, backgroundColor: PALETTE.infoBg,
+        padding: 12, borderRadius: 10, backgroundColor: PALETTE.infoBg,
         color: '#1E40AF', fontSize: 13, marginTop: 16,
       }}>
         <Info size={16} style={{ flexShrink: 0, marginTop: 2 }} />
@@ -545,7 +557,7 @@ function ShippingTab({ user, onSaved }: { user: User; onSaved: () => void }) {
 
       <div style={{
         display: 'flex', alignItems: 'flex-start', gap: 8,
-        padding: 12, borderRadius: 8, backgroundColor: PALETTE.infoBg,
+        padding: 12, borderRadius: 10, backgroundColor: PALETTE.infoBg,
         color: '#1E40AF', fontSize: 13, marginBottom: 16,
       }}>
         <Info size={16} style={{ flexShrink: 0, marginTop: 2 }} />
@@ -565,7 +577,7 @@ function ShippingTab({ user, onSaved }: { user: User; onSaved: () => void }) {
       <p style={{ fontSize: 13, color: PALETTE.textMid, margin: '0 0 12px' }}>
         Shipping costs are calculated from your item&apos;s parcel size. Buyers pay the shipping fee at checkout.
       </p>
-      <div style={{ border: `1px solid ${PALETTE.border}`, borderRadius: 8, overflow: 'hidden' }}>
+      <div style={{ border: `1px solid ${PALETTE.border}`, borderRadius: 12, overflow: 'hidden' }}>
         {PARCEL_INFO.map((p, i) => (
           <div key={p.name} style={{
             display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
@@ -573,10 +585,10 @@ function ShippingTab({ user, onSaved }: { user: User; onSaved: () => void }) {
             borderTop: i === 0 ? 'none' : `1px solid ${PALETTE.border}`,
           }}>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: PALETTE.textDark }}>{p.name}</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: PALETTE.textDark }}>{p.name}</div>
               <div style={{ fontSize: 12, color: PALETTE.textLight }}>{p.desc}</div>
             </div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: PALETTE.green }}>{p.price}</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: PALETTE.green }}>{p.price}</div>
           </div>
         ))}
       </div>
@@ -736,14 +748,14 @@ function AccountTab({
 
       {pendingUntil && (
         <div style={{
-          padding: 16, borderRadius: 8,
+          padding: 16, borderRadius: 12,
           backgroundColor: PALETTE.warnBg,
           border: `1px solid ${PALETTE.warn}`, marginBottom: 16,
         }}>
           <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
             <AlertCircle size={18} color={PALETTE.warn} style={{ flexShrink: 0, marginTop: 1 }} />
             <div>
-              <div style={{ fontWeight: 600, color: PALETTE.textDark, marginBottom: 4 }}>
+              <div style={{ fontWeight: 700, color: PALETTE.textDark, marginBottom: 4 }}>
                 Account deletion scheduled
               </div>
               <div style={{ fontSize: 13, color: PALETTE.textMid }}>
@@ -788,11 +800,11 @@ function AccountTab({
             </button>
           ) : (
             <div style={{
-              padding: 16, borderRadius: 8,
+              padding: 16, borderRadius: 12,
               backgroundColor: PALETTE.errorBg,
               border: `1px solid ${PALETTE.error}`,
             }}>
-              <div style={{ fontWeight: 600, color: PALETTE.error, marginBottom: 8 }}>
+              <div style={{ fontWeight: 700, color: PALETTE.error, marginBottom: 8 }}>
                 Confirm account deletion
               </div>
               <ul style={{ fontSize: 13, color: PALETTE.textMid, margin: '0 0 12px', paddingLeft: 20 }}>
@@ -828,7 +840,7 @@ function AccountTab({
 function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
     <div style={{ marginBottom: 20 }}>
-      <h2 style={{ fontSize: 18, fontWeight: 600, color: PALETTE.textDark, margin: 0 }}>{title}</h2>
+      <h2 style={{ fontSize: 18, fontWeight: 700, color: PALETTE.textDark, margin: 0, letterSpacing: '-0.005em' }}>{title}</h2>
       {subtitle && <p style={{ fontSize: 13, color: PALETTE.textLight, margin: '4px 0 0' }}>{subtitle}</p>}
     </div>
   );
@@ -859,7 +871,7 @@ function Toggle({
       padding: '12px 0', borderBottom: `1px solid ${PALETTE.border}`, gap: 16,
     }}>
       <div>
-        <div style={{ fontSize: 14, fontWeight: 600, color: PALETTE.textDark }}>{label}</div>
+        <div style={{ fontSize: 14, fontWeight: 700, color: PALETTE.textDark }}>{label}</div>
         {helper && <div style={{ fontSize: 12, color: PALETTE.textLight, marginTop: 2 }}>{helper}</div>}
       </div>
       <button
@@ -914,7 +926,7 @@ function Banner({ kind, text }: { kind: 'ok' | 'err'; text: string }) {
   return (
     <div style={{
       display: 'flex', alignItems: 'center', gap: 8,
-      padding: '10px 14px', borderRadius: 8,
+      padding: '10px 14px', borderRadius: 10,
       backgroundColor: ok ? '#ECFDF5' : PALETTE.errorBg,
       color: ok ? '#065F46' : PALETTE.error,
       fontSize: 13, fontWeight: 600, marginTop: 12,
@@ -929,24 +941,26 @@ function Banner({ kind, text }: { kind: 'ok' | 'err'; text: string }) {
 
 const cardStyle: React.CSSProperties = {
   backgroundColor: PALETTE.card,
-  borderRadius: 14,
-  padding: 24,
+  borderRadius: 16,
+  padding: '20px 22px',
   border: `1px solid ${PALETTE.border}`,
+  boxShadow: CARD_SHADOW,
 };
 
 const sectionTitleStyle: React.CSSProperties = {
-  fontSize: 16, fontWeight: 600, color: PALETTE.textDark, margin: '0 0 12px',
+  fontSize: 18, fontWeight: 700, color: PALETTE.textDark, margin: '0 0 12px',
+  letterSpacing: '-0.005em',
 };
 
 const subHeaderStyle: React.CSSProperties = {
-  fontSize: 14, fontWeight: 600, color: PALETTE.textDark, margin: '12px 0 10px',
+  fontSize: 14, fontWeight: 700, color: PALETTE.textDark, margin: '12px 0 10px',
 };
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
   padding: 12,
   border: `1px solid ${PALETTE.border}`,
-  borderRadius: 8,
+  borderRadius: 10,
   fontSize: 14,
   color: PALETTE.textDark,
   backgroundColor: '#fff',
@@ -956,11 +970,11 @@ const inputStyle: React.CSSProperties = {
 
 function chipStyle(active: boolean): React.CSSProperties {
   return {
-    padding: '8px 14px',
-    borderRadius: 8,
-    border: `1px solid ${active ? PALETTE.green : PALETTE.border}`,
-    backgroundColor: active ? PALETTE.green : '#fff',
-    color: active ? '#fff' : PALETTE.textMid,
+    padding: '10px 18px',
+    borderRadius: 22,
+    border: `1px solid ${active ? '#06070A' : PALETTE.border}`,
+    backgroundColor: active ? '#06070A' : '#fff',
+    color: active ? '#fff' : '#6B7280',
     fontSize: 13, fontWeight: 600, cursor: 'pointer',
   };
 }
@@ -968,9 +982,9 @@ function chipStyle(active: boolean): React.CSSProperties {
 function btnPrimary(disabled: boolean): React.CSSProperties {
   return {
     display: 'inline-flex', alignItems: 'center', gap: 6,
-    padding: '12px 20px', borderRadius: 8, border: 'none',
+    padding: '12px 20px', borderRadius: 12, border: 'none',
     backgroundColor: disabled ? '#9CA3AF' : PALETTE.green,
-    color: '#fff', fontSize: 14, fontWeight: 600,
+    color: '#fff', fontSize: 14, fontWeight: 700,
     cursor: disabled ? 'not-allowed' : 'pointer',
   };
 }
@@ -978,7 +992,7 @@ function btnPrimary(disabled: boolean): React.CSSProperties {
 function btnSecondary(disabled: boolean): React.CSSProperties {
   return {
     display: 'inline-flex', alignItems: 'center', gap: 6,
-    padding: '10px 16px', borderRadius: 8,
+    padding: '10px 16px', borderRadius: 12,
     border: `1px solid ${PALETTE.borderStrong}`,
     backgroundColor: '#fff', color: PALETTE.textMid,
     fontSize: 13, fontWeight: 600,
@@ -990,7 +1004,7 @@ function btnSecondary(disabled: boolean): React.CSSProperties {
 function btnDanger(disabled: boolean): React.CSSProperties {
   return {
     display: 'inline-flex', alignItems: 'center', gap: 6,
-    padding: '10px 16px', borderRadius: 8, border: 'none',
+    padding: '10px 16px', borderRadius: 12, border: 'none',
     backgroundColor: disabled ? '#FCA5A5' : PALETTE.error,
     color: '#fff', fontSize: 13, fontWeight: 600,
     cursor: disabled ? 'not-allowed' : 'pointer',
@@ -999,7 +1013,7 @@ function btnDanger(disabled: boolean): React.CSSProperties {
 
 const linkRow: React.CSSProperties = {
   display: 'inline-flex', alignItems: 'center', justifyContent: 'space-between',
-  padding: '10px 12px', borderRadius: 8,
+  padding: '10px 12px', borderRadius: 12,
   color: PALETTE.textMid, fontSize: 14, fontWeight: 500,
   textDecoration: 'none', border: `1px solid ${PALETTE.border}`,
 };

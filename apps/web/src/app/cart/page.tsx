@@ -26,8 +26,9 @@ import {
   type CartItem,
 } from '@/lib/cart-api';
 import { CardSkeletonGrid } from '@/components/LoadingSkeleton';
+import PageHeader from '@/components/PageHeader';
 
-/* ── Extended types ─────────────────────────────────────
+/* -- Extended types -----------------------------------------
    The cart API does not currently return brand, model,
    condition_overall, is_pro_store, or pro_store_name.
    We type them as optional so the backend can start
@@ -45,7 +46,7 @@ type ExtendedCartSeller = CartSeller & {
   pro_store_name?: string | null;
 };
 
-/* ── Design constants ─────────────────────────────────── */
+/* -- Design constants --------------------------------------- */
 
 const AVATAR_COLOURS = ['#1DC690', '#278AB0', '#1C4670', '#7C5CBF'];
 
@@ -57,7 +58,11 @@ const CONDITION_CONFIG: Record<number, { bg: string; label: string }> = {
   5: { bg: '#10B981', label: 'New' },
 };
 
-/* ── Helpers ──────────────────────────────────────────── */
+const CARD_SHADOW = '0 4px 14px rgba(6,7,10,0.10), 0 2px 4px rgba(6,7,10,0.06)';
+const CARD_SHADOW_HOVER = '0 8px 24px rgba(6,7,10,0.12), 0 3px 6px rgba(6,7,10,0.08)';
+const SUMMARY_SHADOW = '0 4px 14px rgba(6,7,10,0.06), 0 2px 4px rgba(6,7,10,0.04)';
+
+/* -- Helpers ------------------------------------------------ */
 
 const fp = (n: number) => `£${n.toFixed(2)}`;
 
@@ -67,7 +72,7 @@ function getInitials(name: string): string {
   return name.slice(0, 2).toUpperCase();
 }
 
-/* ══ PAGE ══════════════════════════════════════════════ */
+/* == PAGE ================================================== */
 
 export default function CartPage() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -78,7 +83,7 @@ export default function CartPage() {
   const [checkingOut, setCheckingOut] = useState(false);
   const [protectionOpen, setProtectionOpen] = useState(false);
 
-  /* ── Auth gate ── */
+  /* -- Auth gate -- */
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.push('/login?redirect=/cart');
@@ -101,7 +106,7 @@ export default function CartPage() {
     fetchCart();
   }, [fetchCart]);
 
-  /* ── Remove item (optimistic) ── */
+  /* -- Remove item (optimistic) -- */
   const handleRemoveItem = async (item: CartItem) => {
     setRemoving(item.id);
     setCart((prev) => {
@@ -121,7 +126,7 @@ export default function CartPage() {
     }
   };
 
-  /* ── Checkout ── */
+  /* -- Checkout -- */
   const handleCheckout = async () => {
     if (!isAuthenticated) {
       router.push('/login?redirect=/cart');
@@ -137,7 +142,7 @@ export default function CartPage() {
     }
   };
 
-  /* ── Auth loading gate ── */
+  /* -- Auth loading gate -- */
   if (isLoading || !isAuthenticated) {
     return (
       <div
@@ -162,14 +167,14 @@ export default function CartPage() {
     );
   }
 
-  /* ── Derived state ── */
+  /* -- Derived state -- */
   const allItems = cart?.sellers.flatMap((s) => s.items) ?? [];
   const availableItems = allItems.filter((i) => i.is_available);
   const totalItemCount = allItems.reduce((sum, i) => sum + i.quantity, 0);
   const hasUnavailableItems = allItems.some((i) => !i.is_available);
   const isEmpty = !cart || cart.sellers.length === 0;
 
-  /* ── Order summary totals (available items only) ── */
+  /* -- Order summary totals (available items only) -- */
   const itemsSubtotal = availableItems.reduce((sum, item) => {
     const raw = Number(item.offer_price ?? item.price);
     return sum + raw * item.quantity;
@@ -188,10 +193,10 @@ export default function CartPage() {
   const estimatedTotal = itemsSubtotal + buyerProtectionFee + shippingTotal;
 
   return (
-    <div style={{ backgroundColor: '#EAEAE0' }}>
+    <div style={{ backgroundColor: '#FFFFFF' }}>
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
-        .trash-btn { color: #c8c8c8; transition: color 0.15s; }
+        .trash-btn { color: #D1D5DB; transition: color 0.15s; }
         .trash-btn:hover { color: #e24b4a; }
         .cart-grid {
           display: grid;
@@ -205,29 +210,17 @@ export default function CartPage() {
         }
       `}</style>
 
-      <div style={{ maxWidth: 980, margin: '0 auto', padding: '36px 20px 48px' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '32px 32px 64px' }}>
         {loading ? (
           <CardSkeletonGrid count={4} />
         ) : isEmpty ? (
           <EmptyState />
         ) : (
           <>
-            {/* ── Page heading ── */}
-            <h1
-              style={{
-                fontFamily: 'var(--font-sans)',
-                fontSize: 28,
-                fontWeight: 700,
-                textAlign: 'center',
-                marginBottom: 32,
-                color: '#06070A',
-                margin: '0 0 32px',
-              }}
-            >
-              Bag ({totalItemCount} item{totalItemCount !== 1 ? 's' : ''})
-            </h1>
+            {/* -- Page heading -- */}
+            <PageHeader title={`Bag (${totalItemCount} item${totalItemCount !== 1 ? 's' : ''})`} />
 
-            {/* ── Two-column grid ── */}
+            {/* -- Two-column grid -- */}
             <div className="cart-grid">
               {/* LEFT: Seller cards */}
               <div
@@ -276,78 +269,87 @@ export default function CartPage() {
   );
 }
 
-/* ══ EMPTY STATE ═══════════════════════════════════════ */
+/* == EMPTY STATE =========================================== */
 
 function EmptyState() {
   return (
     <div
       style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '80px 20px',
-        textAlign: 'center',
+        border: '1px solid #E5E7EB',
+        borderRadius: 16,
+        boxShadow: CARD_SHADOW,
+        backgroundColor: '#FFFFFF',
       }}
     >
       <div
         style={{
-          width: 80,
-          height: 80,
-          borderRadius: '50%',
-          backgroundColor: '#e0e0d8',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          marginBottom: 20,
+          padding: '80px 20px',
+          textAlign: 'center',
         }}
       >
-        <ShoppingBag size={36} color="#9a9a92" strokeWidth={1.75} />
+        <div
+          style={{
+            width: 80,
+            height: 80,
+            borderRadius: '50%',
+            backgroundColor: '#F7F7F5',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 20,
+          }}
+        >
+          <ShoppingBag size={36} color="#D1D5DB" strokeWidth={1.75} />
+        </div>
+        <h2
+          style={{
+            fontFamily: 'var(--font-sans)',
+            fontSize: 22,
+            fontWeight: 700,
+            color: '#06070A',
+            margin: '0 0 6px',
+          }}
+        >
+          Your bag is empty
+        </h2>
+        <p
+          style={{
+            fontFamily: 'var(--font-sans)',
+            fontSize: 14,
+            color: '#9CA3AF',
+            margin: '0 0 24px',
+          }}
+        >
+          Browse listings to find your next club
+        </p>
+        <Link
+          href="/search"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '12px 28px',
+            backgroundColor: '#1DC690',
+            color: '#fff',
+            fontFamily: 'var(--font-sans)',
+            fontSize: 15,
+            fontWeight: 700,
+            borderRadius: 12,
+            textDecoration: 'none',
+          }}
+        >
+          Browse listings
+        </Link>
       </div>
-      <h2
-        style={{
-          fontFamily: 'var(--font-sans)',
-          fontSize: 22,
-          fontWeight: 700,
-          color: '#06070A',
-          margin: '0 0 6px',
-        }}
-      >
-        Your bag is empty
-      </h2>
-      <p
-        style={{
-          fontFamily: 'var(--font-sans)',
-          fontSize: 14,
-          color: '#6B6B6B',
-          margin: '0 0 24px',
-        }}
-      >
-        Browse listings to find your next club
-      </p>
-      <Link
-        href="/search"
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '12px 28px',
-          backgroundColor: '#1DC690',
-          color: '#fff',
-          fontFamily: 'var(--font-sans)',
-          fontSize: 15,
-          fontWeight: 700,
-          borderRadius: 10,
-          textDecoration: 'none',
-        }}
-      >
-        Browse listings
-      </Link>
     </div>
   );
 }
 
-/* ══ SELLER CARD ═══════════════════════════════════════ */
+/* == SELLER CARD =========================================== */
 
 function SellerCard({
   seller,
@@ -373,20 +375,21 @@ function SellerCard({
     <div
       style={{
         backgroundColor: '#fff',
-        borderRadius: 12,
-        border: '1px solid #e8e8e4',
+        borderRadius: 16,
+        border: '1px solid #E5E7EB',
+        boxShadow: CARD_SHADOW,
         overflow: 'hidden',
       }}
     >
-      {/* ── Seller header ── */}
+      {/* -- Seller header -- */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
           gap: 12,
           padding: '14px 20px',
-          backgroundColor: '#f8f8f6',
-          borderBottom: '1px solid #ebebe6',
+          backgroundColor: '#FAFAF8',
+          borderBottom: '1px solid #E5E7EB',
         }}
       >
         {/* Avatar */}
@@ -484,7 +487,7 @@ function SellerCard({
         )}
       </div>
 
-      {/* ── Items ── */}
+      {/* -- Items -- */}
       {seller.items.map((item, idx) => (
         <ItemRow
           key={item.id}
@@ -498,7 +501,7 @@ function SellerCard({
   );
 }
 
-/* ══ ITEM ROW ══════════════════════════════════════════ */
+/* == ITEM ROW ============================================== */
 
 function ItemRow({
   item,
@@ -530,11 +533,11 @@ function ItemRow({
         alignItems: 'center',
         gap: 16,
         padding: 20,
-        borderBottom: isLast ? 'none' : '1px solid #f2f2f0',
+        borderBottom: isLast ? 'none' : '1px solid #F0F0F0',
         opacity: isUnavailable ? 0.45 : 1,
       }}
     >
-      {/* ── IMAGE ── */}
+      {/* -- IMAGE -- */}
       <Link
         href={`/listings/${item.listing_id}`}
         style={{ flexShrink: 0, textDecoration: 'none' }}
@@ -543,9 +546,9 @@ function ItemRow({
           style={{
             width: 130,
             height: 160,
-            borderRadius: 10,
+            borderRadius: 14,
             overflow: 'hidden',
-            backgroundColor: '#f0f0ec',
+            backgroundColor: '#F7F7F5',
           }}
         >
           {item.image_url ? (
@@ -586,7 +589,7 @@ function ItemRow({
         </div>
       </Link>
 
-      {/* ── CENTRE ── */}
+      {/* -- CENTRE -- */}
       <div
         style={{
           flex: 1,
@@ -604,8 +607,8 @@ function ItemRow({
           <div
             style={{
               fontFamily: 'var(--font-sans)',
-              fontSize: 15,
-              fontWeight: 600,
+              fontSize: 17,
+              fontWeight: 700,
               color: '#06070A',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -622,7 +625,7 @@ function ItemRow({
             style={{
               fontFamily: 'var(--font-sans)',
               fontSize: 13,
-              color: '#999',
+              color: '#9CA3AF',
               fontWeight: 400,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -707,7 +710,7 @@ function ItemRow({
         )}
       </div>
 
-      {/* ── RIGHT ── */}
+      {/* -- RIGHT -- */}
       <div
         style={{
           flexShrink: 0,
@@ -738,7 +741,7 @@ function ItemRow({
             style={{
               fontFamily: 'var(--font-sans)',
               fontSize: 12,
-              color: '#bbb',
+              color: '#D1D5DB',
               textDecoration: 'line-through',
             }}
           >
@@ -751,7 +754,7 @@ function ItemRow({
           style={{
             fontFamily: 'var(--font-sans)',
             fontSize: 13,
-            color: '#888',
+            color: '#9CA3AF',
             fontWeight: 500,
           }}
         >
@@ -782,7 +785,7 @@ function ItemRow({
   );
 }
 
-/* ══ ORDER SUMMARY ═════════════════════════════════════ */
+/* == ORDER SUMMARY ========================================= */
 
 function OrderSummary({
   totalItemCount,
@@ -813,15 +816,16 @@ function OrderSummary({
     <div
       style={{
         backgroundColor: '#fff',
-        border: '1px solid #e8e8e4',
-        borderRadius: 12,
+        border: '1px solid #E5E7EB',
+        borderRadius: 16,
+        boxShadow: SUMMARY_SHADOW,
         padding: 20,
       }}
     >
       <h2
         style={{
           fontFamily: 'var(--font-sans)',
-          fontSize: 16,
+          fontSize: 18,
           fontWeight: 700,
           color: '#06070A',
           margin: '0 0 16px',
@@ -839,7 +843,7 @@ function OrderSummary({
         <SummaryRow label="Shipping (est.)" value={fp(shippingTotal)} />
       </div>
 
-      <div style={{ borderTop: '1px solid #e8e8e4', margin: '16px 0' }} />
+      <div style={{ borderTop: '1px solid #E5E7EB', margin: '16px 0' }} />
 
       {/* Total */}
       <div
@@ -852,8 +856,8 @@ function OrderSummary({
         <span
           style={{
             fontFamily: 'var(--font-sans)',
-            fontSize: 15,
-            fontWeight: 600,
+            fontSize: 16,
+            fontWeight: 700,
             color: '#06070A',
           }}
         >
@@ -862,9 +866,9 @@ function OrderSummary({
         <span
           style={{
             fontFamily: 'var(--font-sans)',
-            fontSize: 26,
+            fontSize: 22,
             fontWeight: 700,
-            color: '#06070A',
+            color: '#1DC690',
             lineHeight: 1.1,
           }}
         >
@@ -883,7 +887,7 @@ function OrderSummary({
           backgroundColor: hasUnavailableItems ? '#ccc' : '#1DC690',
           color: '#fff',
           border: 'none',
-          borderRadius: 10,
+          borderRadius: 12,
           fontSize: 16,
           fontWeight: 700,
           cursor: disabled ? 'not-allowed' : 'pointer',
@@ -932,7 +936,7 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
         style={{
           fontFamily: 'var(--font-sans)',
           fontSize: 14,
-          color: '#666',
+          color: '#6B7280',
         }}
       >
         {label}
@@ -941,7 +945,7 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
         style={{
           fontFamily: 'var(--font-sans)',
           fontSize: 14,
-          fontWeight: 600,
+          fontWeight: 700,
           color: '#06070A',
         }}
       >
@@ -951,7 +955,7 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-/* ══ BUYER PROTECTION PANEL ════════════════════════════ */
+/* == BUYER PROTECTION PANEL ================================ */
 
 function BuyerProtectionPanel({
   open,
@@ -996,7 +1000,7 @@ function BuyerProtectionPanel({
           width: '100%',
           background: '#f0fbf6',
           border: '1px solid #b8ecd8',
-          borderRadius: open ? '12px 12px 0 0' : 12,
+          borderRadius: open ? '16px 16px 0 0' : 16,
           borderBottom: open ? 'none' : '1px solid #b8ecd8',
           padding: '14px 16px',
           display: 'flex',
@@ -1025,14 +1029,14 @@ function BuyerProtectionPanel({
         )}
       </button>
 
-      {/* Open state — protection points */}
+      {/* Open state -- protection points */}
       {open && (
         <div
           style={{
             background: '#fff',
             border: '1px solid #d8f3e8',
             borderTop: 'none',
-            borderRadius: '0 0 12px 12px',
+            borderRadius: '0 0 16px 16px',
             padding: 16,
             display: 'flex',
             flexDirection: 'column',
@@ -1081,7 +1085,7 @@ function BuyerProtectionPanel({
                   style={{
                     fontFamily: 'var(--font-sans)',
                     fontSize: 12,
-                    color: '#666',
+                    color: '#6B7280',
                     margin: '3px 0 0',
                     lineHeight: 1.5,
                   }}
@@ -1104,7 +1108,7 @@ function BuyerProtectionPanel({
               style={{
                 fontFamily: 'var(--font-sans)',
                 fontSize: 11,
-                color: '#999',
+                color: '#9CA3AF',
                 textAlign: 'center',
                 margin: 0,
               }}
