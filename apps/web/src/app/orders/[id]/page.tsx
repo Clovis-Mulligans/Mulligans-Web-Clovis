@@ -60,6 +60,12 @@ const TEXT_HINT = '#D1D5DB';
 const SURFACE = '#F7F7F5';
 const BORDER_HOVER = '#E5E7EB';
 
+/* Shadow tokens — keep in sync with mulligans-web-standards.md */
+const CARD_SHADOW =
+  '0 4px 14px rgba(6,7,10,0.10), 0 2px 4px rgba(6,7,10,0.06)';
+const CARD_SHADOW_HOVER =
+  '0 8px 24px rgba(6,7,10,0.12), 0 3px 6px rgba(6,7,10,0.08)';
+
 type StatusKey =
   | 'pending'
   | 'paid'
@@ -217,7 +223,7 @@ const CANCEL_REASONS: { value: string; label: string }[] = [
 
 /* ── Helpers ──────────────────────────────────────────── */
 
-const fp = (n: number) => `\u00A3${n.toFixed(2)}`;
+const fp = (n: number) => `£${n.toFixed(2)}`;
 
 function formatDate(iso: string | null): string {
   if (!iso) return '-';
@@ -639,19 +645,20 @@ export default function OrderDetailPage() {
   /* ── Card / style helpers ── */
   const cardBase: React.CSSProperties = {
     backgroundColor: CARD_BG,
-    borderRadius: 14,
-    padding: 20,
-    border: '1px solid #E0E0E0',
+    borderRadius: 16,
+    padding: '20px 22px',
+    border: '1px solid #E5E7EB',
+    boxShadow: CARD_SHADOW,
   };
 
   const sectionTitle: React.CSSProperties = {
     fontFamily: 'var(--font-sans)',
-    fontSize: 11,
-    fontWeight: 500,
+    fontSize: 12,
+    fontWeight: 600,
     color: BRAND_BLUE,
-    margin: '0 0 14px',
+    margin: '0 0 16px',
     textTransform: 'uppercase',
-    letterSpacing: '0.08em',
+    letterSpacing: '0.10em',
   };
 
   /* ══ RENDER ════════════════════════════════════════════ */
@@ -660,9 +667,9 @@ export default function OrderDetailPage() {
     <div style={{ backgroundColor: PAGE_BG, minHeight: '100vh' }}>
       <div
         style={{
-          maxWidth: 900,
+          maxWidth: 1100,
           margin: '0 auto',
-          padding: narrow ? '16px 12px 48px' : '24px 16px 48px',
+          padding: narrow ? '20px 16px 64px' : '32px 32px 64px',
         }}
       >
         {/* Back to orders */}
@@ -690,7 +697,7 @@ export default function OrderDetailPage() {
           subtitle={`Order #${order.id.slice(-8).toUpperCase()}`}
         />
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {/* 1. STATUS BANNER */}
           {(() => {
             const isError = ['cancelled', 'refunded', 'delivery_failed', 'returned'].includes(status);
@@ -707,7 +714,7 @@ export default function OrderDetailPage() {
                   alignItems: 'center',
                   gap: 14,
                   padding: '20px 24px',
-                  borderRadius: 14,
+                  borderRadius: 16,
                   background: gradientBg,
                 }}
               >
@@ -1087,9 +1094,9 @@ export default function OrderDetailPage() {
               >
                 <div
                   style={{
-                    width: 90,
-                    height: 90,
-                    borderRadius: 10,
+                    width: 110,
+                    height: 110,
+                    borderRadius: 12,
                     overflow: 'hidden',
                     backgroundColor: '#F3F4F6',
                     flexShrink: 0,
@@ -1105,17 +1112,18 @@ export default function OrderDetailPage() {
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                   ) : (
-                    <Package size={28} color="#9CA3AF" />
+                    <Package size={32} color="#9CA3AF" />
                   )}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div
                     style={{
                       fontFamily: 'var(--font-sans)',
-                      fontSize: 16,
-                      fontWeight: 600,
+                      fontSize: 17,
+                      fontWeight: 700,
                       color: TEXT_PRIMARY,
                       lineHeight: 1.3,
+                      letterSpacing: '-0.005em',
                     }}
                   >
                     {order.listing?.title || 'Item no longer available'}
@@ -1130,7 +1138,7 @@ export default function OrderDetailPage() {
                       }}
                     >
                       {order.listing.brand}
-                      {order.listing.category ? ` \u00B7 ${order.listing.category}` : ''}
+                      {order.listing.category ? ` · ${order.listing.category}` : ''}
                     </div>
                   )}
                   {(order.selected_size || qty > 1) && (
@@ -1150,10 +1158,11 @@ export default function OrderDetailPage() {
                   <div
                     style={{
                       fontFamily: 'var(--font-sans)',
-                      fontSize: 20,
-                      fontWeight: 600,
+                      fontSize: 22,
+                      fontWeight: 700,
                       color: BRAND_GREEN,
                       marginTop: 8,
+                      letterSpacing: '-0.01em',
                     }}
                   >
                     {fp(itemAmount)}
@@ -1344,7 +1353,7 @@ export default function OrderDetailPage() {
                 <PaymentRow
                   label="Buyer Protection"
                   value={fp(buyerProtectionFee)}
-                  hint="7.5% + \u00A30.99/item"
+                  hint="7.5% + £0.99/item"
                 />
               )}
               {isBuyer && insurancePremium > 0 && (
@@ -1745,7 +1754,7 @@ function PaymentRow({
           style={{
             fontFamily: 'var(--font-sans)',
             fontSize: bold ? 16 : 14,
-            fontWeight: bold ? 600 : 400,
+            fontWeight: bold ? 700 : 400,
             color: bold ? TEXT_PRIMARY : '#6B7280',
           }}
         >
@@ -1767,9 +1776,10 @@ function PaymentRow({
       <span
         style={{
           fontFamily: 'var(--font-sans)',
-          fontSize: bold ? 18 : 14,
-          fontWeight: bold ? 600 : 500,
+          fontSize: bold ? 22 : 14,
+          fontWeight: bold ? 700 : 500,
           color: bold ? BRAND_GREEN : TEXT_PRIMARY,
+          letterSpacing: bold ? '-0.01em' : 'normal',
         }}
       >
         {value}
