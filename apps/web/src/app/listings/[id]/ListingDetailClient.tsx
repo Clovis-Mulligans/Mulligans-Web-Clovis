@@ -133,7 +133,7 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
 
   return (
     <>
-      <div className="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 py-2">
+      <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 py-2">
         <Breadcrumb items={breadcrumbs} />
 
         <div className="flex flex-col lg:flex-row gap-8 pb-12">
@@ -150,9 +150,9 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
             {/* FIX 3: Description moved here from below fold */}
             {listing.description && (
               <div className="mt-4">
-                <h2 style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '1.1rem', color: '#0D0D0D' }}>Description</h2>
-                <div className="mt-2 rounded-xl bg-white" style={{ border: '1px solid #E0E0D8', padding: '20px 24px' }}>
-                  <p className="whitespace-pre-wrap" style={{ fontFamily: 'var(--font-sans)', fontWeight: 400, fontSize: '0.9rem', color: '#0D0D0D', lineHeight: 1.7 }}>{listing.description}</p>
+                <h2 style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '1.1rem', color: '#06070A', letterSpacing: '-0.005em' }}>Description</h2>
+                <div className="mt-2 rounded-xl bg-white" style={{ border: '1px solid #E5E7EB', padding: '20px 24px', boxShadow: '0 4px 14px rgba(6,7,10,0.06), 0 2px 4px rgba(6,7,10,0.04)' }}>
+                  <p className="whitespace-pre-wrap" style={{ fontFamily: 'var(--font-sans)', fontWeight: 400, fontSize: '0.9rem', color: '#06070A', lineHeight: 1.7 }}>{listing.description}</p>
                 </div>
               </div>
             )}
@@ -160,36 +160,36 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
 
           {/* ─── Right: White card ─────────────────────── */}
           <div className="lg:w-[45%] lg:sticky lg:top-[80px] lg:self-start lg:max-h-[calc(100vh-100px)] lg:overflow-y-auto">
-            <div className="rounded-2xl bg-white" style={{ border: '1px solid #E0E0D8', padding: '24px' }}>
+            <div className="rounded-2xl bg-white" style={{ border: '1px solid #E5E7EB', padding: '24px', boxShadow: '0 4px 14px rgba(6,7,10,0.10), 0 2px 4px rgba(6,7,10,0.06)' }}>
 
               {/* SECTION A — TITLE */}
-              <h1 style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '1.5rem', color: '#0D0D0D', lineHeight: 1.3, marginBottom: '16px' }}>
+              <h1 style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '2rem', color: '#06070A', lineHeight: 1.2, marginBottom: '16px', letterSpacing: '-0.01em' }}>
                 {listing.title}
               </h1>
 
               {/* SECTION B — PRICE BLOCK (FIX 4: price table removed) */}
               <div className="flex items-baseline justify-between">
                 <div className="flex items-baseline gap-3">
-                  <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 800, fontSize: '2.2rem', color: isSold ? '#ADADAD' : '#1DC690' }}>
+                  <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '2.2rem', color: isSold ? '#9CA3AF' : '#1DC690', letterSpacing: '-0.01em' }}>
                     £{price.toFixed(2)}
                   </span>
                   {isOwnListing && (
-                    <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.75rem', color: '#ADADAD' }}>(your listing)</span>
+                    <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.75rem', color: '#9CA3AF' }}>(your listing)</span>
                   )}
                   {originalPrice && originalPrice > price && !isSold && !isOwnListing && (
                     <>
-                      <span className="line-through" style={{ fontFamily: 'var(--font-sans)', fontSize: '1rem', color: '#ADADAD' }}>£{(originalPrice * 1.075 + 0.99).toFixed(2)}</span>
+                      <span className="line-through" style={{ fontFamily: 'var(--font-sans)', fontSize: '1rem', color: '#9CA3AF' }}>£{(originalPrice * 1.075 + 0.99).toFixed(2)}</span>
                       <span className="rounded-full px-2 py-0.5 text-xs font-bold text-white" style={{ backgroundColor: '#1DC690' }}>
                         Save {Math.round(((originalPrice - rawPrice) / originalPrice) * 100)}%
                       </span>
                     </>
                   )}
                 </div>
-                <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.78rem', color: '#ADADAD' }}>Listed {getAge(listing.created_at)}</span>
+                <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.78rem', color: '#9CA3AF' }}>Listed {getAge(listing.created_at)}</span>
               </div>
 
               {/* Divider */}
-              <div style={{ borderBottom: '1px solid #E0E0D8', margin: '16px 0' }} />
+              <div style={{ borderBottom: '1px solid #E5E7EB', margin: '16px 0' }} />
 
               {/* SECTION C — TRUST SIGNALS */}
 
@@ -201,20 +201,20 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
                   style={{ backgroundColor: 'rgba(29,198,144,0.06)', padding: '12px 14px' }}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1DC690" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>
-                  <span className="flex-1" style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '0.85rem', color: '#0D0D0D' }}>Protected by Mulligans Buyer Protection Pro</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ADADAD" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 transition-transform duration-200" style={{ transform: showBuyerProtection ? 'rotate(180deg)' : 'rotate(0deg)' }}><polyline points="6 9 12 15 18 9"/></svg>
+                  <span className="flex-1" style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '0.85rem', color: '#06070A' }}>Protected by Mulligans Buyer Protection Pro</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 transition-transform duration-200" style={{ transform: showBuyerProtection ? 'rotate(180deg)' : 'rotate(0deg)' }}><polyline points="6 9 12 15 18 9"/></svg>
                 </button>
                 <div className="overflow-hidden transition-all duration-200 ease-in-out" style={{ maxHeight: showBuyerProtection ? '400px' : '0px', opacity: showBuyerProtection ? 1 : 0 }}>
-                  <div style={{ padding: '14px 16px', borderTop: '1px solid #E0E0D8' }}>
-                    <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '0.85rem', color: '#0D0D0D', marginBottom: '8px' }}>Buyer Protection Fee</p>
-                    <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 400, fontSize: '0.82rem', color: '#6B6B6B', lineHeight: 1.6 }}>
+                  <div style={{ padding: '14px 16px', borderTop: '1px solid #E5E7EB' }}>
+                    <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '0.85rem', color: '#06070A', marginBottom: '8px' }}>Buyer Protection Fee</p>
+                    <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 400, fontSize: '0.82rem', color: '#6B7280', lineHeight: 1.6 }}>
                       Our Buyer Protection is added for a fee to every purchase made with every purchase on Mulligans. Buyer Protection includes our Refund Policy.
                     </p>
                     <p className="mt-2" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '0.85rem', color: '#1DC690' }}>7.5% + £0.99</p>
 
-                    <p className="mt-3" style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '0.85rem', color: '#0D0D0D', marginBottom: '6px' }}>Secure Payment (Escrow)</p>
-                    <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 400, fontSize: '0.82rem', color: '#6B6B6B', lineHeight: 1.6 }}>Your payment is held securely until:</p>
-                    <ul className="mt-1 space-y-1" style={{ fontFamily: 'var(--font-sans)', fontSize: '0.82rem', color: '#6B6B6B', paddingLeft: '16px', listStyleType: 'disc' }}>
+                    <p className="mt-3" style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '0.85rem', color: '#06070A', marginBottom: '6px' }}>Secure Payment (Escrow)</p>
+                    <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 400, fontSize: '0.82rem', color: '#6B7280', lineHeight: 1.6 }}>Your payment is held securely until:</p>
+                    <ul className="mt-1 space-y-1" style={{ fontFamily: 'var(--font-sans)', fontSize: '0.82rem', color: '#6B7280', paddingLeft: '16px', listStyleType: 'disc' }}>
                       <li>The seller ships the item</li>
                       <li>You receive it</li>
                       <li>You confirm everything is as expected</li>
@@ -224,32 +224,32 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
               </div>
 
               {shippingCost !== null && (
-                <div className="rounded-[10px] mb-2" style={{ backgroundColor: '#FAFAF8', border: '1px solid #E0E0D8', padding: '12px 14px' }}>
+                <div className="rounded-[10px] mb-2" style={{ backgroundColor: '#FAFAF8', border: '1px solid #E5E7EB', padding: '12px 14px' }}>
                   <div className="flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B6B6B" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/></svg>
-                    <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '0.85rem', color: '#0D0D0D' }}>{parcelLabel}: £{shippingCost.toFixed(2)}</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/></svg>
+                    <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '0.85rem', color: '#06070A' }}>{parcelLabel}: £{shippingCost.toFixed(2)}</span>
                   </div>
-                  <p className="mt-1" style={{ fontFamily: 'var(--font-sans)', fontWeight: 400, fontSize: '0.78rem', color: '#6B6B6B' }}>Insured delivery — covered if lost or damaged in transit.</p>
+                  <p className="mt-1" style={{ fontFamily: 'var(--font-sans)', fontWeight: 400, fontSize: '0.78rem', color: '#6B7280' }}>Insured delivery — covered if lost or damaged in transit.</p>
                 </div>
               )}
 
               {/* FIX 6: Accepts Offers as prominent card */}
               {listing.is_negotiable && (
-                <div className="rounded-[10px] mb-2" style={{ backgroundColor: 'rgba(39,138,176,0.06)', border: '1px solid rgba(39,138,176,0.2)', padding: '12px 14px' }}>
+                <div className="rounded-[10px] mb-2" style={{ backgroundColor: 'rgba(124,92,191,0.08)', border: '1px solid rgba(124,92,191,0.20)', padding: '12px 14px' }}>
                   <div className="flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#278AB0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                    <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '0.85rem', color: '#278AB0' }}>Accepts Offers</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C5CBF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                    <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '0.85rem', color: '#7C5CBF' }}>Accepts Offers</span>
                   </div>
-                  <p className="mt-1" style={{ fontFamily: 'var(--font-sans)', fontWeight: 400, fontSize: '0.78rem', color: '#6B6B6B' }}>Make an offer below the asking price — the seller can accept, decline, or counter.</p>
+                  <p className="mt-1" style={{ fontFamily: 'var(--font-sans)', fontWeight: 400, fontSize: '0.78rem', color: '#6B7280' }}>Make an offer below the asking price — the seller can accept, decline, or counter.</p>
                 </div>
               )}
 
               {/* Divider */}
-              <div style={{ borderBottom: '1px solid #E0E0D8', margin: '16px 0' }} />
+              <div style={{ borderBottom: '1px solid #E5E7EB', margin: '16px 0' }} />
 
               {/* SECTION D — SELLER CARD */}
               {seller && (
-                <div className="rounded-xl mb-4" style={{ backgroundColor: '#FAFAF8', border: '1px solid #E0E0D8', padding: '16px' }}>
+                <div className="rounded-xl mb-4" style={{ backgroundColor: '#FAFAF8', border: '1px solid #E5E7EB', padding: '16px' }}>
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0" style={{ backgroundColor: seller.avatar_url ? undefined : '#1DC690' }}>
                       {seller.avatar_url ? (
@@ -262,13 +262,31 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
-                        <span className="truncate" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '0.95rem', color: '#0D0D0D' }}>{seller.display_name || 'Seller'}</span>
+                        <span className="truncate" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '0.95rem', color: '#06070A' }}>{seller.display_name || 'Seller'}</span>
                         {seller.is_verified_seller && <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#1DC690" stroke="#1DC690" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>}
                       </div>
-                      <div className="flex items-center gap-2" style={{ fontFamily: 'var(--font-sans)', fontWeight: 500, fontSize: '0.8rem', color: '#6B6B6B' }}>
+                      <div className="flex items-center gap-2" style={{ fontFamily: 'var(--font-sans)', fontWeight: 500, fontSize: '0.8rem', color: '#6B7280' }}>
                         {listing.location && <span>{listing.location}</span>}
-                        {seller.rating && <span>⭐ {Number(seller.rating).toFixed(1)}</span>}
-                        <span>{seller.total_sales || 0} sales</span>
+                        {(() => {
+                          const totalSales = Number(seller.total_sales || 0);
+                          const rating = Number(seller.rating || 0);
+                          const isProSeller = !!seller.is_pro_seller;
+                          // Show "New seller" badge for genuine new sellers (not pro shops)
+                          if (totalSales === 0 && rating === 0 && !isProSeller) {
+                            return (
+                              <span style={{ display: 'inline-flex', alignItems: 'center', backgroundColor: 'rgba(39,138,176,0.08)', color: '#1C4670', fontWeight: 600, fontSize: '0.72rem', padding: '3px 9px', borderRadius: '20px', letterSpacing: '0.01em' }}>
+                                New seller
+                              </span>
+                            );
+                          }
+                          // Otherwise show real metrics
+                          return (
+                            <>
+                              {rating > 0 && <span>⭐ {rating.toFixed(1)}</span>}
+                              <span>{totalSales} {totalSales === 1 ? 'sale' : 'sales'}</span>
+                            </>
+                          );
+                        })()}
                       </div>
                     </div>
                   </div>
@@ -282,15 +300,15 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
               )}
 
               {/* Divider before actions */}
-              {(isActive || isSold) && <div style={{ borderBottom: '1px solid #E0E0D8', margin: '16px 0' }} />}
+              {(isActive || isSold) && <div style={{ borderBottom: '1px solid #E5E7EB', margin: '16px 0' }} />}
 
               {/* SECTION E — SIZE SELECTOR */}
               {hasSizes && isActive && (
                 <div className="mb-4">
-                  <p className="mb-2" style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '0.85rem', color: '#0D0D0D' }}>Select Size</p>
+                  <p className="mb-2" style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '0.85rem', color: '#06070A' }}>Select Size</p>
                   <div className="flex flex-wrap gap-2">
                     {Object.entries(sizeQuantities!).map(([size, qty]) => (
-                      <button key={size} onClick={() => setSelectedSize(size)} disabled={qty <= 0} className="rounded-full px-4 transition-colors disabled:opacity-40 disabled:cursor-not-allowed" style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '0.82rem', minHeight: '44px', backgroundColor: selectedSize === size ? '#1DC690' : '#FFFFFF', color: selectedSize === size ? '#FFFFFF' : '#0D0D0D', border: selectedSize === size ? 'none' : '1px solid #E0E0D8', textDecoration: qty <= 0 ? 'line-through' : 'none' }}>
+                      <button key={size} onClick={() => setSelectedSize(size)} disabled={qty <= 0} className="rounded-full px-4 transition-colors disabled:opacity-40 disabled:cursor-not-allowed" style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '0.82rem', minHeight: '44px', backgroundColor: selectedSize === size ? '#1DC690' : '#FFFFFF', color: selectedSize === size ? '#FFFFFF' : '#06070A', border: selectedSize === size ? 'none' : '1px solid #E5E7EB', textDecoration: qty <= 0 ? 'line-through' : 'none' }}>
                         {size} {qty > 0 && <span className="opacity-60">({qty})</span>}
                       </button>
                     ))}
@@ -305,7 +323,7 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
                     {addingToCart ? 'Adding...' : 'Add to Cart'}
                   </button>
                   {listing.is_negotiable && (
-                    <button onClick={handleMakeOffer} className="w-full rounded-xl transition-colors hover:bg-[#F4F4F0]" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '1rem', height: '52px', border: '2px solid #1C4670', color: '#1C4670', marginTop: '10px' }}>
+                    <button onClick={handleMakeOffer} className="w-full rounded-xl transition-colors hover:bg-[#FAFAF8]" style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '0.95rem', height: '46px', border: '1px solid #E5E7EB', backgroundColor: '#FFFFFF', color: '#1C4670', marginTop: '10px' }}>
                       Make an Offer
                     </button>
                   )}
@@ -329,23 +347,23 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
                     <button
                       onClick={() => setShowConditionExplainer(!showConditionExplainer)}
                       className="text-xs transition-colors hover:underline"
-                      style={{ fontFamily: 'var(--font-sans)', color: '#ADADAD', cursor: 'pointer' }}
+                      style={{ fontFamily: 'var(--font-sans)', color: '#9CA3AF', cursor: 'pointer' }}
                     >
                       What does this mean?
                     </button>
                   </div>
 
                   {showConditionExplainer && (
-                    <div className="mt-2 rounded-[10px]" style={{ border: '1px solid #E0E0D8', padding: '12px' }}>
+                    <div className="mt-2 rounded-[10px]" style={{ border: '1px solid #E5E7EB', padding: '12px' }}>
                       {Object.entries(CONDITION_COLOURS).reverse().map(([grade, { bg, label, description }]) => (
                         <div key={grade} className="flex items-center gap-2 py-1" style={{ fontFamily: 'var(--font-sans)', fontSize: '0.78rem' }}>
                           <span className="flex-shrink-0 rounded-full" style={{ width: '6px', height: '6px', backgroundColor: bg }} />
-                          <span className="font-semibold" style={{ color: '#0D0D0D' }}>{grade} — {label}</span>
-                          <span style={{ color: '#6B6B6B' }}>{description}</span>
+                          <span className="font-semibold" style={{ color: '#06070A' }}>{grade} — {label}</span>
+                          <span style={{ color: '#6B7280' }}>{description}</span>
                         </div>
                       ))}
                       {listing.condition_head != null && (
-                        <p className="mt-1 italic" style={{ fontSize: '0.75rem', color: '#ADADAD', fontFamily: 'var(--font-sans)' }}>For clubs, condition is graded separately for Head, Shaft and Grip.</p>
+                        <p className="mt-1 italic" style={{ fontSize: '0.75rem', color: '#9CA3AF', fontFamily: 'var(--font-sans)' }}>For clubs, condition is graded separately for Head, Shaft and Grip.</p>
                       )}
                     </div>
                   )}
@@ -357,10 +375,10 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
                         { label: 'Shaft', value: listing.condition_shaft },
                         { label: 'Grip', value: listing.condition_grip },
                       ].map(({ label, value }) => {
-                        const c = CONDITION_COLOURS[value] || { bg: '#6B6B6B' };
+                        const c = CONDITION_COLOURS[value] || { bg: '#6B7280' };
                         return (
                           <div key={label} className="rounded-[10px] p-2.5" style={{ backgroundColor: `${c.bg}1A` }}>
-                            <span style={{ fontSize: '0.78rem', color: '#6B6B6B' }}>{label}</span>
+                            <span style={{ fontSize: '0.78rem', color: '#6B7280' }}>{label}</span>
                             <p style={{ fontWeight: 700, fontSize: '1rem', color: c.bg, marginTop: '2px' }}>{value}/5</p>
                           </div>
                         );
@@ -377,12 +395,12 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
 
         {specRows.length > 0 && (
           <section className="mb-8">
-            <h2 className="mb-3" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '1.1rem', color: '#0D0D0D' }}>Specifications</h2>
-            <div className="rounded-xl bg-white overflow-hidden" style={{ border: '1px solid #E0E0D8' }}>
+            <h2 className="mb-3" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '1.1rem', color: '#06070A', letterSpacing: '-0.005em' }}>Specifications</h2>
+            <div className="rounded-xl bg-white overflow-hidden" style={{ border: '1px solid #E5E7EB', boxShadow: '0 4px 14px rgba(6,7,10,0.06), 0 2px 4px rgba(6,7,10,0.04)' }}>
               {specRows.map(([label, value], i) => (
-                <div key={i} className="flex justify-between" style={{ padding: '11px 16px', fontFamily: 'var(--font-sans)', backgroundColor: i % 2 === 0 ? '#FFFFFF' : '#FAFAF8', borderBottom: i < specRows.length - 1 ? '1px solid #E0E0D8' : 'none' }}>
-                  <span style={{ fontWeight: 500, fontSize: '0.82rem', color: '#6B6B6B' }}>{label}</span>
-                  <span style={{ fontWeight: 600, fontSize: '0.82rem', color: '#0D0D0D' }}>{value}</span>
+                <div key={i} className="flex justify-between" style={{ padding: '12px 18px', fontFamily: 'var(--font-sans)', backgroundColor: i % 2 === 0 ? '#FFFFFF' : '#FAFAF8', borderBottom: i < specRows.length - 1 ? '1px solid #E5E7EB' : 'none' }}>
+                  <span style={{ fontWeight: 500, fontSize: '0.85rem', color: '#6B7280' }}>{label}</span>
+                  <span style={{ fontWeight: 700, fontSize: '0.85rem', color: '#06070A' }}>{value}</span>
                 </div>
               ))}
             </div>
@@ -391,7 +409,7 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
 
         {similar.length > 0 && (
           <section id="similar" className="mb-12">
-            <h2 className="mb-3" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '1.1rem', color: '#0D0D0D' }}>Similar Items</h2>
+            <h2 className="mb-3" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '1.1rem', color: '#06070A', letterSpacing: '-0.005em' }}>Similar Items</h2>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 sm:gap-4">
               {similar.slice(0, 4).map((l: any) => <ListingCard key={l.id} listing={l} />)}
             </div>
@@ -402,7 +420,7 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
       <OfferModal listing={listing} isOpen={showOffer} onClose={() => setShowOffer(false)} />
 
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 rounded-lg px-5 py-3 text-sm font-semibold text-white" style={{ backgroundColor: '#1DC690', fontFamily: 'var(--font-sans)', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
+        <div className="fixed bottom-6 right-6 z-50 rounded-lg px-5 py-3 text-sm font-semibold text-white" style={{ backgroundColor: '#1DC690', fontFamily: 'var(--font-sans)', boxShadow: '0 8px 24px rgba(6,7,10,0.18)' }}>
           {toast}
         </div>
       )}
