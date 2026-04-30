@@ -115,6 +115,20 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
     refreshOfferState();
   }, [refreshOfferState]);
 
+  // ─── OFFER SYSTEM: Refresh on tab focus ────────────────────
+  // When the user returns to this tab (e.g. after switching tabs while
+  // the seller responded to their offer), re-fetch the offer state so
+  // the UI reflects any counter / acceptance / decline that happened.
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        refreshOfferState();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange);
+  }, [refreshOfferState]);
+
   // ─── Favourite ─────────────────────────────────────────
   useEffect(() => {
     if (!isAuthenticated || !listing.id || isOwnListing) return;
@@ -192,7 +206,7 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
   const handleDeclineCounter = async (offerId: string) => {
     try {
       await declineCounter(offerId);
-      showToast('Counter offer declined');
+      showToast('Counter declined — you can make a new offer');
       await refreshOfferState();
     } catch (err: any) {
       const msg = (err as ApiError)?.data && typeof (err as ApiError).data === 'object'
