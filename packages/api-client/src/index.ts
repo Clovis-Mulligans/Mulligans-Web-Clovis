@@ -43,6 +43,8 @@ export type {
   ReceivedOffer,
   MadeOffer,
   OfferCounts,
+  OfferStatusResponse,
+  MyOfferResponse,
 } from './types/offer';
 
 // Endpoints — Pro Store
@@ -308,7 +310,7 @@ export { getUserStats, getSellerStats, getUserListings, getUserSoldItems, report
 export type { UserStats, SellerStats, UserListingsParams, UserListingsResponse, SoldItemsResponse } from './endpoints/users';
 
 // Endpoints — Offers (additions)
-export { createOffer, getOffer } from './endpoints/offers';
+export { createOffer, getOffer, getOfferStatus, getMyOffer } from './endpoints/offers';
 
 // Endpoints — Messages (additions)
 export { createConversation } from './endpoints/messages';

@@ -20,4 +20,5 @@ export interface AddToCartData {
   listing_id: string;
   quantity?: number;
   selected_size?: string;
+  offer_id?: string;
 }

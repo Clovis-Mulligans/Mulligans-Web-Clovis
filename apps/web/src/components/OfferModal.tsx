@@ -12,11 +12,13 @@ interface OfferModalProps {
   };
   isOpen: boolean;
   onClose: () => void;
+  offerStatus?: { offers_used: number; offers_remaining: number } | null;
+  onOfferSubmitted?: () => void;
 }
 
 const MODAL_SHADOW = '0 12px 40px rgba(6,7,10,0.18)';
 
-export function OfferModal({ listing, isOpen, onClose }: OfferModalProps) {
+export function OfferModal({ listing, isOpen, onClose, offerStatus, onOfferSubmitted }: OfferModalProps) {
   const [amount, setAmount] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +37,8 @@ export function OfferModal({ listing, isOpen, onClose }: OfferModalProps) {
     else if (numAmount < minOffer) validationError = `Minimum offer is £${minOffer.toFixed(2)} (50% of asking price)`;
   }
 
-  const canSubmit = amount && !isNaN(numAmount) && !validationError && !submitting && !success;
+  const noOffersRemaining = offerStatus != null && offerStatus.offers_remaining <= 0;
+  const canSubmit = amount && !isNaN(numAmount) && !validationError && !submitting && !success && !noOffersRemaining;
   const image = listing.images?.[0]?.image_url;
 
   // Quick offer pill amounts — 10/15/20% off asking price
@@ -53,6 +56,7 @@ export function OfferModal({ listing, isOpen, onClose }: OfferModalProps) {
     try {
       await createOffer({ listing_id: listing.id, offer_amount: numAmount });
       setSuccess(true);
+      if (onOfferSubmitted) onOfferSubmitted();
       setTimeout(() => { onClose(); setSuccess(false); setAmount(''); }, 2000);
     } catch (err) {
       if (err instanceof ApiError) {
@@ -61,7 +65,6 @@ export function OfferModal({ listing, isOpen, onClose }: OfferModalProps) {
       } else {
         setError('Something went wrong. Please try again.');
       }
-      console.error('Create offer error:', err);
     } finally {
       setSubmitting(false);
     }
@@ -113,6 +116,24 @@ export function OfferModal({ listing, isOpen, onClose }: OfferModalProps) {
           </div>
         ) : (
           <>
+            {/* Offer limits info — mirrors mobile */}
+            {offerStatus != null && (
+              <div className="flex items-center gap-2 mb-4 rounded-lg" style={{ backgroundColor: 'rgba(124,92,191,0.08)', padding: '10px 14px' }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C5CBF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 500, fontSize: '13px', color: '#6B7280' }}>
+                  Offers remaining: {offerStatus.offers_remaining}/3
+                </span>
+              </div>
+            )}
+
+            {noOffersRemaining && (
+              <div className="mb-4 rounded-lg" style={{ backgroundColor: 'rgba(239,68,68,0.06)', padding: '10px 14px', border: '1px solid rgba(239,68,68,0.15)' }}>
+                <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 500, fontSize: '13px', color: '#991B1B' }}>
+                  You have used all 3 offers for this listing.
+                </p>
+              </div>
+            )}
+
             {/* Quick offer pills */}
             <p style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '12px', color: '#278AB0', textTransform: 'uppercase', letterSpacing: '0.10em', marginBottom: '10px' }}>
               Quick offer
@@ -124,6 +145,7 @@ export function OfferModal({ listing, isOpen, onClose }: OfferModalProps) {
                   <button
                     key={q.label}
                     onClick={() => setAmount(q.value.toFixed(2))}
+                    disabled={noOffersRemaining}
                     className="flex-1 transition-colors"
                     style={{
                       fontFamily: 'var(--font-sans)',
@@ -134,10 +156,11 @@ export function OfferModal({ listing, isOpen, onClose }: OfferModalProps) {
                       border: `1px solid ${isActive ? '#1DC690' : '#E5E7EB'}`,
                       backgroundColor: isActive ? 'rgba(29,198,144,0.08)' : '#FFFFFF',
                       color: isActive ? '#1DC690' : '#06070A',
-                      cursor: 'pointer',
+                      cursor: noOffersRemaining ? 'not-allowed' : 'pointer',
+                      opacity: noOffersRemaining ? 0.5 : 1,
                     }}
-                    onMouseEnter={(e) => { if (!isActive) (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#FAFAF8'; }}
-                    onMouseLeave={(e) => { if (!isActive) (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#FFFFFF'; }}
+                    onMouseEnter={(e) => { if (!isActive && !noOffersRemaining) (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#FAFAF8'; }}
+                    onMouseLeave={(e) => { if (!isActive && !noOffersRemaining) (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#FFFFFF'; }}
                   >
                     <div>{q.label}</div>
                     <div style={{ fontSize: '12px', color: isActive ? '#1DC690' : '#6B7280', fontWeight: 500, marginTop: '2px' }}>£{q.value.toFixed(2)}</div>
@@ -159,6 +182,7 @@ export function OfferModal({ listing, isOpen, onClose }: OfferModalProps) {
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="0.00"
+                disabled={noOffersRemaining}
                 className="w-full focus:outline-none"
                 style={{
                   fontFamily: 'var(--font-sans)',
@@ -170,6 +194,7 @@ export function OfferModal({ listing, isOpen, onClose }: OfferModalProps) {
                   border: `1px solid ${validationError ? '#FCA5A5' : '#E5E7EB'}`,
                   color: '#06070A',
                   backgroundColor: '#FFFFFF',
+                  opacity: noOffersRemaining ? 0.5 : 1,
                 }}
                 onFocus={(e) => { if (!validationError) { e.target.style.borderColor = '#1DC690'; e.target.style.boxShadow = '0 0 0 3px rgba(29,198,144,0.10)'; } }}
                 onBlur={(e) => { e.target.style.borderColor = validationError ? '#FCA5A5' : '#E5E7EB'; e.target.style.boxShadow = 'none'; }}
@@ -222,7 +247,7 @@ export function OfferModal({ listing, isOpen, onClose }: OfferModalProps) {
                 onMouseEnter={(e) => { if (canSubmit) (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#18B07E'; }}
                 onMouseLeave={(e) => { if (canSubmit) (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#1DC690'; }}
               >
-                {submitting ? 'Sending...' : 'Send offer'}
+                {submitting ? 'Sending...' : noOffersRemaining ? 'No Offers Remaining' : 'Send offer'}
               </button>
             </div>
           </>

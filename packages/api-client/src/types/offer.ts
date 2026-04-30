@@ -67,3 +67,46 @@ export interface OfferCounts {
   offers_received_pending: number;
   total: number;
 }
+
+/** Response from GET /api/listing-offers/:listingId/offer-status */
+export interface OfferStatusResponse {
+  can_make_offer: boolean;
+  reason: string | null;
+  offers_used: number;
+  offers_remaining: number;
+  active_offer: {
+    id: string;
+    offer_amount: number;
+    counter_amount: number | null;
+    final_amount: number | null;
+    status: string;
+    offer_number: number;
+    expires_at: string;
+    acceptance_expires_at: string | null;
+  } | null;
+  min_offer: number;
+  list_price: number;
+}
+
+/** Response from GET /api/listing-offers/:listingId/my-offer */
+export interface MyOfferResponse {
+  offer: {
+    id: string;
+    listing_id: string;
+    offer_amount: number;
+    counter_amount: number | null;
+    final_amount: number | null;
+    status: string;
+    offer_number: number;
+    created_at: string;
+    expires_at: string;
+    responded_at: string | null;
+    acceptance_expires_at: string | null;
+    listing: {
+      id: string;
+      title: string;
+      price: number;
+      image: string | null;
+    };
+  } | null;
+}

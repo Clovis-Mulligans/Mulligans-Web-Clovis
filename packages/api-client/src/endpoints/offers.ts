@@ -1,5 +1,5 @@
 import { apiClient } from '../client';
-import type { ReceivedOffer, MadeOffer, OfferCounts } from '../types/offer';
+import type { ReceivedOffer, MadeOffer, OfferCounts, OfferStatusResponse, MyOfferResponse } from '../types/offer';
 
 // --- Request Types ---
 
@@ -75,5 +75,15 @@ export function createOffer(data: { listing_id: string; offer_amount: number }) 
 /** GET /api/offers/:id — get single offer detail */
 export function getOffer(id: string) {
   return apiClient.get<{ offer: ReceivedOffer }>(`/api/offers/${id}`);
+}
+
+/** GET /api/listing-offers/:listingId/offer-status — can buyer make an offer? */
+export function getOfferStatus(listingId: string) {
+  return apiClient.get<OfferStatusResponse>(`/api/listing-offers/${listingId}/offer-status`);
+}
+
+/** GET /api/listing-offers/:listingId/my-offer — buyer's active offer on this listing */
+export function getMyOffer(listingId: string) {
+  return apiClient.get<MyOfferResponse>(`/api/listing-offers/${listingId}/my-offer`);
 }
 

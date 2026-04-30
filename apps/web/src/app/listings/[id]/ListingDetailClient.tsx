@@ -1,12 +1,26 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import { addToCart, createConversation, addFavourite, removeFavourite, checkFavourite, ApiError } from '@mulligans/api-client';
+import {
+  addToCart,
+  createConversation,
+  addFavourite,
+  removeFavourite,
+  checkFavourite,
+  getOfferStatus,
+  getMyOffer,
+  withdrawOffer,
+  acceptCounter,
+  declineCounter,
+  ApiError,
+} from '@mulligans/api-client';
+import type { OfferStatusResponse, MyOfferResponse } from '@mulligans/api-client';
 import { ImageGallery } from '@/components/ImageGallery';
 import { OfferModal } from '@/components/OfferModal';
+import { OfferBanner } from '@/components/OfferBanner';
 import { Breadcrumb } from '@/components/Breadcrumb';
 import { ListingCard } from '@/components/ListingCard';
 import { CONDITION_COLOURS } from '@/lib/constants';
@@ -28,6 +42,8 @@ interface ListingDetailClientProps {
   similar: any[];
 }
 
+const ACTIVE_OFFER_STATUSES = ['PENDING', 'COUNTERED', 'ACCEPTED', 'COUNTER_ACCEPTED'];
+
 // ─── Main Component ──────────────────────────────────────────
 
 export function ListingDetailClient({ listing, similar }: ListingDetailClientProps) {
@@ -40,6 +56,10 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
   const [showConditionExplainer, setShowConditionExplainer] = useState(false);
   const [isFavourited, setIsFavourited] = useState(false);
   const [showBuyerProtection, setShowBuyerProtection] = useState(false); // FIX 5
+
+  // OFFER SYSTEM state
+  const [offerStatus, setOfferStatus] = useState<OfferStatusResponse | null>(null);
+  const [myOffer, setMyOffer] = useState<MyOfferResponse['offer']>(null);
 
   // REGRESSION CHECK 2: isOwnListing BEFORE price
   const isOwnListing = user?.id === listing.seller_id;
@@ -71,6 +91,30 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
+  // OFFER SYSTEM: derived state
+  const hasActiveOffer = myOffer != null && ACTIVE_OFFER_STATUSES.includes(myOffer.status);
+  const noOffersRemaining = offerStatus != null && offerStatus.offers_remaining <= 0;
+
+  // ─── OFFER SYSTEM: Fetch offer status on mount ────────────
+  const refreshOfferState = useCallback(async () => {
+    if (!isAuthenticated || isOwnListing || !listing.is_negotiable || !isActive) return;
+    try {
+      const [statusRes, offerRes] = await Promise.all([
+        getOfferStatus(listing.id),
+        getMyOffer(listing.id),
+      ]);
+      setOfferStatus(statusRes);
+      setMyOffer(offerRes.offer || null);
+    } catch {
+      setOfferStatus(null);
+      setMyOffer(null);
+    }
+  }, [isAuthenticated, isOwnListing, listing.id, listing.is_negotiable, isActive]);
+
+  useEffect(() => {
+    refreshOfferState();
+  }, [refreshOfferState]);
+
   // ─── Favourite ─────────────────────────────────────────
   useEffect(() => {
     if (!isAuthenticated || !listing.id || isOwnListing) return;
@@ -86,7 +130,6 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
     (was ? removeFavourite(listing.id) : addFavourite(listing.id))
       .catch((err: any) => {
         if (err?.status === 401 || err?.status === 403) setIsFavourited(was);
-        console.error(err);
       });
   };
 
@@ -97,11 +140,10 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
     setAddingToCart(true);
     try {
       await addToCart({ listing_id: listing.id, quantity: 1, selected_size: selectedSize || undefined });
-      showToast('Added to cart ✓');
+      showToast('Added to cart');
     } catch (err) {
       if (err instanceof ApiError) showToast('Could not add to cart');
       else showToast('Something went wrong');
-      console.error(err);
     } finally { setAddingToCart(false); }
   };
 
@@ -110,12 +152,70 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
     try {
       await createConversation({ listing_id: listing.id, seller_id: listing.seller_id });
       router.push('/messages');
-    } catch (err) { console.error(err); showToast('Could not open conversation'); }
+    } catch { showToast('Could not open conversation'); }
   };
 
   const handleMakeOffer = () => {
     if (!isAuthenticated) { router.push(`/login?redirect=/listings/${listing.id}`); return; }
     setShowOffer(true);
+  };
+
+  // ─── OFFER SYSTEM: Action handlers ─────────────────────
+  const handleWithdraw = async (offerId: string) => {
+    try {
+      await withdrawOffer(offerId);
+      showToast('Offer withdrawn');
+      await refreshOfferState();
+    } catch (err: any) {
+      const msg = (err as ApiError)?.data && typeof (err as ApiError).data === 'object'
+        ? ((err as ApiError).data as { error?: string })?.error
+        : null;
+      showToast(msg || 'Failed to withdraw offer');
+      throw err;
+    }
+  };
+
+  const handleAcceptCounter = async (offerId: string) => {
+    try {
+      await acceptCounter(offerId);
+      showToast('Counter offer accepted');
+      await refreshOfferState();
+    } catch (err: any) {
+      const msg = (err as ApiError)?.data && typeof (err as ApiError).data === 'object'
+        ? ((err as ApiError).data as { error?: string })?.error
+        : null;
+      showToast(msg || 'Failed to accept counter offer');
+      throw err;
+    }
+  };
+
+  const handleDeclineCounter = async (offerId: string) => {
+    try {
+      await declineCounter(offerId);
+      showToast('Counter offer declined');
+      await refreshOfferState();
+    } catch (err: any) {
+      const msg = (err as ApiError)?.data && typeof (err as ApiError).data === 'object'
+        ? ((err as ApiError).data as { error?: string })?.error
+        : null;
+      showToast(msg || 'Failed to decline counter offer');
+      throw err;
+    }
+  };
+
+  const handleOfferAddToCart = async (offerId: string) => {
+    if (!isAuthenticated) { router.push(`/login?redirect=/listings/${listing.id}`); return; }
+    try {
+      await addToCart({ listing_id: listing.id, quantity: 1, offer_id: offerId });
+      showToast('Added to cart at offer price');
+    } catch (err) {
+      if (err instanceof ApiError) showToast((err.data as { error?: string })?.error || 'Could not add to cart');
+      else showToast('Something went wrong');
+    }
+  };
+
+  const handleOfferSubmitted = () => {
+    refreshOfferState();
   };
 
   // REGRESSION CHECK 5: specs filter with proper type guard
@@ -160,6 +260,29 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
 
           {/* ─── Right: White card ─────────────────────── */}
           <div className="lg:w-[45%] lg:sticky lg:top-[80px] lg:self-start lg:max-h-[calc(100vh-100px)] lg:overflow-y-auto">
+
+            {/* OFFER SYSTEM: Active-offer banner */}
+            {hasActiveOffer && myOffer && (
+              <OfferBanner
+                offer={{
+                  id: myOffer.id,
+                  status: myOffer.status,
+                  offer_amount: myOffer.offer_amount,
+                  counter_amount: myOffer.counter_amount,
+                  final_amount: myOffer.final_amount,
+                  list_price: myOffer.listing?.price ?? rawPrice,
+                  acceptance_expires_at: myOffer.acceptance_expires_at,
+                  expires_at: myOffer.expires_at,
+                  listing_id: listing.id,
+                }}
+                onWithdraw={handleWithdraw}
+                onAcceptCounter={handleAcceptCounter}
+                onDeclineCounter={handleDeclineCounter}
+                onAddToCart={handleOfferAddToCart}
+                onExpired={refreshOfferState}
+              />
+            )}
+
             <div className="rounded-2xl bg-white" style={{ border: '1px solid #E5E7EB', padding: '24px', boxShadow: '0 4px 14px rgba(6,7,10,0.10), 0 2px 4px rgba(6,7,10,0.06)' }}>
 
               {/* SECTION A — TITLE */}
@@ -233,14 +356,22 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
                 </div>
               )}
 
-              {/* FIX 6: Accepts Offers as prominent card */}
+              {/* FIX 6: Accepts Offers as prominent card — OFFER SYSTEM: show offer status inline */}
               {listing.is_negotiable && (
                 <div className="rounded-[10px] mb-2" style={{ backgroundColor: 'rgba(124,92,191,0.08)', border: '1px solid rgba(124,92,191,0.20)', padding: '12px 14px' }}>
                   <div className="flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C5CBF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-                    <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '0.85rem', color: '#7C5CBF' }}>Accepts Offers</span>
+                    <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '0.85rem', color: '#7C5CBF' }}>
+                      {myOffer?.status === 'PENDING'
+                        ? `Offer pending: £${(myOffer.offer_amount * 1.075 + 0.99).toFixed(2)}`
+                        : myOffer?.status === 'COUNTERED' && myOffer.counter_amount
+                          ? `Counter offer: £${(myOffer.counter_amount * 1.075 + 0.99).toFixed(2)}`
+                          : 'Accepts Offers'}
+                    </span>
                   </div>
-                  <p className="mt-1" style={{ fontFamily: 'var(--font-sans)', fontWeight: 400, fontSize: '0.78rem', color: '#6B7280' }}>Make an offer below the asking price — the seller can accept, decline, or counter.</p>
+                  {!hasActiveOffer && (
+                    <p className="mt-1" style={{ fontFamily: 'var(--font-sans)', fontWeight: 400, fontSize: '0.78rem', color: '#6B7280' }}>Make an offer below the asking price — the seller can accept, decline, or counter.</p>
+                  )}
                 </div>
               )}
 
@@ -271,7 +402,6 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
                           const totalSales = Number(seller.total_sales || 0);
                           const rating = Number(seller.rating || 0);
                           const isProSeller = !!seller.is_pro_seller;
-                          // Show "New seller" badge for genuine new sellers (not pro shops)
                           if (totalSales === 0 && rating === 0 && !isProSeller) {
                             return (
                               <span style={{ display: 'inline-flex', alignItems: 'center', backgroundColor: 'rgba(39,138,176,0.08)', color: '#1C4670', fontWeight: 600, fontSize: '0.72rem', padding: '3px 9px', borderRadius: '20px', letterSpacing: '0.01em' }}>
@@ -279,7 +409,6 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
                               </span>
                             );
                           }
-                          // Otherwise show real metrics
                           return (
                             <>
                               {rating > 0 && <span>⭐ {rating.toFixed(1)}</span>}
@@ -322,9 +451,29 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
                   <button onClick={handleAddToCart} disabled={addingToCart} className="w-full rounded-xl text-white transition-colors hover:opacity-90 disabled:opacity-50" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '1rem', height: '52px', backgroundColor: '#1DC690' }}>
                     {addingToCart ? 'Adding...' : 'Add to Cart'}
                   </button>
-                  {listing.is_negotiable && (
-                    <button onClick={handleMakeOffer} className="w-full rounded-xl transition-colors hover:bg-[#FAFAF8]" style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '0.95rem', height: '46px', border: '1px solid #E5E7EB', backgroundColor: '#FFFFFF', color: '#1C4670', marginTop: '10px' }}>
-                      Make an Offer
+
+                  {/* OFFER SYSTEM: Conditional render of Make Offer button */}
+                  {listing.is_negotiable && !hasActiveOffer && (
+                    <button
+                      onClick={handleMakeOffer}
+                      disabled={noOffersRemaining}
+                      className="w-full rounded-xl transition-colors"
+                      style={{
+                        fontFamily: 'var(--font-sans)',
+                        fontWeight: 600,
+                        fontSize: '0.95rem',
+                        height: '46px',
+                        border: '1px solid #E5E7EB',
+                        backgroundColor: noOffersRemaining ? '#F7F7F5' : '#FFFFFF',
+                        color: noOffersRemaining ? '#9CA3AF' : '#1C4670',
+                        marginTop: '10px',
+                        cursor: noOffersRemaining ? 'not-allowed' : 'pointer',
+                        opacity: noOffersRemaining ? 0.7 : 1,
+                      }}
+                      onMouseEnter={(e) => { if (!noOffersRemaining) (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#FAFAF8'; }}
+                      onMouseLeave={(e) => { if (!noOffersRemaining) (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#FFFFFF'; }}
+                    >
+                      {noOffersRemaining ? "You've used all offer attempts" : 'Make an Offer'}
                     </button>
                   )}
                 </div>
@@ -417,7 +566,14 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
         )}
       </div>
 
-      <OfferModal listing={listing} isOpen={showOffer} onClose={() => setShowOffer(false)} />
+      {/* OFFER SYSTEM: Modal with status + callback */}
+      <OfferModal
+        listing={listing}
+        isOpen={showOffer}
+        onClose={() => setShowOffer(false)}
+        offerStatus={offerStatus ? { offers_used: offerStatus.offers_used, offers_remaining: offerStatus.offers_remaining } : null}
+        onOfferSubmitted={handleOfferSubmitted}
+      />
 
       {toast && (
         <div className="fixed bottom-6 right-6 z-50 rounded-lg px-5 py-3 text-sm font-semibold text-white" style={{ backgroundColor: '#1DC690', fontFamily: 'var(--font-sans)', boxShadow: '0 8px 24px rgba(6,7,10,0.18)' }}>
