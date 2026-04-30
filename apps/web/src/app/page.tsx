@@ -78,18 +78,18 @@ export default async function HomePage() {
             </div>
 
             {/* Right: stacked images */}
-            <div className="relative hidden lg:flex items-center justify-center flex-shrink-0 ml-auto" style={{ width: '520px', height: '280px' }}>
+            <div className="relative hidden lg:flex items-center justify-end flex-shrink-0 ml-auto" style={{ width: '620px', height: '340px' }}>
               {/* Left image — club-specs */}
-              <div className="absolute rounded-2xl overflow-hidden shadow-2xl" style={{ left: '40px', top: '40px', width: '160px', height: '160px', transform: 'rotate(-8deg)', zIndex: 1, backgroundColor: '#FFFFFF' }}>
-                <img src="/onboarding/club-specs.png" alt="Club specs" className="w-full h-full" style={{ objectFit: 'contain', padding: '12px' }} />
+              <div className="absolute rounded-2xl overflow-hidden shadow-2xl" style={{ left: '50px', top: '50px', width: '195px', height: '195px', transform: 'rotate(-8deg)', zIndex: 1, backgroundColor: '#FFFFFF' }}>
+                <img src="/onboarding/club-specs.png" alt="Club specs" className="w-full h-full" style={{ objectFit: 'contain', padding: '14px' }} />
               </div>
               {/* Centre image — protection-pro (front) */}
-              <div className="absolute rounded-2xl overflow-hidden shadow-2xl" style={{ left: '160px', top: '10px', width: '185px', height: '185px', transform: 'rotate(0deg)', zIndex: 3, backgroundColor: '#FFFFFF' }}>
-                <img src="/onboarding/protection-pro.png" alt="Buyer Protection" className="w-full h-full" style={{ objectFit: 'contain', padding: '12px' }} />
+              <div className="absolute rounded-2xl overflow-hidden shadow-2xl" style={{ left: '195px', top: '15px', width: '225px', height: '225px', transform: 'rotate(0deg)', zIndex: 3, backgroundColor: '#FFFFFF' }}>
+                <img src="/onboarding/protection-pro.png" alt="Buyer Protection" className="w-full h-full" style={{ objectFit: 'contain', padding: '14px' }} />
               </div>
               {/* Right image — marketplace */}
-              <div className="absolute rounded-2xl overflow-hidden shadow-2xl" style={{ left: '300px', top: '45px', width: '160px', height: '160px', transform: 'rotate(7deg)', zIndex: 2, backgroundColor: '#FFFFFF' }}>
-                <img src="/onboarding/marketplace.png" alt="Marketplace" className="w-full h-full" style={{ objectFit: 'contain', padding: '12px' }} />
+              <div className="absolute rounded-2xl overflow-hidden shadow-2xl" style={{ left: '370px', top: '55px', width: '195px', height: '195px', transform: 'rotate(7deg)', zIndex: 2, backgroundColor: '#FFFFFF' }}>
+                <img src="/onboarding/marketplace.png" alt="Marketplace" className="w-full h-full" style={{ objectFit: 'contain', padding: '14px' }} />
               </div>
             </div>
 

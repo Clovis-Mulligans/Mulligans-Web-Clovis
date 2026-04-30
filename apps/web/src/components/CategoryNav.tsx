@@ -35,16 +35,18 @@ export function CategoryNav() {
             <Link
               key={cat.slug}
               href={href}
-              className="flex-shrink-0 px-4 py-3 text-sm font-semibold transition-colors relative"
+              className="flex-shrink-0 px-3 py-3 transition-colors relative"
               style={{
                 fontFamily: 'var(--font-sans)',
-                color: isActive ? '#1DC690' : '#6B6B6B',
-                fontWeight: 600,
+                color: isActive ? '#1DC690' : '#06070A',
+                fontWeight: isActive ? 700 : 600,
+                fontSize: '16px',
+                letterSpacing: '-0.005em',
               }}
             >
               {cat.label}
               {isActive && (
-                <span className="absolute bottom-0 left-2 right-2 h-0.5" style={{ backgroundColor: '#1DC690' }} />
+                <span className="absolute bottom-0 left-3 right-3 h-0.5" style={{ backgroundColor: '#1DC690' }} />
               )}
             </Link>
           );

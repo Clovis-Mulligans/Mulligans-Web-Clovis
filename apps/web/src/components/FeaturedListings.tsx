@@ -28,11 +28,16 @@ export function FeaturedListings() {
       const data = await res.json();
       const all: ListingCardData[] = data.listings || [];
 
-      // FIX 3A: Filter to pro stores only
+      // Pro store listings get priority
       const proStoreListings = all.filter((l) => (l as any).users?.is_pro_store === true);
+      const nonProListings = all.filter((l) => (l as any).users?.is_pro_store !== true);
 
-      // Shuffle and limit to 8
-      setListings(shuffleArray(proStoreListings).slice(0, 15));
+      // Shuffle each pool independently, then concatenate (pro first)
+      const shuffledPro = shuffleArray(proStoreListings);
+      const shuffledNonPro = shuffleArray(nonProListings);
+      const combined = [...shuffledPro, ...shuffledNonPro].slice(0, 15);
+
+      setListings(combined);
     } catch {
       setListings([]);
     } finally {
@@ -68,7 +73,7 @@ export function FeaturedListings() {
       </div>
 
       {loading ? (
-        <CardSkeletonGrid count={8} />
+        <CardSkeletonGrid count={15} />
       ) : listings.length > 0 ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 sm:gap-4">
           {listings.map((listing) => (

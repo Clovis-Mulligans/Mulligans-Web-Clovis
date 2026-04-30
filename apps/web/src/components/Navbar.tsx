@@ -94,7 +94,7 @@ export function Navbar() {
             <img src="https://mulligans-golf-images-mvp.s3.eu-west-2.amazonaws.com/email-assets/Asset+41x+transparent.png" alt="Mulligans" style={{ height: '36px', width: 'auto' }} />
           </Link>
 
-          <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-[560px] mx-8">
+          <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-[800px] mx-4">
             <div className="relative w-full">
               <svg className="absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1DC690" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
               <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search golf equipment..." className="w-full rounded-[10px] border py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2" style={{ fontFamily: 'var(--font-sans)', background: '#F4F4F0', borderColor: '#E0E0D8', color: '#0D0D0D', height: '40px' }} onFocus={(e) => { e.target.style.borderColor = '#1DC690'; e.target.style.boxShadow = '0 0 0 3px rgba(29,198,144,0.12)'; }} onBlur={(e) => { e.target.style.borderColor = '#E0E0D8'; e.target.style.boxShadow = 'none'; }} />
