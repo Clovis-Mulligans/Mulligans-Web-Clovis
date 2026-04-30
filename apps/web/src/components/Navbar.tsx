@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { getCartCount } from '@mulligans/api-client';
+import { CartPreview } from './CartPreview';
 
 export function Navbar() {
   const { user, isAuthenticated, isLoading, signOut } = useAuth();
@@ -13,6 +14,8 @@ export function Navbar() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [cartCount, setCartCount] = useState(0);
+  const [cartPreviewOpen, setCartPreviewOpen] = useState(false);
+  const cartHoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -60,6 +63,22 @@ export function Navbar() {
     signOut();
   };
 
+  // Cart hover preview — 200ms open delay, 300ms close delay
+  const handleCartHoverEnter = () => {
+    if (cartHoverTimerRef.current) clearTimeout(cartHoverTimerRef.current);
+    cartHoverTimerRef.current = setTimeout(() => setCartPreviewOpen(true), 200);
+  };
+
+  const handleCartHoverLeave = () => {
+    if (cartHoverTimerRef.current) clearTimeout(cartHoverTimerRef.current);
+    cartHoverTimerRef.current = setTimeout(() => setCartPreviewOpen(false), 300);
+  };
+
+  // Cleanup timer on unmount
+  useEffect(() => () => {
+    if (cartHoverTimerRef.current) clearTimeout(cartHoverTimerRef.current);
+  }, []);
+
   const initial = user?.display_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || '?';
   const cartBadge = cartCount > 9 ? '9+' : cartCount > 0 ? String(cartCount) : null;
 
@@ -90,15 +109,31 @@ export function Navbar() {
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0D0D0D" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
             </Link>
 
-            {/* Cart with badge */}
-            <Link href="/cart" className="relative flex items-center justify-center w-10 h-10 rounded-lg hover:bg-[#F4F4F0] transition-colors" aria-label="Cart">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0D0D0D" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
-              {cartBadge && (
-                <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center rounded-full text-white" style={{ backgroundColor: '#E53E3E', minWidth: '16px', height: '16px', fontSize: '10px', fontFamily: 'var(--font-sans)', fontWeight: 700, padding: '0 3px' }}>
-                  {cartBadge}
-                </span>
+            {/* Cart with badge + hover preview */}
+            <div
+              className="relative"
+              onMouseEnter={handleCartHoverEnter}
+              onMouseLeave={handleCartHoverLeave}
+            >
+              <Link href="/cart" className="relative flex items-center justify-center w-10 h-10 rounded-lg hover:bg-[#F4F4F0] transition-colors" aria-label="Cart">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0D0D0D" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+                {cartBadge && (
+                  <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center rounded-full text-white" style={{ backgroundColor: '#E53E3E', minWidth: '16px', height: '16px', fontSize: '10px', fontFamily: 'var(--font-sans)', fontWeight: 700, padding: '0 3px' }}>
+                    {cartBadge}
+                  </span>
+                )}
+              </Link>
+              {isAuthenticated && (
+                <div className="hidden md:block">
+                  <CartPreview
+                    open={cartPreviewOpen}
+                    onClose={() => setCartPreviewOpen(false)}
+                    onMouseEnter={handleCartHoverEnter}
+                    onMouseLeave={handleCartHoverLeave}
+                  />
+                </div>
               )}
-            </Link>
+            </div>
 
             {isLoading ? (
               <div className="w-8 h-8 rounded-full bg-[#F4F4F0] animate-pulse" />
