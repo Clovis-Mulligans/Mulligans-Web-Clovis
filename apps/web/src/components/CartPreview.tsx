@@ -110,7 +110,7 @@ export function CartPreview({ open, onClose, onMouseEnter, onMouseLeave }: CartP
         .filter((s) => s.items.length > 0)
     );
     try {
-      await removeFromCart(item.listing_id, item.selected_size || undefined);
+      await removeFromCart(item.listing_id);
     } catch {
       // On error, refetch to restore correct state
       await fetchCart();
