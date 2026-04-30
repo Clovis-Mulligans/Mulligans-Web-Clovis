@@ -46,6 +46,7 @@ interface CartPreviewProps {
   onClose: () => void;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
+  onCountChange?: (count: number) => void;
 }
 
 // ─── Helpers ───────────────────────────────────────────────
@@ -64,7 +65,7 @@ function sellerDisplayName(seller: CartSellerGroup): string {
 }
 
 // ─── Component ─────────────────────────────────────────────
-export function CartPreview({ open, onClose, onMouseEnter, onMouseLeave }: CartPreviewProps) {
+export function CartPreview({ open, onClose, onMouseEnter, onMouseLeave, onCountChange }: CartPreviewProps) {
   const [loading, setLoading] = useState(true);
   const [sellers, setSellers] = useState<CartSellerGroup[]>([]);
   const [removing, setRemoving] = useState<string | null>(null);
@@ -76,14 +77,23 @@ export function CartPreview({ open, onClose, onMouseEnter, onMouseLeave }: CartP
     setError(null);
     try {
       const res = (await getCart()) as CartResponseShape;
-      setSellers(res?.sellers || []);
+      const fetchedSellers = res?.sellers || [];
+      setSellers(fetchedSellers);
+      // Sync badge count with fresh data
+      if (onCountChange) {
+        const count = fetchedSellers.reduce(
+          (sum, s) => sum + s.items.reduce((n, i) => n + (i.quantity || 1), 0),
+          0
+        );
+        onCountChange(count);
+      }
     } catch {
       setError('Could not load your bag');
       setSellers([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [onCountChange]);
 
   // Fetch fresh cart every time the preview opens
   useEffect(() => {
@@ -103,16 +113,24 @@ export function CartPreview({ open, onClose, onMouseEnter, onMouseLeave }: CartP
   const handleRemove = async (item: CartLineItem) => {
     if (removing) return;
     setRemoving(item.id);
-    // Optimistic update
-    setSellers((prev) =>
-      prev
+    // Optimistic update — also notify parent so badge ticks down immediately
+    setSellers((prev) => {
+      const next = prev
         .map((s) => ({ ...s, items: s.items.filter((i) => i.id !== item.id) }))
-        .filter((s) => s.items.length > 0)
-    );
+        .filter((s) => s.items.length > 0);
+      if (onCountChange) {
+        const count = next.reduce(
+          (sum, s) => sum + s.items.reduce((n, i) => n + (i.quantity || 1), 0),
+          0
+        );
+        onCountChange(count);
+      }
+      return next;
+    });
     try {
       await removeFromCart(item.listing_id);
     } catch {
-      // On error, refetch to restore correct state
+      // On error, refetch to restore correct state (also re-syncs badge)
       await fetchCart();
     } finally {
       setRemoving(null);

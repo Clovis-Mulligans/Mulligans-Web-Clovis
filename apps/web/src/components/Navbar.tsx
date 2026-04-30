@@ -130,6 +130,7 @@ export function Navbar() {
                     onClose={() => setCartPreviewOpen(false)}
                     onMouseEnter={handleCartHoverEnter}
                     onMouseLeave={handleCartHoverLeave}
+                    onCountChange={setCartCount}
                   />
                 </div>
               )}
