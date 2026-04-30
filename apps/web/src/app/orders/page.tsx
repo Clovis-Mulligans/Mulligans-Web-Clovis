@@ -10,7 +10,6 @@ import {
   CheckCircle,
   AlertCircle,
   Clock,
-  XCircle,
   RefreshCcw,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
@@ -26,7 +25,19 @@ import type {
   OrderCounts,
 } from '@mulligans/api-client';
 
-/* ── Helpers ──────────────────────────────────────────── */
+/* ────────────────────────────────────────────────────────
+   DESIGN TOKENS — keep in sync with mulligans-web-standards.md
+   New platform spec: shadow allowed, weight 700 allowed
+──────────────────────────────────────────────────────── */
+
+const CARD_SHADOW =
+  '0 4px 14px rgba(6,7,10,0.10), 0 2px 4px rgba(6,7,10,0.06)';
+const CARD_SHADOW_HOVER =
+  '0 8px 24px rgba(6,7,10,0.12), 0 3px 6px rgba(6,7,10,0.08)';
+const SUMMARY_SHADOW =
+  '0 4px 14px rgba(6,7,10,0.06), 0 2px 4px rgba(6,7,10,0.04)';
+
+/* ──────────────────────────────────────────────────────── */
 
 const fp = (n: number) => `£${n.toFixed(2)}`;
 
@@ -38,14 +49,12 @@ function formatDate(iso: string): string {
   });
 }
 
-/** Last 8 chars of an order id, uppercased — e.g. "A8F23491" */
 function shortOrderId(id: string): string {
   if (!id) return '';
   const tail = id.replace(/-/g, '').slice(-8);
   return tail.toUpperCase();
 }
 
-/** Counterparty initials for mini-avatar fallback */
 function initials(name: string | null | undefined): string {
   if (!name) return '?';
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -89,7 +98,7 @@ function filterOrders(orders: AnyOrder[], filter: FilterKey): AnyOrder[] {
   return orders;
 }
 
-/* ── Status badge config ──────────────────────────────── */
+/* Status badges */
 
 const STATUS_BADGE_CONFIG: Record<
   string,
@@ -120,9 +129,9 @@ function StatusBadge({ status }: { status: string }) {
         backgroundColor: c.bg,
         color: c.color,
         borderRadius: 20,
-        padding: '4px 10px',
-        fontSize: 11,
-        fontWeight: 500,
+        padding: '5px 12px',
+        fontSize: 12,
+        fontWeight: 600,
         fontFamily: 'var(--font-sans)',
         whiteSpace: 'nowrap',
         textTransform: 'capitalize',
@@ -133,65 +142,68 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-/* ══ NEXT ACTION ═════════════════════════════════════════
-   Edit the strings in NEXT_ACTION_COPY below to tune copy.
-   Tone keys map to colours:
-     'info'   → blue tint  (informational)
-     'action' → green tint (your action — primary nudge)
-     'warn'   → amber tint (attention required, non-urgent)
-     'danger' → red tint   (problem / awaiting resolution)
-   Set to null to suppress the pill for that status.
+/* ════════════════════════════════════════════════════════
+   NEXT-ACTION COPY — edit strings to tune wording.
+   Set entry to null to hide pill for that status.
 ═══════════════════════════════════════════════════════ */
 
 type ActionTone = 'info' | 'action' | 'warn' | 'danger';
-type ActionPill = { text: string; tone: ActionTone; icon: 'package' | 'truck' | 'check' | 'alert' | 'clock' | 'refresh' } | null;
+type ActionPill = {
+  text: string;
+  tone: ActionTone;
+  icon: 'package' | 'truck' | 'check' | 'alert' | 'clock' | 'refresh';
+} | null;
 
 const NEXT_ACTION_COPY: Record<TabKey, Record<string, ActionPill>> = {
-  /* ── Buyer (Purchases tab) ── */
   purchases: {
-    pending:    { text: 'Awaiting payment confirmation',          tone: 'info',   icon: 'clock'   },
-    paid:       { text: 'Awaiting seller dispatch',               tone: 'info',   icon: 'clock'   },
-    to_ship:    { text: 'Awaiting seller dispatch',               tone: 'info',   icon: 'clock'   },
-    shipped:    { text: 'Track package',                          tone: 'info',   icon: 'truck'   },
-    in_transit: { text: 'Track package',                          tone: 'info',   icon: 'truck'   },
-    delivered:  { text: 'Confirm receipt to release payment',     tone: 'action', icon: 'check'   },
+    pending:    { text: 'Awaiting payment confirmation',      tone: 'info',   icon: 'clock'   },
+    paid:       { text: 'Awaiting seller dispatch',           tone: 'info',   icon: 'clock'   },
+    to_ship:    { text: 'Awaiting seller dispatch',           tone: 'info',   icon: 'clock'   },
+    shipped:    { text: 'Track package',                      tone: 'info',   icon: 'truck'   },
+    in_transit: { text: 'Track package',                      tone: 'info',   icon: 'truck'   },
+    delivered:  { text: 'Confirm receipt to release payment', tone: 'action', icon: 'check'   },
     completed:  null,
     cancelled:  null,
-    disputed:   { text: 'Awaiting Mulligans review',              tone: 'danger', icon: 'alert'   },
-    refunded:   { text: 'Refund issued',                          tone: 'info',   icon: 'refresh' },
+    disputed:   { text: 'Awaiting Mulligans review',          tone: 'danger', icon: 'alert'   },
+    refunded:   { text: 'Refund issued',                      tone: 'info',   icon: 'refresh' },
   },
-  /* ── Seller (Sold tab) ── */
   sold: {
-    pending:    { text: 'Awaiting buyer payment',                 tone: 'info',   icon: 'clock'   },
-    paid:       { text: 'Add tracking & ship item',               tone: 'action', icon: 'package' },
-    to_ship:    { text: 'Add tracking & ship item',               tone: 'action', icon: 'package' },
-    shipped:    { text: 'On its way to buyer',                    tone: 'info',   icon: 'truck'   },
-    in_transit: { text: 'On its way to buyer',                    tone: 'info',   icon: 'truck'   },
-    delivered:  { text: 'Awaiting buyer confirmation',            tone: 'info',   icon: 'clock'   },
+    pending:    { text: 'Awaiting buyer payment',             tone: 'info',   icon: 'clock'   },
+    paid:       { text: 'Add tracking & ship item',           tone: 'action', icon: 'package' },
+    to_ship:    { text: 'Add tracking & ship item',           tone: 'action', icon: 'package' },
+    shipped:    { text: 'On its way to buyer',                tone: 'info',   icon: 'truck'   },
+    in_transit: { text: 'On its way to buyer',                tone: 'info',   icon: 'truck'   },
+    delivered:  { text: 'Awaiting buyer confirmation',        tone: 'info',   icon: 'clock'   },
     completed:  null,
     cancelled:  null,
-    disputed:   { text: 'Awaiting Mulligans review',              tone: 'danger', icon: 'alert'   },
-    refunded:   { text: 'Refund issued to buyer',                 tone: 'info',   icon: 'refresh' },
+    disputed:   { text: 'Awaiting Mulligans review',          tone: 'danger', icon: 'alert'   },
+    refunded:   { text: 'Refund issued to buyer',             tone: 'info',   icon: 'refresh' },
   },
 };
 
 const ACTION_TONE_STYLES: Record<ActionTone, { bg: string; color: string }> = {
-  info:   { bg: 'rgba(39,138,176,0.08)',  color: '#1C4670' },
-  action: { bg: 'rgba(29,198,144,0.10)',  color: '#065F46' },
-  warn:   { bg: 'rgba(245,158,11,0.10)',  color: '#92400E' },
-  danger: { bg: 'rgba(239,68,68,0.08)',   color: '#991B1B' },
+  info:   { bg: 'rgba(39,138,176,0.08)', color: '#1C4670' },
+  action: { bg: 'rgba(29,198,144,0.10)', color: '#065F46' },
+  warn:   { bg: 'rgba(245,158,11,0.10)', color: '#92400E' },
+  danger: { bg: 'rgba(239,68,68,0.08)',  color: '#991B1B' },
 };
 
-function ActionIcon({ name, color }: { name: NonNullable<ActionPill>['icon']; color: string }) {
-  const props = { size: 13 as number | string, color };
+function ActionIcon({
+  name,
+  color,
+}: {
+  name: NonNullable<ActionPill>['icon'];
+  color: string;
+}) {
+  const props: { size: number | string; color: string } = { size: 14, color };
   switch (name) {
-    case 'package':  return <Package {...props} />;
-    case 'truck':    return <Truck {...props} />;
-    case 'check':    return <CheckCircle {...props} />;
-    case 'alert':    return <AlertCircle {...props} />;
-    case 'clock':    return <Clock {...props} />;
-    case 'refresh':  return <RefreshCcw {...props} />;
-    default:         return null;
+    case 'package': return <Package {...props} />;
+    case 'truck':   return <Truck {...props} />;
+    case 'check':   return <CheckCircle {...props} />;
+    case 'alert':   return <AlertCircle {...props} />;
+    case 'clock':   return <Clock {...props} />;
+    case 'refresh': return <RefreshCcw {...props} />;
+    default:        return null;
   }
 }
 
@@ -202,29 +214,58 @@ function NextActionPill({ pill }: { pill: NonNullable<ActionPill> }) {
       style={{
         display: 'inline-flex',
         alignItems: 'center',
-        gap: 6,
+        gap: 7,
         backgroundColor: styles.bg,
         color: styles.color,
-        padding: '6px 12px',
+        padding: '7px 13px',
         borderRadius: 8,
-        fontSize: 12,
-        fontWeight: 500,
+        fontSize: 13,
+        fontWeight: 600,
         fontFamily: 'var(--font-sans)',
         width: 'fit-content',
         maxWidth: '100%',
       }}
     >
       <ActionIcon name={pill.icon} color={styles.color} />
-      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <span
+        style={{
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        }}
+      >
         {pill.text}
       </span>
     </div>
   );
 }
 
-/* ══ MINI AVATAR ═══════════════════════════════════════ */
+/* Mini avatar — uses real avatar URL if available, falls back to initials */
 
-function MiniAvatar({ name, size = 26 }: { name: string | null | undefined; size?: number }) {
+function MiniAvatar({
+  name,
+  url,
+  size = 28,
+}: {
+  name: string | null | undefined;
+  url?: string | null;
+  size?: number;
+}) {
+  if (url) {
+    return (
+      <img
+        src={url}
+        alt={name ?? ''}
+        style={{
+          width: size,
+          height: size,
+          borderRadius: '50%',
+          objectFit: 'cover',
+          flexShrink: 0,
+        }}
+      />
+    );
+  }
   return (
     <div
       style={{
@@ -234,7 +275,7 @@ function MiniAvatar({ name, size = 26 }: { name: string | null | undefined; size
         background: 'linear-gradient(135deg, #278AB0, #1C4670)',
         color: '#FFFFFF',
         fontSize: Math.round(size * 0.42),
-        fontWeight: 600,
+        fontWeight: 700,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -248,7 +289,9 @@ function MiniAvatar({ name, size = 26 }: { name: string | null | undefined; size
   );
 }
 
-/* ══ PAGE ══════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════
+   PAGE
+═══════════════════════════════════════════════════════ */
 
 export default function OrdersPage() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -259,14 +302,12 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
   const [counts, setCounts] = useState<OrderCounts | null>(null);
 
-  /* Auth gate */
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.push('/login?redirect=/orders');
     }
   }, [isLoading, isAuthenticated, router]);
 
-  /* Fetch counts */
   useEffect(() => {
     if (!isAuthenticated) return;
     getOrderCounts()
@@ -274,7 +315,6 @@ export default function OrdersPage() {
       .catch(() => {});
   }, [isAuthenticated]);
 
-  /* Fetch orders on tab change */
   const fetchOrders = useCallback(async () => {
     if (!isAuthenticated) return;
     setLoading(true);
@@ -300,12 +340,10 @@ export default function OrdersPage() {
     fetchOrders();
   }, [fetchOrders]);
 
-  /* Reset filter when switching tabs */
   useEffect(() => {
     setFilter('all');
   }, [tab]);
 
-  /* Auth loading */
   if (isLoading || !isAuthenticated) {
     return (
       <div
@@ -335,20 +373,21 @@ export default function OrdersPage() {
   return (
     <div style={{ backgroundColor: '#FFFFFF', minHeight: '100vh' }}>
       <div
-        style={{ maxWidth: 1400, margin: '0 auto', padding: '32px 32px 48px' }}
+        style={{
+          maxWidth: 1400,
+          margin: '0 auto',
+          padding: '32px 32px 64px',
+        }}
       >
-        {/* Title */}
         <PageHeader title="Orders" />
 
-        {/* ── Summary strip ── */}
         <SummaryStrip orders={orders} tab={tab} loading={loading} />
 
-        {/* ── Tabs ── */}
         <div
           style={{
             display: 'flex',
             borderBottom: '1px solid #E5E7EB',
-            marginBottom: 16,
+            marginBottom: 18,
           }}
         >
           <TabButton
@@ -365,12 +404,11 @@ export default function OrdersPage() {
           />
         </div>
 
-        {/* ── Filter chips ── */}
         <div
           style={{
             display: 'flex',
-            gap: 8,
-            marginBottom: 24,
+            gap: 10,
+            marginBottom: 28,
             flexWrap: 'wrap',
           }}
         >
@@ -384,13 +422,12 @@ export default function OrdersPage() {
           ))}
         </div>
 
-        {/* ── Order list ── */}
         {loading ? (
           <SkeletonList />
         ) : filtered.length === 0 ? (
           <EmptyOrders tab={tab} filter={filter} />
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {filtered.map((order) => (
               <OrderCard key={order.id} order={order} tab={tab} />
             ))}
@@ -401,7 +438,9 @@ export default function OrdersPage() {
   );
 }
 
-/* ══ SUMMARY STRIP ═════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════
+   SUMMARY STRIP
+═══════════════════════════════════════════════════════ */
 
 function SummaryStrip({
   orders,
@@ -416,8 +455,12 @@ function SummaryStrip({
     const total = orders.length;
 
     const actionStatuses =
-      tab === 'purchases' ? ACTION_NEEDED_BUYER_STATUSES : ACTION_NEEDED_SELLER_STATUSES;
-    const actionNeeded = orders.filter((o) => actionStatuses.includes(o.status)).length;
+      tab === 'purchases'
+        ? ACTION_NEEDED_BUYER_STATUSES
+        : ACTION_NEEDED_SELLER_STATUSES;
+    const actionNeeded = orders.filter((o) =>
+      actionStatuses.includes(o.status),
+    ).length;
 
     const inTransit = orders.filter((o) =>
       ['shipped', 'in_transit'].includes(o.status),
@@ -425,8 +468,7 @@ function SummaryStrip({
 
     /* Money figure:
        - Purchases tab → Total Spent (buyer price = amount * 1.075 + 0.99)
-       - Sold tab     → Total Earned (seller take = amount, no fee deduction
-                                       known — adjust formula here if seller-side
+       - Sold tab     → Total Earned (raw amount; adjust here if seller-side
                                        fees apply later) */
     const moneyExcludeStatuses = ['cancelled', 'refunded'];
     const moneyTotal = orders
@@ -441,7 +483,19 @@ function SummaryStrip({
 
   const moneyLabel = tab === 'purchases' ? 'Total Spent' : 'Total Earned';
 
-  const cards: { label: string; value: string; sub: string; valueColor?: string }[] = [
+  const inTransitSub =
+    stats.inTransit === 0
+      ? 'None right now'
+      : stats.inTransit === 1
+      ? 'Arriving soon'
+      : 'On the way';
+
+  const cards: {
+    label: string;
+    value: string;
+    sub: string;
+    valueColor?: string;
+  }[] = [
     {
       label: 'Total Orders',
       value: loading ? '—' : String(stats.total),
@@ -451,7 +505,12 @@ function SummaryStrip({
       label: 'Awaiting You',
       value: loading ? '—' : String(stats.actionNeeded),
       sub: stats.actionNeeded === 0 ? "You're all caught up" : 'Action needed',
-      valueColor: stats.actionNeeded > 0 ? '#92400E' : '#06070A',
+      valueColor:
+        stats.actionNeeded > 0
+          ? '#92400E'
+          : loading
+          ? '#06070A'
+          : '#9CA3AF',
     },
     {
       label: moneyLabel,
@@ -462,7 +521,8 @@ function SummaryStrip({
     {
       label: 'In Transit',
       value: loading ? '—' : String(stats.inTransit),
-      sub: stats.inTransit === 1 ? 'Arriving soon' : 'On the way',
+      sub: inTransitSub,
+      valueColor: stats.inTransit === 0 && !loading ? '#9CA3AF' : '#06070A',
     },
   ];
 
@@ -471,8 +531,8 @@ function SummaryStrip({
       style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: 14,
-        marginBottom: 28,
+        gap: 16,
+        marginBottom: 32,
       }}
     >
       {cards.map((card) => (
@@ -480,19 +540,20 @@ function SummaryStrip({
           key={card.label}
           style={{
             backgroundColor: '#FFFFFF',
-            border: '1px solid #E0E0E0',
-            borderRadius: 14,
-            padding: '16px 18px',
+            border: '1px solid #E5E7EB',
+            borderRadius: 16,
+            padding: '20px 22px',
+            boxShadow: SUMMARY_SHADOW,
           }}
         >
           <div
             style={{
               fontSize: 11,
-              fontWeight: 500,
+              fontWeight: 600,
               color: '#278AB0',
-              letterSpacing: '0.08em',
+              letterSpacing: '0.10em',
               textTransform: 'uppercase',
-              marginBottom: 8,
+              marginBottom: 10,
               fontFamily: 'var(--font-sans)',
             }}
           >
@@ -500,21 +561,23 @@ function SummaryStrip({
           </div>
           <div
             style={{
-              fontSize: 22,
-              fontWeight: 600,
+              fontSize: 28,
+              fontWeight: 700,
               color: card.valueColor ?? '#06070A',
               fontFamily: 'var(--font-sans)',
-              lineHeight: 1.1,
+              lineHeight: 1.05,
+              letterSpacing: '-0.01em',
             }}
           >
             {card.value}
           </div>
           <div
             style={{
-              fontSize: 12,
+              fontSize: 13,
               color: '#9CA3AF',
-              marginTop: 4,
+              marginTop: 6,
               fontFamily: 'var(--font-sans)',
+              fontWeight: 500,
             }}
           >
             {card.sub}
@@ -525,7 +588,9 @@ function SummaryStrip({
   );
 }
 
-/* ══ FILTER PILL ═══════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════
+   FILTER PILL
+═══════════════════════════════════════════════════════ */
 
 function FilterPill({
   active,
@@ -544,11 +609,13 @@ function FilterPill({
       onMouseLeave={() => setHovered(false)}
       style={{
         fontFamily: 'var(--font-sans)',
-        fontSize: 13,
-        fontWeight: 500,
-        padding: '8px 16px',
-        borderRadius: 20,
-        border: active ? 'none' : `1px solid ${hovered ? '#D1D5DB' : '#E5E7EB'}`,
+        fontSize: 14,
+        fontWeight: 600,
+        padding: '10px 18px',
+        borderRadius: 22,
+        border: active
+          ? 'none'
+          : `1px solid ${hovered ? '#D1D5DB' : '#E5E7EB'}`,
         backgroundColor: active ? '#06070A' : '#FFFFFF',
         color: active ? '#FFFFFF' : '#6B7280',
         cursor: 'pointer',
@@ -560,7 +627,9 @@ function FilterPill({
   );
 }
 
-/* ══ TAB BUTTON ════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════
+   TAB BUTTON
+═══════════════════════════════════════════════════════ */
 
 function TabButton({
   active,
@@ -578,14 +647,16 @@ function TabButton({
       onClick={onClick}
       style={{
         flex: 1,
-        padding: '12px 0',
+        padding: '14px 0',
         fontFamily: 'var(--font-sans)',
-        fontSize: 15,
-        fontWeight: active ? 600 : 500,
+        fontSize: 16,
+        fontWeight: active ? 700 : 500,
         color: active ? '#06070A' : '#9CA3AF',
         background: 'none',
         border: 'none',
-        borderBottom: active ? '2px solid #1DC690' : '2px solid transparent',
+        borderBottom: active
+          ? '2px solid #1DC690'
+          : '2px solid transparent',
         cursor: 'pointer',
         transition: 'all 0.15s',
         display: 'inline-flex',
@@ -600,9 +671,9 @@ function TabButton({
           style={{
             backgroundColor: '#1DC690',
             color: '#fff',
-            fontSize: 11,
-            fontWeight: 500,
-            padding: '2px 7px',
+            fontSize: 12,
+            fontWeight: 700,
+            padding: '2px 8px',
             borderRadius: 10,
             lineHeight: '16px',
           }}
@@ -614,45 +685,41 @@ function TabButton({
   );
 }
 
-/* ══ SKELETON LIST ═════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════
+   SKELETON LIST
+═══════════════════════════════════════════════════════ */
 
 function SkeletonList() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {[1, 2, 3, 4].map((i) => (
         <div
           key={i}
           className="animate-pulse"
           style={{
             display: 'grid',
-            gridTemplateColumns: '88px 1fr 140px',
+            gridTemplateColumns: '130px 1fr 110px',
             alignItems: 'center',
-            gap: 18,
+            gap: 24,
             backgroundColor: '#F7F7F5',
-            borderRadius: 14,
-            padding: 16,
-            minHeight: 120,
+            borderRadius: 16,
+            padding: '20px 22px',
+            minHeight: 170,
           }}
         >
           <div
             style={{
-              width: 88,
-              height: 88,
-              borderRadius: 12,
+              width: 130,
+              height: 130,
+              borderRadius: 14,
               backgroundColor: '#E5E7EB',
               flexShrink: 0,
             }}
           />
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 8,
-            }}
-          >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
             <div
               style={{
-                height: 16,
+                height: 18,
                 borderRadius: 6,
                 backgroundColor: '#E5E7EB',
                 width: '50%',
@@ -660,18 +727,18 @@ function SkeletonList() {
             />
             <div
               style={{
-                height: 12,
+                height: 14,
                 borderRadius: 6,
                 backgroundColor: '#E5E7EB',
-                width: '35%',
+                width: '38%',
               }}
             />
             <div
               style={{
-                height: 28,
+                height: 30,
                 borderRadius: 8,
                 backgroundColor: '#E5E7EB',
-                width: '40%',
+                width: '45%',
               }}
             />
           </div>
@@ -685,18 +752,18 @@ function SkeletonList() {
           >
             <div
               style={{
-                height: 18,
+                height: 22,
                 borderRadius: 6,
                 backgroundColor: '#E5E7EB',
-                width: 80,
+                width: 90,
               }}
             />
             <div
               style={{
-                height: 12,
+                height: 13,
                 borderRadius: 6,
                 backgroundColor: '#E5E7EB',
-                width: 60,
+                width: 70,
               }}
             />
           </div>
@@ -706,7 +773,9 @@ function SkeletonList() {
   );
 }
 
-/* ══ ORDER CARD ════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════
+   ORDER CARD
+═══════════════════════════════════════════════════════ */
 
 function OrderCard({ order, tab }: { order: AnyOrder; tab: TabKey }) {
   const [hovered, setHovered] = useState(false);
@@ -715,15 +784,19 @@ function OrderCard({ order, tab }: { order: AnyOrder; tab: TabKey }) {
   const isSold = tab === 'sold';
   const isCancelled = order.status === 'cancelled';
 
-  /* For sold tab show seller's amount (raw); for purchases show buyer-paid total */
   const displayPrice = isSold ? raw : buyerPrice;
 
   const counterpartyName = isSold
     ? (order as SoldOrder).buyer_name
     : (order as PurchasedOrder).seller_name;
+
+  /* Avatar URL — auto-wires if backend ever returns one. Falls back to initials. */
+  const counterpartyAvatar = isSold
+    ? ((order as any).buyer_avatar_url as string | undefined)
+    : ((order as any).seller_avatar_url as string | undefined);
+
   const roleLabel = isSold ? 'Buyer' : 'Seller';
 
-  /* Image extraction — prefer images array, fall back to flat field */
   const imgs = (order as any).listing?.images as
     | { image_url: string; display_order?: number }[]
     | undefined;
@@ -734,7 +807,6 @@ function OrderCard({ order, tab }: { order: AnyOrder; tab: TabKey }) {
     : [];
   const imageUrl = sorted[0]?.image_url || (order as any).listing_image || null;
 
-  /* Resolve the next-action pill from the tuneable copy table */
   const pill = NEXT_ACTION_COPY[tab][order.status] ?? null;
 
   return (
@@ -747,23 +819,26 @@ function OrderCard({ order, tab }: { order: AnyOrder; tab: TabKey }) {
         onMouseLeave={() => setHovered(false)}
         style={{
           display: 'grid',
-          gridTemplateColumns: '88px 1fr auto',
-          gap: 20,
+          gridTemplateColumns: '130px 1fr auto',
+          gap: 24,
           alignItems: 'center',
-          backgroundColor: hovered ? '#FAFAF8' : '#FFFFFF',
-          borderRadius: 14,
-          border: `1px solid ${hovered ? '#D1D5DB' : '#E0E0E0'}`,
-          padding: '16px 20px',
+          backgroundColor: '#FFFFFF',
+          borderRadius: 16,
+          border: `1px solid ${hovered ? '#D1D5DB' : '#E5E7EB'}`,
+          padding: '20px 22px',
           cursor: 'pointer',
-          transition: 'all 0.15s ease',
+          boxShadow: hovered ? CARD_SHADOW_HOVER : CARD_SHADOW,
+          transform: hovered ? 'translateY(-2px)' : 'translateY(0)',
+          transition:
+            'box-shadow 0.18s ease, transform 0.18s ease, border-color 0.18s ease',
         }}
       >
-        {/* ── Image ── */}
+        {/* Image */}
         <div
           style={{
-            width: 88,
-            height: 88,
-            borderRadius: 12,
+            width: 130,
+            height: 130,
+            borderRadius: 14,
             overflow: 'hidden',
             backgroundColor: '#F7F7F5',
             flexShrink: 0,
@@ -779,38 +854,39 @@ function OrderCard({ order, tab }: { order: AnyOrder; tab: TabKey }) {
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
           ) : (
-            <Package size={28} color="#9CA3AF" />
+            <Package size={36} color="#9CA3AF" />
           )}
         </div>
 
-        {/* ── Middle: title+badge / meta / pill ── */}
+        {/* Middle column */}
         <div
           style={{
             minWidth: 0,
             display: 'flex',
             flexDirection: 'column',
-            gap: 7,
+            gap: 9,
           }}
         >
-          {/* Title + status badge inline */}
+          {/* Title + status */}
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 10,
+              gap: 12,
               flexWrap: 'wrap',
             }}
           >
             <span
               style={{
                 fontFamily: 'var(--font-sans)',
-                fontSize: 16,
-                fontWeight: 600,
+                fontSize: 18,
+                fontWeight: 700,
                 color: '#06070A',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
                 maxWidth: '100%',
+                letterSpacing: '-0.005em',
               }}
             >
               {order.listing_title}
@@ -818,14 +894,14 @@ function OrderCard({ order, tab }: { order: AnyOrder; tab: TabKey }) {
             <StatusBadge status={order.status} />
           </div>
 
-          {/* Meta line: counterparty avatar + name · order id */}
+          {/* Meta line */}
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: 14,
               fontFamily: 'var(--font-sans)',
-              fontSize: 13,
+              fontSize: 14,
               color: '#6B7280',
               flexWrap: 'wrap',
             }}
@@ -834,13 +910,17 @@ function OrderCard({ order, tab }: { order: AnyOrder; tab: TabKey }) {
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: 8,
+                gap: 9,
               }}
             >
-              <MiniAvatar name={counterpartyName} size={26} />
+              <MiniAvatar
+                name={counterpartyName}
+                url={counterpartyAvatar}
+                size={28}
+              />
               <span>
                 {roleLabel}{' '}
-                <span style={{ color: '#06070A', fontWeight: 500 }}>
+                <span style={{ color: '#06070A', fontWeight: 700 }}>
                   {counterpartyName}
                 </span>
               </span>
@@ -852,8 +932,9 @@ function OrderCard({ order, tab }: { order: AnyOrder; tab: TabKey }) {
               style={{
                 fontFamily:
                   'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-                fontSize: 12,
+                fontSize: 13,
                 color: '#9CA3AF',
+                fontWeight: 500,
                 letterSpacing: '0.02em',
               }}
             >
@@ -861,11 +942,11 @@ function OrderCard({ order, tab }: { order: AnyOrder; tab: TabKey }) {
             </span>
           </div>
 
-          {/* Next-action pill (only if applicable) */}
+          {/* Next-action pill */}
           {pill && <NextActionPill pill={pill} />}
         </div>
 
-        {/* ── Right: price + date + chevron ── */}
+        {/* Right column */}
         <div
           style={{
             display: 'flex',
@@ -873,16 +954,17 @@ function OrderCard({ order, tab }: { order: AnyOrder; tab: TabKey }) {
             alignItems: 'flex-end',
             gap: 6,
             flexShrink: 0,
-            minWidth: 100,
+            minWidth: 110,
           }}
         >
           <div
             style={{
               fontFamily: 'var(--font-sans)',
-              fontSize: 18,
-              fontWeight: 600,
+              fontSize: 22,
+              fontWeight: 700,
               color: isCancelled ? '#9CA3AF' : '#1DC690',
               textDecoration: isCancelled ? 'line-through' : 'none',
+              letterSpacing: '-0.01em',
             }}
           >
             {fp(displayPrice)}
@@ -890,20 +972,23 @@ function OrderCard({ order, tab }: { order: AnyOrder; tab: TabKey }) {
           <div
             style={{
               fontFamily: 'var(--font-sans)',
-              fontSize: 12,
+              fontSize: 13,
               color: '#9CA3AF',
+              fontWeight: 500,
             }}
           >
             {formatDate(order.created_at)}
           </div>
-          <ChevronRight size={18} color="#D1D5DB" style={{ marginTop: 2 }} />
+          <ChevronRight size={20} color="#D1D5DB" style={{ marginTop: 4 }} />
         </div>
       </div>
     </Link>
   );
 }
 
-/* ══ EMPTY STATE ═══════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════
+   EMPTY STATE
+═══════════════════════════════════════════════════════ */
 
 function EmptyOrders({ tab, filter }: { tab: TabKey; filter: FilterKey }) {
   const messages: Record<FilterKey, { heading: string; sub: string }> = {
@@ -940,16 +1025,17 @@ function EmptyOrders({ tab, filter }: { tab: TabKey; filter: FilterKey }) {
         padding: '80px 0',
         textAlign: 'center',
         backgroundColor: '#FFFFFF',
-        border: '1px solid #E0E0E0',
-        borderRadius: 14,
+        border: '1px solid #E5E7EB',
+        borderRadius: 16,
+        boxShadow: CARD_SHADOW,
       }}
     >
       <Package size={48} color="#D1D5DB" style={{ marginBottom: 16 }} />
       <p
         style={{
           fontFamily: 'var(--font-sans)',
-          fontSize: 16,
-          fontWeight: 600,
+          fontSize: 18,
+          fontWeight: 700,
           color: '#06070A',
           margin: '0 0 6px',
         }}
@@ -959,10 +1045,11 @@ function EmptyOrders({ tab, filter }: { tab: TabKey; filter: FilterKey }) {
       <p
         style={{
           fontFamily: 'var(--font-sans)',
-          fontSize: 13,
+          fontSize: 14,
           color: '#9CA3AF',
           margin: 0,
-          maxWidth: 320,
+          maxWidth: 360,
+          fontWeight: 500,
         }}
       >
         {msg.sub}
