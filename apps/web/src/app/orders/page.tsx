@@ -374,7 +374,7 @@ export default function OrdersPage() {
     <div style={{ backgroundColor: '#FFFFFF', minHeight: '100vh' }}>
       <div
         style={{
-          maxWidth: 1400,
+          maxWidth: 1200,
           margin: '0 auto',
           padding: '32px 32px 64px',
         }}

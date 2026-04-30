@@ -667,7 +667,7 @@ export default function OrderDetailPage() {
     <div style={{ backgroundColor: PAGE_BG, minHeight: '100vh' }}>
       <div
         style={{
-          maxWidth: 1100,
+          maxWidth: 1200,
           margin: '0 auto',
           padding: narrow ? '20px 16px 64px' : '32px 32px 64px',
         }}
