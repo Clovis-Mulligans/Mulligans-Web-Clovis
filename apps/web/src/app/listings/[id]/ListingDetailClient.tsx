@@ -75,7 +75,7 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
   useEffect(() => {
     if (!isAuthenticated || !listing.id || isOwnListing) return;
     checkFavourite(listing.id)
-      .then((res) => setIsFavourited(res.is_favourite))
+      .then((res) => setIsFavourited(!!(res as any).isFavorited))
       .catch(() => {});
   }, [isAuthenticated, listing.id, isOwnListing]);
 
