@@ -114,8 +114,9 @@ interface FilterGroupProps {
  * Collapsible filter group — Golf Clubs 4 Cash style.
  * Click the header to expand/collapse.
  */
-function FilterGroup({ title, defaultOpen = true, summary, children }: FilterGroupProps) {
-  const [open, setOpen] = useState(defaultOpen);
+function FilterGroup({ title, defaultOpen = false, summary, children }: FilterGroupProps) {
+  // Auto-open if there's an active summary (active filter)
+  const [open, setOpen] = useState(defaultOpen || !!summary);
 
   return (
     <div style={{ borderBottom: `1px solid ${BORDER}` }}>

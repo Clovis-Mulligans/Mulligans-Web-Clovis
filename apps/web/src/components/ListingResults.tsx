@@ -219,7 +219,7 @@ export function ListingResults({
   // ─── Render ───────────────────────────────────────────────
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 pb-12" style={{ maxWidth: 1600, margin: '0 auto' }}>
+    <div className="px-4 sm:px-6 lg:px-8 pb-12" style={{ maxWidth: 1400, margin: '0 auto' }}>
       {/* Breadcrumb */}
       {breadcrumb && breadcrumb.length > 0 && (
         <nav
