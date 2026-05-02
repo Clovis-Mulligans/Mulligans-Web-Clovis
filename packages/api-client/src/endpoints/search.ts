@@ -10,6 +10,7 @@ import type {
 export function searchListings(params?: SearchParams) {
   const queryParams: Record<string, string | number | boolean | undefined> = {};
   if (params) {
+    // Existing fields
     if (params.query) queryParams.query = params.query;
     if (params.category) queryParams.category = params.category;
     if (params.subcategory) queryParams.subcategory = params.subcategory;
@@ -22,11 +23,22 @@ export function searchListings(params?: SearchParams) {
     if (params.size) queryParams.size = params.size;
     if (params.shaftFlex) queryParams.shaftFlex = params.shaftFlex;
     if (params.shaftMaterial) queryParams.shaftMaterial = params.shaftMaterial;
-    if (params.loft) queryParams.loft = params.loft;
+    if (params.loft !== undefined) queryParams.loft = params.loft;
     if (params.page) queryParams.page = params.page;
     if (params.limit) queryParams.limit = params.limit;
     if (params.sortBy) queryParams.sortBy = params.sortBy;
     if (params.sortOrder) queryParams.sortOrder = params.sortOrder;
+
+    // NEW fields — backend already supports these, plumbing them through frontend
+    if (params.gripSize) queryParams.gripSize = params.gripSize;
+    if (params.setMakeup) queryParams.setMakeup = params.setMakeup;
+    if (params.lieAngle !== undefined) queryParams.lieAngle = params.lieAngle;
+    if (params.length !== undefined) queryParams.length = params.length;
+    if (params.color) queryParams.color = params.color;
+    if (params.location) queryParams.location = params.location;
+    if (params.waist) queryParams.waist = params.waist;
+    if (params.gloveSize) queryParams.gloveSize = params.gloveSize;
+    if (params.headType) queryParams.headType = params.headType;
   }
   return apiClient.get<SearchResponse>('/api/search/', { params: queryParams });
 }

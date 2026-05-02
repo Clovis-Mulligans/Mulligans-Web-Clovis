@@ -24,6 +24,15 @@ export interface SearchParams {
   page?: number;
   limit?: number;
   sortBy?: string;
+  gripSize?: string;
+setMakeup?: string;
+lieAngle?: number;
+length?: number;
+color?: string;
+location?: string;
+waist?: string;
+gloveSize?: string;
+headType?: string;
   sortOrder?: 'asc' | 'desc';
 }
 
