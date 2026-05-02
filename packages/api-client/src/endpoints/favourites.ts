@@ -8,7 +8,7 @@ export function getFavourites() {
 
 /** POST /api/favorites/:listingId — add favourite */
 export function addFavourite(listingId: string) {
-  return apiClient.post<{ message: string }>(`/api/favorites/${listingId}`);
+  return apiClient.post<{ message: string }>('/api/favorites', { listing_id: listingId });
 }
 
 /** DELETE /api/favorites/:listingId — remove favourite */
