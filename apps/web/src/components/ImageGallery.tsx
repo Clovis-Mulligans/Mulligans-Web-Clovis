@@ -13,9 +13,10 @@ interface ImageGalleryProps {
   showFavourite?: boolean;
   isFavourited?: boolean;
   onFavouriteClick?: () => void;
+  favCount?: number;
 }
 
-export function ImageGallery({ images, title, showFavourite = false, isFavourited = false, onFavouriteClick }: ImageGalleryProps) {
+export function ImageGallery({ images, title, showFavourite = false, isFavourited = false, onFavouriteClick, favCount = 0 }: ImageGalleryProps) {
   const sorted = [...images].sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -32,14 +33,16 @@ export function ImageGallery({ images, title, showFavourite = false, isFavourite
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
+  const showCount = favCount > 0;
   const favouriteButton = showFavourite && onFavouriteClick ? (
     <button
       onClick={(e) => { e.stopPropagation(); onFavouriteClick(); }}
-      className="absolute bottom-3 right-3 z-10 flex items-center justify-center rounded-full"
-      style={{ width: '40px', height: '40px', backgroundColor: 'rgba(0,0,0,0.45)' }}
+      className="absolute bottom-3 right-3 z-10 flex items-center justify-center"
+      style={{ height: '40px', paddingLeft: '10px', paddingRight: showCount ? '14px' : '10px', borderRadius: '20px', backgroundColor: 'rgba(0,0,0,0.5)', gap: showCount ? '6px' : '0' }}
       aria-label={isFavourited ? 'Remove from favourites' : 'Add to favourites'}
     >
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill={isFavourited ? '#1DC690' : 'none'} stroke={isFavourited ? '#1DC690' : '#FFFFFF'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+      {showCount && <span style={{ color: '#FFFFFF', fontSize: '14px', fontWeight: 600, fontFamily: 'var(--font-sans)' }}>{favCount}</span>}
     </button>
   ) : null;
 

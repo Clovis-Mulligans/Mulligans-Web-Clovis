@@ -55,6 +55,7 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [showConditionExplainer, setShowConditionExplainer] = useState(false);
   const [isFavourited, setIsFavourited] = useState(false);
+  const [favCount, setFavCount] = useState<number>(listing.favorite_count ?? 0);
   const [showBuyerProtection, setShowBuyerProtection] = useState(false); // FIX 5
 
   // OFFER SYSTEM state
@@ -141,9 +142,13 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
     if (!isAuthenticated) { router.push(`/login?redirect=/listings/${listing.id}`); return; }
     const was = isFavourited;
     setIsFavourited(!was);
+    setFavCount((c) => was ? Math.max(0, c - 1) : c + 1);
     (was ? removeFavourite(listing.id) : addFavourite(listing.id))
       .catch((err: any) => {
-        if (err?.status === 401 || err?.status === 403) setIsFavourited(was);
+        if (err?.status === 401 || err?.status === 403) {
+          setIsFavourited(was);
+          setFavCount((c) => was ? c + 1 : Math.max(0, c - 1));
+        }
       });
   };
 
@@ -259,6 +264,7 @@ export function ListingDetailClient({ listing, similar }: ListingDetailClientPro
               showFavourite={!isOwnListing}
               isFavourited={isFavourited}
               onFavouriteClick={handleFavouriteToggle}
+              favCount={favCount}
             />
 
             {/* FIX 3: Description moved here from below fold */}
