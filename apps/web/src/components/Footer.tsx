@@ -55,29 +55,31 @@ export function Footer() {
         <div className="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-4 lg:gap-16">
           
           {/* Brand */}
-          <div>
+          <div className="lg:pr-8">
             <span 
-              className="text-2xl font-bold tracking-wider" 
+              className="block text-3xl font-bold tracking-widest" 
               style={{ color: '#1DC690', fontFamily: 'var(--font-sans)' }}
             >
               MULLIGANS
             </span>
             <p 
-              className="mt-4 text-base font-medium" 
-              style={{ color: '#06070A', fontFamily: 'var(--font-sans)', lineHeight: 1.5 }}
+              className="mt-5 text-lg" 
+              style={{ color: '#06070A', fontFamily: 'var(--font-sans)', lineHeight: 1.4, fontWeight: 500 }}
             >
-              Buy Smart. Sell Easy. Play Better.
+              Buy Smart. Sell Easy.<br />Play Better.
             </p>
-            <p 
-              className="mt-4 flex items-center gap-2 text-sm" 
-              style={{ color: '#1DC690', fontFamily: 'var(--font-sans)', fontWeight: 500 }}
+            <div 
+              className="mt-5 flex items-start gap-2" 
+              style={{ color: '#1DC690', fontFamily: 'var(--font-sans)' }}
             >
-              <svg width="18" height="18" viewBox="0 0 16 16" fill="none">
+              <svg width="18" height="18" viewBox="0 0 16 16" fill="none" className="mt-0.5 flex-shrink-0">
                 <circle cx="8" cy="8" r="7" stroke="#1DC690" strokeWidth="1.5"/>
                 <path d="M5 8l2 2 4-4" stroke="#1DC690" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              Buyer Protection on every purchase
-            </p>
+              <span className="text-sm font-medium">
+                Buyer Protection on every purchase
+              </span>
+            </div>
           </div>
 
           {/* Sell */}
@@ -134,7 +136,15 @@ export function Footer() {
             >
               Get the app
             </h3>
-            <div className="mt-4 flex gap-5">
+            <p 
+              className="mt-4 text-xs font-medium" 
+              style={{ color: '#666666', fontFamily: 'var(--font-sans)' }}
+            >
+              Scan to download
+            </p>
+            
+            {/* QR Code and Store Badges - aligned horizontally */}
+            <div className="mt-3 flex items-start gap-4">
               {/* QR Code */}
               <a 
                 href="https://linktr.ee/MulligansGolf" 
@@ -143,54 +153,50 @@ export function Footer() {
                 className="flex-shrink-0 transition-transform hover:scale-105"
               >
                 <div 
-                  className="rounded-xl p-3" 
+                  className="rounded-xl overflow-hidden" 
                   style={{ 
                     backgroundColor: '#FFFFFF', 
                     boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                    padding: '8px',
                   }}
                 >
                   <Image
                     src="/images/qr-code-linktree.png"
                     alt="Scan to download Mulligans app"
-                    width={88}
-                    height={88}
+                    width={100}
+                    height={100}
                     className="rounded-lg"
-                    style={{ filter: 'invert(1)' }}
                   />
                 </div>
               </a>
               
-              {/* Store badges */}
-              <div className="flex flex-col justify-center gap-3">
-                <p 
-                  className="text-xs font-medium" 
-                  style={{ color: '#666666', fontFamily: 'var(--font-sans)' }}
-                >
-                  Scan to download
-                </p>
+              {/* Official Store Badges - stacked and aligned with QR */}
+              <div className="flex flex-col justify-center gap-2" style={{ height: '116px' }}>
                 <a
                   href="https://apps.apple.com/app/mulligans-golf"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-opacity hover:opacity-80"
-                  style={{ backgroundColor: '#06070A', color: '#FFFFFF', fontFamily: 'var(--font-sans)' }}
+                  className="transition-opacity hover:opacity-80"
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
-                  </svg>
-                  App Store
+                  <Image
+                    src="/images/app-store-badge.svg"
+                    alt="Download on the App Store"
+                    width={120}
+                    height={40}
+                  />
                 </a>
                 <a
                   href="https://play.google.com/store/apps/details?id=com.mulligans.golf"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-opacity hover:opacity-80"
-                  style={{ backgroundColor: '#06070A', color: '#FFFFFF', fontFamily: 'var(--font-sans)' }}
+                  className="transition-opacity hover:opacity-80"
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 01-.61-.92V2.734a1 1 0 01.609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.198l2.807 1.626a1 1 0 010 1.73l-2.808 1.626L15.206 12l2.492-2.491zM5.864 2.658L16.8 8.99l-2.302 2.302-8.634-8.634z"/>
-                  </svg>
-                  Google Play
+                  <Image
+                    src="/images/google-play-badge.png"
+                    alt="Get it on Google Play"
+                    width={135}
+                    height={40}
+                  />
                 </a>
               </div>
             </div>
