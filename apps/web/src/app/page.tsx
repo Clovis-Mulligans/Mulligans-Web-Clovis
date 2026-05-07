@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { CategoryNav } from '@/components/CategoryNav';
 import { FeaturedListings } from '@/components/FeaturedListings';
 import { ListingCard, type ListingCardData } from '@/components/ListingCard';
+import { BrandLogoWall } from '@/components/BrandLogoWall';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.mulligans.uk.com';
 
@@ -97,6 +98,9 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Brand wall — trust signal */}
+      <BrandLogoWall />
+
      {/* Trust Bar */}
       <section className="bg-white" style={{ borderBottom: '1px solid #E0E0D8' }}>
         <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-center gap-8 px-4 py-4 sm:px-6 lg:px-8">
@@ -123,7 +127,7 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-      
+
       {/* Featured Listings (client component) */}
       <FeaturedListings />
 
