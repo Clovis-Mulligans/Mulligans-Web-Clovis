@@ -39,7 +39,7 @@ interface FormErrors {
   [key: string]: string;
 }
 
-type ParcelSizeKey = 'SMALL' | 'MEDIUM' | 'LARGE' | 'XL' | 'OVERSIZED' | 'OWN';
+type ParcelSizeKey = 'small' | 'medium' | 'large' | 'extra_large' | 'oversized' | 'own';
 
 interface ParcelSizeOption {
   key: ParcelSizeKey;
@@ -53,12 +53,12 @@ interface ParcelSizeOption {
 // ---------------------------------------------------------------------------
 
 const PARCEL_SIZES: ParcelSizeOption[] = [
-  { key: 'SMALL', name: 'Small', weight: 'up to 2kg', price: '£3.49' },
-  { key: 'MEDIUM', name: 'Medium', weight: 'up to 5kg', price: '£5.99' },
-  { key: 'LARGE', name: 'Large', weight: 'up to 10kg', price: '£9.99' },
-  { key: 'XL', name: 'Extra Large', weight: 'up to 15kg', price: '£14.99' },
-  { key: 'OVERSIZED', name: 'Oversized', weight: 'any size', price: '£19.99' },
-  { key: 'OWN', name: 'Own Carrier', weight: '', price: '' },
+  { key: 'small', name: 'Small', weight: 'up to 2kg', price: '£3.49' },
+  { key: 'medium', name: 'Medium', weight: 'up to 5kg', price: '£5.99' },
+  { key: 'large', name: 'Large', weight: 'up to 10kg', price: '£9.99' },
+  { key: 'extra_large', name: 'Extra Large', weight: 'up to 15kg', price: '£14.99' },
+  { key: 'oversized', name: 'Oversized', weight: 'any size', price: '£24.99' },
+  { key: 'own', name: 'Own Carrier', weight: '', price: '' },
 ];
 
 const CATEGORIES = [
@@ -1195,7 +1195,7 @@ export default function ListingForm({ initialData, isEditing = false }: ListingF
                       {opt.weight && (
                         <p className="text-[0.76rem] text-[#6B6B6B] mt-0.5">{opt.weight}</p>
                       )}
-                      {opt.key === 'OWN' && (
+                      {opt.key === 'own' && (
                         <p className="text-[0.76rem] text-[#6B6B6B] mt-0.5">I&apos;ll arrange my own shipping</p>
                       )}
                     </div>
