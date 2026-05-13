@@ -557,10 +557,7 @@ export default function OrderDetailPage() {
   const buyerProtectionFee = itemAmount * 0.075 + 0.99 * qty;
   const totalPaid = itemAmount + shippingCost + buyerProtectionFee;
   const insurancePremium = Number(order.insurance_premium || 0);
-  const sellerPayout =
-    order.seller_payout != null
-      ? Number(order.seller_payout)
-      : itemAmount + shippingCost;
+  const sellerPayout = itemAmount;
 
   const counterparty: OrderParty = isBuyer ? order.seller : order.buyer;
   const counterpartyLabel = isBuyer ? 'Seller' : 'Buyer';
