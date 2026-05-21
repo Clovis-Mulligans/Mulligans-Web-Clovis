@@ -15,6 +15,13 @@
 const CLUBS: Record<string, Record<string, string[]>> = {
   "Drivers": {
     "TaylorMade": [
+      "Qi4D",
+      "Qi4D LS",
+      "Qi4D Max",
+      "Qi4D Max Lite",
+      "Qi35 LS",
+      "Qi35 Max",
+      "Qi10 LS",
       "Qi35",
       "Qi35 Max Lite",
       "Qi10",
@@ -64,6 +71,17 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "r510"
     ],
     "Callaway": [
+      "Quantum Max",
+      "Quantum Max D",
+      "Quantum Max Fast",
+      "Quantum Triple Diamond",
+      "Quantum Triple Diamond Max",
+      "Quantum Mini Driver",
+      "Paradym Ai Smoke Max",
+      "Paradym Ai Smoke Max D",
+      "Paradym Ai Smoke Triple Diamond",
+      "Paradym X",
+      "Paradym Triple Diamond",
       "Elyte",
       "Elyte Ti",
       "Paradym Ai Smoke",
@@ -111,6 +129,9 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "Fusion FT-3"
     ],
     "Titleist": [
+      "GTS2",
+      "GTS3",
+      "GTS4",
       "GT1",
       "GT2",
       "GT3",
@@ -145,6 +166,12 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "905T"
     ],
     "Ping": [
+      "G440 K",
+      "G440 K HL",
+      "G440 Max",
+      "G440 LST",
+      "G440 SFT",
+      "G440 HL",
       "G430 Max 10K",
       "G430 Max",
       "G430 LST",
@@ -180,6 +207,12 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "i3"
     ],
     "Cobra": [
+      "OPTM X",
+      "OPTM Max-K",
+      "OPTM Max-D",
+      "OPTM LS",
+      "Darkspeed LS",
+      "Darkspeed Max",
       "Darkspeed",
       "Darkspeed X",
       "Aerojet",
@@ -220,6 +253,7 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "King F-Max"
     ],
     "Mizuno": [
+      "JPX One",
       "ST-Z 230",
       "ST-X 230",
       "ST-Max 230",
@@ -246,6 +280,10 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "MP-001"
     ],
     "PXG": [
+      "Lightning Tour",
+      "Lightning Tour Mid",
+      "Lightning MAX Lite",
+      "Lightning MAX 10K",
       "0211 (2024)",
       "Black Ops",
       "0311 GEN6",
@@ -260,6 +298,9 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "0211"
     ],
     "Honma": [
+      "TW777",
+      "TW777 MAX",
+      "360Ti Mini Driver",
       "TW767 D",
       "TW767 S",
       "TW757 D",
@@ -286,6 +327,7 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "S-06"
     ],
     "Wilson": [
+      "DYNAPWR Max+",
       "Dynapower Carbon",
       "Dynapower Titanium",
       "Dynapower LS",
@@ -350,10 +392,22 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "Exotics XCG4",
       "Exotics XCG3",
       "Bazooka 470"
+    ],
+    "Srixon": [
+      "ZXi",
+      "ZXi LS",
+      "ZXi MAX"
     ]
   },
   "Fairway Woods": {
     "TaylorMade": [
+      "Qi4D",
+      "Qi4D Tour",
+      "Qi4D Max",
+      "Qi4D Max Lite",
+      "Qi35 Tour",
+      "Qi35 Max",
+      "Qi35 Max Lite",
       "Qi35",
       "Qi10",
       "Stealth 2",
@@ -399,6 +453,13 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "r9 SuperDeep"
     ],
     "Callaway": [
+      "Quantum Max",
+      "Quantum Max D",
+      "Quantum Max Fast",
+      "Quantum Triple Diamond",
+      "Quantum Ti",
+      "Paradym Ai Smoke Max",
+      "Paradym Ai Smoke Max D",
       "Elyte",
       "Paradym Ai Smoke",
       "Paradym",
@@ -436,6 +497,8 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "Fusion FT-3"
     ],
     "Titleist": [
+      "GTS2",
+      "GTS3",
       "GT2",
       "GT3",
       "GT4",
@@ -468,6 +531,9 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "917F"
     ],
     "Ping": [
+      "G440 Max",
+      "G440 LST",
+      "G440 SFT",
       "G430 Max",
       "G430 LST",
       "G430 SFT",
@@ -495,6 +561,9 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "G2"
     ],
     "Cobra": [
+      "OPTM LS Titanium",
+      "OPTM X",
+      "OPTM Max",
       "Darkspeed",
       "Aerojet",
       "LTDx",
@@ -518,6 +587,7 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "Speed Pro"
     ],
     "Mizuno": [
+      "JPX One",
       "ST-Z 230",
       "ST-X 230",
       "ST-Z 220",
@@ -566,6 +636,8 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "S-06"
     ],
     "Wilson": [
+      "Dynapower Carbon (2026)",
+      "Dynapower Max (2026)",
       "Dynapower",
       "D9",
       "Launch Pad 2",
@@ -611,10 +683,18 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "Exotics XCG7",
       "Exotics XCG6",
       "Bazooka 470"
+    ],
+    "Srixon": [
+      "ZXi Fairway"
     ]
   },
   "Hybrids": {
     "TaylorMade": [
+      "Qi4D Rescue",
+      "Qi4D Max Rescue",
+      "Qi4D Max Lite Rescue",
+      "Qi35 Max",
+      "Qi35 Max Lite",
       "Qi35",
       "Qi10",
       "Stealth 2",
@@ -660,6 +740,9 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "r9 TP"
     ],
     "Callaway": [
+      "Quantum Max",
+      "Quantum Max OS",
+      "Quantum Max Fast",
       "Elyte",
       "Paradym Ai Smoke",
       "Paradym",
@@ -712,6 +795,7 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "TSR2"
     ],
     "Ping": [
+      "G440",
       "G430",
       "G425",
       "G410",
@@ -733,6 +817,7 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "G2"
     ],
     "Cobra": [
+      "OPTM",
       "Darkspeed",
       "Aerojet",
       "LTDx",
@@ -755,6 +840,7 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "King F-Max"
     ],
     "Mizuno": [
+      "JPX One",
       "Pro Fli-Hi 241",
       "ST-Z 230",
       "ST-X 230",
@@ -781,6 +867,7 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "0211"
     ],
     "Honma": [
+      "TW777 Hybrid",
       "TW767",
       "TW757",
       "GS",
@@ -793,6 +880,7 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "Be ZEAL 535"
     ],
     "Wilson": [
+      "Dynapower Hybrid (2026)",
       "Dynapower",
       "D9",
       "Launch Pad 2",
@@ -826,10 +914,15 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "Exotics CBX 119",
       "Exotics E8",
       "Bazooka 470"
+    ],
+    "Srixon": [
+      "ZXi Hybrid"
     ]
   },
   "Irons": {
     "TaylorMade": [
+      "Qi Max",
+      "Qi Max HL",
       "Qi",
       "Qi10",
       "P7MB 2023",
@@ -906,6 +999,9 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "RAC TP"
     ],
     "Callaway": [
+      "Quantum Max",
+      "Quantum Max OS",
+      "Quantum Max Fast",
       "Elyte",
       "Elyte X",
       "Elyte HL",
@@ -990,6 +1086,9 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "Fusion"
     ],
     "Titleist": [
+      "T250",
+      "T250 Launch Spec",
+      "T250-U",
       "T100",
       "T100S",
       "T150",
@@ -1064,6 +1163,10 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "U505"
     ],
     "Ping": [
+      "G440",
+      "G740",
+      "i240",
+      "i540",
       "i230",
       "G430",
       "G425",
@@ -1101,6 +1204,10 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "i3 Blade"
     ],
     "Cobra": [
+      "3DP MB",
+      "3DP X",
+      "KING (2026)",
+      "KING MAX (2026)",
       "Darkspeed",
       "King CB/MB",
       "King Tour",
@@ -1134,6 +1241,10 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "King Cobra SS-I"
     ],
     "Mizuno": [
+      "JPX 925 Forged",
+      "Pro M-13",
+      "Pro M-15",
+      "Pro Fli-Hi",
       "Pro 245",
       "Pro 243",
       "Pro 241",
@@ -1218,6 +1329,9 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "MX-500"
     ],
     "PXG": [
+      "0311 T GEN8",
+      "0311 P GEN8",
+      "0311 XP GEN8",
       "0311 P GEN7",
       "0311 XP GEN7",
       "0211 (2024)",
@@ -1243,6 +1357,7 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "0311 Gen2"
     ],
     "Honma": [
+      "TW777 PCB Max",
       "TW767 Tour V",
       "TW767 Vx",
       "TW767 Px",
@@ -1277,6 +1392,8 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "S-06"
     ],
     "Wilson": [
+      "Staff Model XB",
+      "Dynapower Forged (2026)",
       "Dynapower",
       "Dynapower MAX",
       "Dynapower Forged",
@@ -1361,6 +1478,14 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "IC-602",
       "IC-601",
       "PI-401"
+    ],
+    "Srixon": [
+      "ZXi5",
+      "ZXi7",
+      "ZXi4",
+      "ZXiU",
+      "ZXiR",
+      "ZXiR HL"
     ]
   },
   "Wedges": {
@@ -1396,6 +1521,8 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "Milled Grind Hi-Toe"
     ],
     "Callaway": [
+      "Opus SP",
+      "Opus SP+",
       "Opus",
       "CBX Full Face 2",
       "Jaws Raw Full Toe",
@@ -1455,6 +1582,7 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "Vokey SM7 TVD"
     ],
     "Ping": [
+      "S259",
       "S159",
       "S159 Custom",
       "Glide 4.0",
@@ -1483,7 +1611,15 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "S2",
       "King Tour Wedge"
     ],
+    "Cleveland": [
+      "RTZ",
+      "RTZ Tour Rack",
+      "CBZ",
+      "CBZ Full-Face"
+    ],
     "Mizuno": [
+      "Pro T-1",
+      "Pro T-3",
       "T24",
       "T22",
       "ES21",
@@ -1539,6 +1675,7 @@ const CLUBS: Record<string, Record<string, string[]>> = {
   },
   "Putters": {
     "TaylorMade": [
+      "SYSTM2",
       "TP Black",
       "Spider GTx",
       "TP Reserve",
@@ -1689,6 +1826,11 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "G Le2"
     ],
     "Cobra": [
+      "MIM Sport",
+      "MIM Widesport",
+      "MIM Blazer",
+      "MIM Camino",
+      "MIM Nova",
       "King 3D Printed",
       "King Vintage",
       "King Cobra",
@@ -1742,6 +1884,10 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "Template Series"
     ],
     "Scotty Cameron": [
+      "Phantom 5",
+      "Phantom 5 OC",
+      "Phantom 7",
+      "Phantom 9R",
       "Super Select Newport 2",
       "Super Select Newport 2 Plus",
       "Super Select Newport 2.5",
@@ -1761,6 +1907,11 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "Studio Design"
     ],
     "Odyssey": [
+      "Ai-DUAL #1",
+      "Ai-DUAL #7 S",
+      "Ai-DUAL #7 DB",
+      "Ai-DUAL 1/2 Ball",
+      "Ai-DUAL Square 2 Square",
       "Ai-ONE Cruiser #7",
       "Ai-ONE Cruiser Double Wide",
       "Ai-ONE Cruiser Jailbird",
@@ -1778,9 +1929,56 @@ const CLUBS: Record<string, Record<string, string[]>> = {
       "Tri-Hot 5K",
       "2-Ball Ten"
     ],
-    "LA Golf": [
+    "L.A.B. Golf": [
+      "DF3",
+      "DF 2.1",
+      "Mezz.1 Max",
+      "Oz.1",
+      "LINK 2.1",
+      "LINK 2.2 HS",
       "TP.1",
       "TP.2"
+    ],
+    "Bettinardi": [
+      "BB-1",
+      "BB-8W",
+      "BB-28",
+      "BB-49",
+      "BB-6.0",
+      "BB-7.0",
+      "Queen B QB5",
+      "Queen B QB6",
+      "Queen B QB8",
+      "Queen B QB11",
+      "Studio Stock SS2",
+      "Studio Stock SS8",
+      "Studio Stock SS28",
+      "Studio Stock SS38",
+      "Antidote SB3",
+      "Antidote SB5",
+      "INOVAI 6.0",
+      "INOVAI 7.0",
+      "INOVAI 8.0",
+      "INOVAI 14.0"
+    ],
+    "Evnroll": [
+      "ER2",
+      "ER5",
+      "ER8",
+      "ER10",
+      "ER2 TS38",
+      "ER10 TS38"
+    ],
+    "SIK Golf": [
+      "PRO",
+      "DW",
+      "DW 2.0",
+      "SHO",
+      "JO",
+      "FLO",
+      "PRO Armlock",
+      "DW Armlock",
+      "FLO Armlock"
     ]
   }
 };
@@ -1824,6 +2022,10 @@ const SHAFTS:        Record<string, string[]> = {
     "Speeder HB"
   ],
   "Project X": [
+    "Titan",
+    "Titan Black",
+    "Denali Frost Blue",
+    "Denali Frost Black",
     "HZRDUS Black Gen 5",
     "HZRDUS Black Gen 4",
     "HZRDUS Smoke Black",
@@ -2046,6 +2248,16 @@ const SHAFTS:        Record<string, string[]> = {
     "TPT 15",
     "TPT 19",
     "TPT 22"
+  ],
+  "UST Mamiya": [
+    "LIN-Q PowerCore Red",
+    "LIN-Q PowerCore Blue",
+    "LIN-Q PowerCore White",
+    "Helium NCT",
+    "ProForce V2",
+    "Recoil Dart ESX",
+    "Recoil 460",
+    "Recoil 480"
   ]
 };
 const GRIPS:         Record<string, string[]> = {
@@ -2148,6 +2360,7 @@ const BALLS:         Record<string, string[]> = {
     "TruFeel 2024"
   ],
   "Callaway": [
+    "Chrome Tour Triple Diamond",
     "Chrome Tour",
     "Chrome Tour X",
     "Chrome Soft",
@@ -2170,6 +2383,9 @@ const BALLS:         Record<string, string[]> = {
     "Supersoft Magna"
   ],
   "TaylorMade": [
+    "TP5 (2026)",
+    "TP5x (2026)",
+    "TP5 pix (2026)",
     "TP5",
     "TP5x",
     "TP5 pix",
@@ -2210,6 +2426,7 @@ const BALLS:         Record<string, string[]> = {
     "Tour B330S"
   ],
   "Srixon": [
+    "Z-Star XV Divide",
     "Z-Star",
     "Z-Star XV",
     "Z-Star Diamond",
@@ -2250,6 +2467,8 @@ const BALLS:         Record<string, string[]> = {
     "Pro Plus 2024"
   ],
   "Snell Golf": [
+    "PR3",
+    "PR4",
     "MTB Black",
     "MTB X",
     "MTB Prime",
@@ -2286,6 +2505,9 @@ const BALLS:         Record<string, string[]> = {
     "D1"
   ],
   "Volvik": [
+    "Condor X",
+    "Condor S3 Tour Soft",
+    "Condor S4 Tour Soft",
     "Vivid",
     "Vivid Soft",
     "Vivid Lite",
@@ -3884,6 +4106,10 @@ const SHAFT_MODELS_BY_BRAND_INTERNAL: Record<string, string[]> = {
     "Speeder HB"
   ],
   "Project X": [
+    "Titan",
+    "Titan Black",
+    "Denali Frost Blue",
+    "Denali Frost Black",
     "HZRDUS Black Gen 5",
     "HZRDUS Black Gen 4",
     "HZRDUS Smoke Black",
@@ -4053,6 +4279,10 @@ const SHAFT_MODELS_BY_BRAND_INTERNAL: Record<string, string[]> = {
     "Ascent"
   ],
   "UST Mamiya": [
+    "LIN-Q PowerCore Red",
+    "LIN-Q PowerCore Blue",
+    "LIN-Q PowerCore White",
+    "Helium NCT",
     "Recoil 660",
     "Recoil 760",
     "Recoil 780",
@@ -4159,6 +4389,10 @@ const SHAFT_MODELS_BY_BRAND_AND_TYPE_INTERNAL: Record<string, Record<string, str
       "Motore X F5"
     ],
     "Project X": [
+      "Titan",
+      "Titan Black",
+      "Denali Frost Blue",
+      "Denali Frost Black",
       "HZRDUS Black Gen 5",
       "HZRDUS Black Gen 4",
       "HZRDUS Smoke Black",
@@ -4243,6 +4477,9 @@ const SHAFT_MODELS_BY_BRAND_AND_TYPE_INTERNAL: Record<string, Record<string, str
       "Ascent"
     ],
     "UST Mamiya": [
+      "LIN-Q PowerCore Red",
+      "LIN-Q PowerCore Blue",
+      "LIN-Q PowerCore White",
       "Proforce V2",
       "ProForce VTS",
       "LIN-Q",
@@ -4329,6 +4566,10 @@ const SHAFT_MODELS_BY_BRAND_AND_TYPE_INTERNAL: Record<string, Record<string, str
       "Motore X F5"
     ],
     "Project X": [
+      "Titan",
+      "Titan Black",
+      "Denali Frost Blue",
+      "Denali Frost Black",
       "HZRDUS Black Gen 5",
       "HZRDUS Black Gen 4",
       "HZRDUS Smoke Black",
@@ -4420,6 +4661,9 @@ const SHAFT_MODELS_BY_BRAND_AND_TYPE_INTERNAL: Record<string, Record<string, str
       "Ascent"
     ],
     "UST Mamiya": [
+      "LIN-Q PowerCore Red",
+      "LIN-Q PowerCore Blue",
+      "LIN-Q PowerCore White",
       "Proforce V2",
       "ProForce VTS",
       "LIN-Q",
