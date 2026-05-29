@@ -11,8 +11,9 @@ const SELL_LINKS = [
 const SUPPORT_LINKS = [
   { label: 'Help centre', href: '/support/help' },
   { label: 'Contact', href: '/support/contact' },
-  { label: 'Terms', href: '/legal/terms' },
-  { label: 'Privacy', href: '/legal/privacy' },
+  { label: 'Terms', href: '/terms' },
+  { label: 'Privacy', href: '/privacy' },
+  { label: 'Legal', href: '/legal' },
 ];
 
 const SOCIAL_LINKS = [
