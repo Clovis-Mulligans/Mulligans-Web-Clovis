@@ -6,7 +6,7 @@
 export const CLUB_BRANDS = [
   'TaylorMade', 'Callaway', 'Titleist', 'Ping', 'Cobra', 'Mizuno', 'Srixon',
   'Cleveland', 'Wilson', 'Wilson Staff', 'PXG', 'Honma', 'Tour Edge', 'Miura',
-  'Scotty Cameron', 'Odyssey', 'Bettinardi', 'LAB Golf', 'Evnroll', 'SIK Golf',
+  'Scotty Cameron', 'Odyssey', 'Bettinardi', 'L.A.B. Golf', 'Evnroll', 'SIK Golf',
   'Toulon Design', 'L.A. Golf', 'Adams', 'Ben Hogan', 'Bridgestone', 'Dunlop',
   'MacGregor', 'Lynx', 'Top Flite', 'Tommy Armour', 'Ram', 'Yonex', 'Sub 70',
   'New Level Golf', 'Haywood Golf', 'Maltby', 'Wishon Golf', 'Other',
