@@ -1078,10 +1078,10 @@ export default function DisputePage() {
     function renderBuyerClaimCard() {
       return (
         <div style={CARD}>
-          <div style={SECTION_LABEL}>CLAIM DETAILS</div>
-          <DataRow label="Reason" value={formatReasonLabel(d.reason_type)} />
+          <div style={SECTION_LABEL}>{disputeIsBuyer ? 'YOUR CLAIM' : "BUYER'S CLAIM"}</div>
+          <DataRow label={disputeIsBuyer ? 'Reason' : "Buyer's Reason"} value={formatReasonLabel(d.reason_type)} />
           <DataRow
-            label="Requested refund"
+            label={disputeIsBuyer ? 'Requested Refund' : 'Refund Requested'}
             value={`${d.requested_refund_percent}% (£${reqRefAmt})`}
             valueColor="#1DC690"
           />
@@ -1098,6 +1098,7 @@ export default function DisputePage() {
                 wordBreak: 'break-word',
               }}
             >
+              {!disputeIsBuyer && <span style={{ fontWeight: 600, color: '#374151' }}>Buyer's description: </span>}
               {d.reason_text}
             </div>
           )}
