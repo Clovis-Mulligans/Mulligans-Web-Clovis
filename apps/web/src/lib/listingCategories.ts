@@ -37,6 +37,7 @@ export const CATEGORIES: CategoryOption[] = [
   { value: 'Accessories', label: 'Accessories' },
   { value: 'Balls', label: 'Balls' },
   { value: 'Training Aids', label: 'Training Aids' },
+  { value: 'Memorabilia', label: 'Memorabilia' },
 ];
 
 export const SUBCATEGORIES: Record<string, string[]> = {
@@ -54,6 +55,7 @@ export const SUBCATEGORIES: Record<string, string[]> = {
   ],
   'Balls': ['New', 'Used/Lake', 'Other'],
   'Training Aids': ['Swing Trainer', 'Putting Aid', 'Net', 'Mat', 'GPS Watch', 'Other'],
+  'Memorabilia': ['Signed Items', 'Vintage', 'Other'],
 };
 
 // ───── Shared option lists ─────

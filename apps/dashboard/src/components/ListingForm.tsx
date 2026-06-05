@@ -69,6 +69,7 @@ const CATEGORIES = [
   'Accessories',
   'Balls',
   'Training Aids',
+  'Memorabilia',
   'Everything Else',
 ];
 
@@ -592,6 +593,27 @@ function TrainingAidsFields({ specs, onSpecChange, errors }: { specs: Specs; onS
   );
 }
 
+function MemorabiliaFields({ specs, onSpecChange, errors }: { specs: Specs; onSpecChange: (k: string, v: string) => void; errors: FormErrors }) {
+  return (
+    <div className="space-y-4 mt-4 pt-4 border-t border-[#F0F0EA]">
+      <div>
+        <label className={labelClass}>Sub-category <RequiredAsterisk /></label>
+        <SelectWrapper>
+          <select className={selectClass} value={(specs.subcategory as string) ?? ''} onChange={(e) => onSpecChange('subcategory', e.target.value)}>
+            <option value="">Select sub-category</option>
+            {['Signed Items', 'Vintage', 'Other'].map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </SelectWrapper>
+        <FieldError msg={errors['specs.subcategory']} />
+      </div>
+      <div>
+        <label className={labelClass}>Brand</label>
+        <input className={inputClass} placeholder="e.g. player name, event, brand" value={(specs.brand as string) ?? ''} onChange={(e) => onSpecChange('brand', e.target.value)} />
+      </div>
+    </div>
+  );
+}
+
 function EverythingElseFields({ specs, onSpecChange, errors }: { specs: Specs; onSpecChange: (k: string, v: string) => void; errors: FormErrors }) {
   return (
     <div className="space-y-4 mt-4 pt-4 border-t border-[#F0F0EA]">
@@ -810,6 +832,9 @@ export default function ListingForm({ initialData, isEditing = false }: ListingF
       if (!specs.brand) errs['specs.brand'] = 'Brand is required.';
       if (!specs.training_type) errs['specs.training_type'] = 'Type is required.';
     }
+    if (category === 'Memorabilia') {
+      if (!specs.subcategory) errs['specs.subcategory'] = 'Sub-category is required.';
+    }
     if (category === 'Everything Else') {
       if (!specs.item_name) errs['specs.item_name'] = 'Item name is required.';
     }
@@ -927,6 +952,8 @@ export default function ListingForm({ initialData, isEditing = false }: ListingF
         return <BallsFields specs={specs} onSpecChange={handleSpecChange} errors={errors} />;
       case 'Training Aids':
         return <TrainingAidsFields specs={specs} onSpecChange={handleSpecChange} errors={errors} />;
+      case 'Memorabilia':
+        return <MemorabiliaFields specs={specs} onSpecChange={handleSpecChange} errors={errors} />;
       case 'Everything Else':
         return <EverythingElseFields specs={specs} onSpecChange={handleSpecChange} errors={errors} />;
       default:

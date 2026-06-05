@@ -13,6 +13,7 @@ const CATEGORIES = [
   { label: 'Balls', slug: 'balls' },
   { label: 'Training Aids', slug: 'training-aids' },
   { label: 'Shafts & Grips', slug: 'shafts-grips' },
+  { label: 'Memorabilia', slug: 'memorabilia' },
 ];
 
 export function CategoryNav() {

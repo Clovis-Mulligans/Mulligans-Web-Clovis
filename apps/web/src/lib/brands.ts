@@ -167,6 +167,9 @@ export function getBrandsFor(category: string, subcategory?: string | null): str
       return BALL_BRANDS;
     case 'Training Aids':
       return TRAINING_AID_BRANDS;
+    case 'Memorabilia':
+    case 'Everything Else':
+      return ['Other'];
     default:
       return CLUB_BRANDS;
   }

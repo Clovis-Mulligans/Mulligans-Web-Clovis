@@ -12,6 +12,7 @@ const CATEGORY_FILTERS = [
   { display: 'Balls', db: 'Balls' },
   { display: 'Training Aids', db: 'Training Aids' },
   { display: 'Shafts & Grips', db: 'Shafts, Grips & Heads' },
+  { display: 'Memorabilia', db: 'Memorabilia' },
   { display: 'Everything Else', db: 'Everything Else' },
 ];
 
@@ -39,6 +40,7 @@ const ACCESSORIES_SUBS = ['Bags', 'Headcovers', 'Tees', 'Rangefinders', 'Launch 
 const BALLS_SUBS = ['New', 'Used/Lake', 'Other'];
 const TRAINING_AIDS_SUBS = ['Swing Trainer', 'Putting Aid', 'Net', 'Mat', 'GPS Watch', 'Other'];
 const SHAFTS_SUBS = ['Shafts', 'Grips', 'Heads', 'Other'];
+const MEMORABILIA_SUBS = ['Signed Items', 'Vintage', 'Other'];
 
 // Sizes
 const CLOTHING_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
@@ -80,6 +82,7 @@ function getSubcategoriesForCategory(cat: string | undefined): string[] {
     case 'Balls': return BALLS_SUBS;
     case 'Training Aids': return TRAINING_AIDS_SUBS;
     case 'Shafts, Grips & Heads': return SHAFTS_SUBS;
+    case 'Memorabilia': return MEMORABILIA_SUBS;
     default: return [];
   }
 }

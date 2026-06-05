@@ -16,6 +16,7 @@ const CATEGORIES = [
   { label: 'Balls', slug: 'balls', icon: '/icons/search-icons/Balls.png' },
   { label: 'Training Aids', slug: 'training-aids', icon: '/icons/search-icons/Training Aids.png' },
   { label: 'Shafts & Grips', slug: 'shafts-grips', icon: '/icons/search-icons/Shaft Grips and Heads.png' },
+  { label: 'Memorabilia', slug: 'memorabilia', icon: '/icons/search-icons/Memorabilia.png' },
   { label: 'Everything Else', slug: 'everything-else', icon: '/icons/search-icons/Everything else.png' },
 ];
 

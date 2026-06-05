@@ -7,7 +7,7 @@ import { createConversation } from '@mulligans/api-client';
 import { ListingCard } from '@/components/ListingCard';
 import { Breadcrumb } from '@/components/Breadcrumb';
 
-const CATEGORIES = ['All', 'Clubs', 'Clothing', 'Shoes', 'Accessories', 'Balls', 'Training Aids', 'Everything Else'];
+const CATEGORIES = ['All', 'Clubs', 'Clothing', 'Shoes', 'Accessories', 'Balls', 'Training Aids', 'Memorabilia', 'Everything Else'];
 
 interface StorePageClientProps {
   user: any;

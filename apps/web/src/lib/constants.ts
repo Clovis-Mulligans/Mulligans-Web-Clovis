@@ -17,6 +17,7 @@ export const CATEGORY_SLUG_TO_DB: Record<string, string> = {
   'training-aids': 'Training Aids',
   'shafts-grips': 'Shafts, Grips & Heads',
   'everything-else': 'Everything Else',
+  'memorabilia': 'Memorabilia',
 };
 
 /** DB category name → URL slug */
@@ -29,4 +30,5 @@ export const CATEGORY_DB_TO_SLUG: Record<string, string> = {
   'Training Aids': 'training-aids',
   'Shafts, Grips & Heads': 'shafts-grips',
   'Everything Else': 'everything-else',
+  'Memorabilia': 'memorabilia',
 };
