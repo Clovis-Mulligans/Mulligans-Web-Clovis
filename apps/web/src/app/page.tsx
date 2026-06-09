@@ -1,11 +1,21 @@
 import React from 'react';
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { CategoryNav } from '@/components/CategoryNav';
 import { FeaturedListings } from '@/components/FeaturedListings';
 import { ListingCard, type ListingCardData } from '@/components/ListingCard';
 import { BrandLogoWall } from '@/components/BrandLogoWall';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.mulligans.uk.com';
+
+export const metadata: Metadata = {
+  title: 'Mulligans — Buy & Sell Used Golf Equipment | UK Golf Marketplace',
+  description:
+    'The UK marketplace for buying and selling new and used golf clubs, clothing and gear. Golf-specific search filters — find equipment by shaft flex, loft, lie angle, dexterity and more. Every purchase protected.',
+  alternates: {
+    canonical: 'https://www.mulligans.uk.com',
+  },
+};
 
 // FIX 1: Category icons updated from emojis to PNG images
 const CATEGORIES = [
