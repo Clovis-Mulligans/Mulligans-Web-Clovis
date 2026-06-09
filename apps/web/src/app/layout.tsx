@@ -13,19 +13,28 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  title: 'Mulligans — Buy & Sell Golf Equipment',
+  metadataBase: new URL('https://www.mulligans.uk.com'),
+  title: {
+    default: 'Mulligans — Buy & Sell Golf Equipment | UK Golf Marketplace',
+    template: '%s | Mulligans',
+  },
   description:
-    'The UK marketplace for buying and selling new and pre-owned golf equipment and clothing. Golf-specific search filters no other marketplace offers.',
+    'Buy and sell new and used golf clubs, clothing and gear in the UK. Golf-specific search filters that no other marketplace offers — find equipment by shaft flex, loft, lie angle and more.',
+  robots: { index: true, follow: true },
   openGraph: {
-    title: 'Mulligans — Buy & Sell Golf Equipment',
+    title: 'Mulligans — Buy & Sell Golf Equipment | UK Golf Marketplace',
     description:
-      'The UK marketplace for buying and selling new and pre-owned golf equipment and clothing.',
+      'Buy and sell new and used golf clubs, clothing and gear in the UK. Golf-specific search filters no other marketplace offers.',
     type: 'website',
-    url: 'https://mulligans.uk.com',
+    url: 'https://www.mulligans.uk.com',
+    siteName: 'Mulligans',
   },
   icons: {
     icon: 'https://mulligans-golf-images-mvp.s3.eu-west-2.amazonaws.com/email-assets/Asset+21x+transparent.png',
     apple: 'https://mulligans-golf-images-mvp.s3.eu-west-2.amazonaws.com/email-assets/Asset+21x+transparent.png',
+  },
+  alternates: {
+    canonical: 'https://www.mulligans.uk.com',
   },
 };
 
