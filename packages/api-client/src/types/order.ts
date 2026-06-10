@@ -9,7 +9,8 @@ export type OrderStatus =
   | 'disputed'
   | 'refunded'
   | 'returned'
-  | 'delivery_failed';
+  | 'delivery_failed'
+  | 'return_in_progress';
 
 /** Flattened order returned by getMySales */
 export interface SoldOrder {
