@@ -80,7 +80,7 @@ export default async function HomePage() {
               <div className="mt-6 grid grid-cols-2 gap-2">
                 {[
                   { title: 'Buy Safely', sub: 'Buyer Protection Pro' },
-                  { title: 'Verified Sellers', sub: 'Every seller checked' },
+                  { title: 'Trusted Sellers', sub: 'Profiles, ratings & history' },
                   { title: 'Insured Shipping', sub: 'On all orders' },
                   { title: 'Zero Seller Fees', sub: 'Free to list & sell' },
                 ].map((stat) => (
