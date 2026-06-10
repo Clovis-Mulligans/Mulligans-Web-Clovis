@@ -47,8 +47,8 @@ const GooglePlayBadge = () => (
   </svg>
 );
 
-export const APP_STORE_URL = 'https://apps.apple.com/app/mulligans-golf';
-export const GOOGLE_PLAY_URL = 'https://play.google.com/store/apps/details?id=com.mulligans.golf';
+export const APP_STORE_URL = 'https://apps.apple.com/gb/app/id6756275107';
+export const GOOGLE_PLAY_URL = 'https://play.google.com/store/apps/details?id=com.mulligansgolf.app';
 
 export function AppStoreBadges() {
   return (
