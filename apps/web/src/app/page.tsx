@@ -5,6 +5,7 @@ import { CategoryNav } from '@/components/CategoryNav';
 import { FeaturedListings } from '@/components/FeaturedListings';
 import { ListingCard, type ListingCardData } from '@/components/ListingCard';
 import { BrandLogoWall } from '@/components/BrandLogoWall';
+import { AppStoreBadges } from '@/components/AppStoreBadges';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.mulligans.uk.com';
 
@@ -61,7 +62,7 @@ export default async function HomePage() {
                 Buy <span style={{ color: '#1DC690' }}>Smart.</span> Sell <span style={{ color: '#1DC690' }}>Easy.</span><br />Play <span style={{ color: '#1DC690' }}>Better.</span>
               </h1>
               <p className="mt-3 text-white" style={{ fontFamily: 'var(--font-sans)', fontSize: '0.9rem', opacity: 0.8, lineHeight: 1.6 }}>
-                Find golf clubs, clothing, and accessories from verified sellers across the UK. Every purchase protected.
+                Buy and sell new and used golf clubs, clothing and accessories from sellers across the UK &mdash; every purchase protected. Browse here on the web, or get the Mulligans app for iOS and Android.
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link href="/search" className="inline-flex items-center rounded-[10px] px-5 py-2.5 text-sm font-bold transition-colors hover:opacity-90" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, backgroundColor: '#FFFFFF', color: '#1DC690' }}>
@@ -70,6 +71,9 @@ export default async function HomePage() {
                 <Link href="/sell" className="inline-flex items-center rounded-[10px] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-white/10" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, border: '1.5px solid rgba(255,255,255,0.5)' }}>
                   Start Selling
                 </Link>
+              </div>
+              <div className="mt-5">
+                <AppStoreBadges />
               </div>
 
               {/* Stat boxes */}

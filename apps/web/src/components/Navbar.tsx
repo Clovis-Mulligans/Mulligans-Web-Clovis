@@ -102,6 +102,15 @@ export function Navbar() {
           </form>
 
           <div className="flex items-center gap-2">
+            <Link
+              href="/download"
+              className="hidden sm:flex items-center gap-1.5 rounded-[10px] px-4 py-2 text-sm font-bold text-white transition-colors hover:opacity-90"
+              style={{ backgroundColor: '#278AB0', fontFamily: 'var(--font-sans)' }}
+              aria-label="Download the Mulligans app"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="7" y="4" width="10" height="16" rx="1.5"/><line x1="11" y1="17" x2="13" y2="17"/></svg>
+              Download app
+            </Link>
             <Link href="/sell" className="hidden sm:flex items-center gap-1.5 rounded-[10px] px-4 py-2 text-sm font-bold text-white transition-colors hover:opacity-90" style={{ backgroundColor: '#1DC690', fontFamily: 'var(--font-sans)' }}>
   + Sell
 </Link>
