@@ -20,7 +20,7 @@ import { useAuth } from '@/hooks/useAuth';
 import {
   getCart,
   removeFromCart,
-  createCartCheckout,
+  createSellerCheckout,
   type CartResponse,
   type CartSeller,
   type CartItem,
@@ -59,8 +59,6 @@ const CONDITION_CONFIG: Record<number, { bg: string; label: string }> = {
 };
 
 const CARD_SHADOW = '0 4px 14px rgba(6,7,10,0.10), 0 2px 4px rgba(6,7,10,0.06)';
-const CARD_SHADOW_HOVER = '0 8px 24px rgba(6,7,10,0.12), 0 3px 6px rgba(6,7,10,0.08)';
-const SUMMARY_SHADOW = '0 4px 14px rgba(6,7,10,0.06), 0 2px 4px rgba(6,7,10,0.04)';
 
 /* -- Helpers ------------------------------------------------ */
 
@@ -80,7 +78,7 @@ export default function CartPage() {
   const [cart, setCart] = useState<CartResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [removing, setRemoving] = useState<string | null>(null);
-  const [checkingOut, setCheckingOut] = useState(false);
+  const [checkoutSellerId, setCheckoutSellerId] = useState<string | null>(null);
   const [protectionOpen, setProtectionOpen] = useState(false);
 
   /* -- Auth gate -- */
@@ -126,19 +124,19 @@ export default function CartPage() {
     }
   };
 
-  /* -- Checkout -- */
-  const handleCheckout = async () => {
+  /* -- Per-seller checkout -- */
+  const handleSellerCheckout = async (sellerId: string) => {
     if (!isAuthenticated) {
       router.push('/login?redirect=/cart');
       return;
     }
-    setCheckingOut(true);
+    setCheckoutSellerId(sellerId);
     try {
-      const session = await createCartCheckout();
+      const session = await createSellerCheckout(sellerId);
       window.location.href = session.url;
     } catch (err) {
       console.error('Checkout failed:', err);
-      setCheckingOut(false);
+      setCheckoutSellerId(null);
     }
   };
 
@@ -169,28 +167,9 @@ export default function CartPage() {
 
   /* -- Derived state -- */
   const allItems = cart?.sellers.flatMap((s) => s.items) ?? [];
-  const availableItems = allItems.filter((i) => i.is_available);
   const totalItemCount = allItems.reduce((sum, i) => sum + i.quantity, 0);
   const hasUnavailableItems = allItems.some((i) => !i.is_available);
   const isEmpty = !cart || cart.sellers.length === 0;
-
-  /* -- Order summary totals (available items only) -- */
-  const itemsSubtotal = availableItems.reduce((sum, item) => {
-    const raw = Number(item.offer_price ?? item.price);
-    return sum + raw * item.quantity;
-  }, 0);
-
-  const buyerProtectionFee = availableItems.reduce((sum, item) => {
-    const raw = Number(item.offer_price ?? item.price);
-    return sum + (raw * 0.075 + 0.99) * item.quantity;
-  }, 0);
-
-  const shippingTotal = (cart?.sellers ?? []).reduce(
-    (sum, seller) => sum + (seller.shipping_cost || 0),
-    0
-  );
-
-  const estimatedTotal = itemsSubtotal + buyerProtectionFee + shippingTotal;
 
   return (
     <div style={{ backgroundColor: '#FFFFFF' }}>
@@ -198,16 +177,6 @@ export default function CartPage() {
         @keyframes spin { to { transform: rotate(360deg); } }
         .trash-btn { color: #D1D5DB; transition: color 0.15s; }
         .trash-btn:hover { color: #e24b4a; }
-        .cart-grid {
-          display: grid;
-          grid-template-columns: minmax(0, 1fr) 300px;
-          gap: 24px;
-          align-items: start;
-        }
-        @media (max-width: 767px) {
-          .cart-grid { grid-template-columns: 1fr; }
-          .cart-summary-col { order: -1; position: static !important; }
-        }
       `}</style>
 
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '32px 32px 64px' }}>
@@ -220,47 +189,33 @@ export default function CartPage() {
             {/* -- Page heading -- */}
             <PageHeader title={`Bag (${totalItemCount} item${totalItemCount !== 1 ? 's' : ''})`} />
 
-            {/* -- Two-column grid -- */}
-            <div className="cart-grid">
-              {/* LEFT: Seller cards */}
-              <div
-                className="cart-items-col"
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 16,
-                  minWidth: 0,
-                }}
-              >
-                {cart!.sellers.map((seller, idx) => (
-                  <SellerCard
-                    key={seller.seller_id}
-                    seller={seller as ExtendedCartSeller}
-                    colourIndex={idx}
-                    removing={removing}
-                    onRemove={handleRemoveItem}
-                  />
-                ))}
-              </div>
-
-              {/* RIGHT: Order summary (sticky on desktop, above cards on mobile) */}
-              <div
-                className="cart-summary-col"
-                style={{ position: 'sticky', top: 24 }}
-              >
-                <OrderSummary
-                  totalItemCount={totalItemCount}
-                  itemsSubtotal={itemsSubtotal}
-                  buyerProtectionFee={buyerProtectionFee}
-                  shippingTotal={shippingTotal}
-                  estimatedTotal={estimatedTotal}
-                  checkingOut={checkingOut}
+            {/* -- Seller cards -- */}
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 16,
+                maxWidth: 720,
+              }}
+            >
+              {cart!.sellers.map((seller, idx) => (
+                <SellerCard
+                  key={seller.seller_id}
+                  seller={seller as ExtendedCartSeller}
+                  colourIndex={idx}
+                  removing={removing}
+                  onRemove={handleRemoveItem}
+                  onCheckout={handleSellerCheckout}
+                  checkoutSellerId={checkoutSellerId}
                   hasUnavailableItems={hasUnavailableItems}
-                  onCheckout={handleCheckout}
-                  protectionOpen={protectionOpen}
-                  setProtectionOpen={setProtectionOpen}
                 />
-              </div>
+              ))}
+
+              {/* Buyer Protection Panel */}
+              <BuyerProtectionPanel
+                open={protectionOpen}
+                setOpen={setProtectionOpen}
+              />
             </div>
           </>
         )}
@@ -351,16 +306,24 @@ function EmptyState() {
 
 /* == SELLER CARD =========================================== */
 
+const INSURANCE_RATE = 0.0125;
+
 function SellerCard({
   seller,
   colourIndex,
   removing,
   onRemove,
+  onCheckout,
+  checkoutSellerId,
+  hasUnavailableItems,
 }: {
   seller: ExtendedCartSeller;
   colourIndex: number;
   removing: string | null;
   onRemove: (item: CartItem) => void;
+  onCheckout: (sellerId: string) => void;
+  checkoutSellerId: string | null;
+  hasUnavailableItems: boolean;
 }) {
   const isPro = seller.is_pro_store ?? seller.seller_is_verified_seller_seller;
   const displayName =
@@ -497,6 +460,191 @@ function SellerCard({
           onRemove={onRemove}
         />
       ))}
+
+      {/* -- Per-seller breakdown + checkout -- */}
+      <SellerBreakdown
+        seller={seller}
+        onCheckout={onCheckout}
+        checkoutSellerId={checkoutSellerId}
+        hasUnavailableItems={hasUnavailableItems}
+      />
+    </div>
+  );
+}
+
+/* == SELLER BREAKDOWN + CHECKOUT ============================ */
+
+function SellerBreakdown({
+  seller,
+  onCheckout,
+  checkoutSellerId,
+  hasUnavailableItems,
+}: {
+  seller: ExtendedCartSeller;
+  onCheckout: (sellerId: string) => void;
+  checkoutSellerId: string | null;
+  hasUnavailableItems: boolean;
+}) {
+  const isThisSeller = checkoutSellerId === seller.seller_id;
+  const anyCheckoutActive = !!checkoutSellerId;
+  const disabled = anyCheckoutActive || hasUnavailableItems;
+
+  const sellerItemCount = seller.items.reduce(
+    (n, item) => n + item.quantity,
+    0
+  );
+  const sellerItemsTotal = seller.items.reduce((sum, item) => {
+    const price = Number(item.offer_price ?? item.price);
+    return sum + price * item.quantity;
+  }, 0);
+  const sellerBaseShipping = seller.shipping_cost ?? 0;
+  const sellerInsurance = sellerItemsTotal * INSURANCE_RATE;
+  const sellerInsuredShipping = sellerBaseShipping + sellerInsurance;
+  const sellerProtectionFee = sellerItemsTotal * 0.075 + 0.99;
+  const sellerTotal = sellerItemsTotal + sellerInsuredShipping + sellerProtectionFee;
+
+  return (
+    <div
+      style={{
+        padding: '16px 20px 20px',
+        backgroundColor: '#FAFAF8',
+        borderTop: '1px solid #E5E7EB',
+      }}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <SummaryRow
+          label={`Items (${sellerItemCount})`}
+          value={fp(sellerItemsTotal)}
+        />
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span
+            style={{
+              fontFamily: 'var(--font-sans)',
+              fontSize: 14,
+              color: '#6B7280',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            <ShieldCheck size={15} color="#1DC690" />
+            Buyer Protection
+          </span>
+          <span
+            style={{
+              fontFamily: 'var(--font-sans)',
+              fontSize: 14,
+              fontWeight: 700,
+              color: '#1DC690',
+            }}
+          >
+            {fp(sellerProtectionFee)}
+          </span>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span
+            style={{
+              fontFamily: 'var(--font-sans)',
+              fontSize: 14,
+              color: '#6B7280',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            <ShieldCheck size={15} color="#278AB0" />
+            Insured Shipping
+          </span>
+          <span
+            style={{
+              fontFamily: 'var(--font-sans)',
+              fontSize: 14,
+              fontWeight: 700,
+              color: '#06070A',
+            }}
+          >
+            {sellerInsuredShipping > 0 ? fp(sellerInsuredShipping) : 'Free'}
+          </span>
+        </div>
+      </div>
+
+      <div style={{ borderTop: '1px solid #E5E7EB', margin: '12px 0' }} />
+
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'baseline',
+        }}
+      >
+        <span
+          style={{
+            fontFamily: 'var(--font-sans)',
+            fontSize: 16,
+            fontWeight: 700,
+            color: '#06070A',
+          }}
+        >
+          Total
+        </span>
+        <span
+          style={{
+            fontFamily: 'var(--font-sans)',
+            fontSize: 22,
+            fontWeight: 700,
+            color: '#1DC690',
+            lineHeight: 1.1,
+          }}
+        >
+          {fp(sellerTotal)}
+        </span>
+      </div>
+
+      <button
+        onClick={() => onCheckout(seller.seller_id)}
+        disabled={disabled}
+        style={{
+          width: '100%',
+          marginTop: 14,
+          padding: '14px 16px',
+          backgroundColor: hasUnavailableItems ? '#ccc' : '#1DC690',
+          color: '#fff',
+          border: 'none',
+          borderRadius: 12,
+          fontSize: 16,
+          fontWeight: 700,
+          cursor: disabled ? 'not-allowed' : 'pointer',
+          fontFamily: 'var(--font-sans)',
+          transition: 'opacity 0.15s',
+          opacity: anyCheckoutActive ? 0.7 : 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8,
+        }}
+      >
+        {isThisSeller ? (
+          <>
+            <span
+              style={{
+                width: 16,
+                height: 16,
+                border: '2px solid #fff',
+                borderTopColor: 'transparent',
+                borderRadius: '50%',
+                animation: 'spin 0.8s linear infinite',
+                display: 'inline-block',
+              }}
+            />
+            Processing...
+          </>
+        ) : (
+          <>
+            <Lock size={16} />
+            Checkout
+          </>
+        )}
+      </button>
     </div>
   );
 }
@@ -515,10 +663,9 @@ function ItemRow({
   onRemove: (item: CartItem) => void;
 }) {
   const raw = Number(item.offer_price ?? item.price);
-  const buyerPrice = raw * 1.075 + 0.99;
   const hasOffer =
     item.offer_price !== null && item.offer_price !== undefined;
-  const originalBuyerPrice = hasOffer ? Number(item.price) * 1.075 + 0.99 : 0;
+  const originalPrice = hasOffer ? Number(item.price) : 0;
   const isUnavailable = !item.is_available;
 
   const brandModel = [item.brand, item.model].filter(Boolean).join(' · ');
@@ -722,7 +869,7 @@ function ItemRow({
           gap: 6,
         }}
       >
-        {/* Buyer price */}
+        {/* Item price (raw) */}
         <div
           style={{
             fontFamily: 'var(--font-sans)',
@@ -732,7 +879,7 @@ function ItemRow({
             lineHeight: 1.1,
           }}
         >
-          {fp(buyerPrice)}
+          {fp(raw * item.quantity)}
         </div>
 
         {/* Original price (if offer) */}
@@ -745,7 +892,7 @@ function ItemRow({
               textDecoration: 'line-through',
             }}
           >
-            {fp(originalBuyerPrice)}
+            {fp(originalPrice * item.quantity)}
           </div>
         )}
 
@@ -781,150 +928,6 @@ function ItemRow({
           <Trash2 size={16} />
         </button>
       </div>
-    </div>
-  );
-}
-
-/* == ORDER SUMMARY ========================================= */
-
-function OrderSummary({
-  totalItemCount,
-  itemsSubtotal,
-  buyerProtectionFee,
-  shippingTotal,
-  estimatedTotal,
-  checkingOut,
-  hasUnavailableItems,
-  onCheckout,
-  protectionOpen,
-  setProtectionOpen,
-}: {
-  totalItemCount: number;
-  itemsSubtotal: number;
-  buyerProtectionFee: number;
-  shippingTotal: number;
-  estimatedTotal: number;
-  checkingOut: boolean;
-  hasUnavailableItems: boolean;
-  onCheckout: () => void;
-  protectionOpen: boolean;
-  setProtectionOpen: (v: boolean) => void;
-}) {
-  const disabled = checkingOut || hasUnavailableItems;
-
-  return (
-    <div
-      style={{
-        backgroundColor: '#fff',
-        border: '1px solid #E5E7EB',
-        borderRadius: 16,
-        boxShadow: SUMMARY_SHADOW,
-        padding: 20,
-      }}
-    >
-      <h2
-        style={{
-          fontFamily: 'var(--font-sans)',
-          fontSize: 18,
-          fontWeight: 700,
-          color: '#06070A',
-          margin: '0 0 16px',
-        }}
-      >
-        Order summary
-      </h2>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <SummaryRow
-          label={`Items (${totalItemCount})`}
-          value={fp(itemsSubtotal)}
-        />
-        <SummaryRow label="Buyer protection fee" value={fp(buyerProtectionFee)} />
-        <SummaryRow label="Shipping (est.)" value={fp(shippingTotal)} />
-      </div>
-
-      <div style={{ borderTop: '1px solid #E5E7EB', margin: '16px 0' }} />
-
-      {/* Total */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'baseline',
-        }}
-      >
-        <span
-          style={{
-            fontFamily: 'var(--font-sans)',
-            fontSize: 16,
-            fontWeight: 700,
-            color: '#06070A',
-          }}
-        >
-          Estimated total
-        </span>
-        <span
-          style={{
-            fontFamily: 'var(--font-sans)',
-            fontSize: 22,
-            fontWeight: 700,
-            color: '#1DC690',
-            lineHeight: 1.1,
-          }}
-        >
-          {fp(estimatedTotal)}
-        </span>
-      </div>
-
-      {/* Checkout button */}
-      <button
-        onClick={onCheckout}
-        disabled={disabled}
-        style={{
-          width: '100%',
-          marginTop: 16,
-          padding: '14px 16px',
-          backgroundColor: hasUnavailableItems ? '#ccc' : '#1DC690',
-          color: '#fff',
-          border: 'none',
-          borderRadius: 12,
-          fontSize: 16,
-          fontWeight: 700,
-          cursor: disabled ? 'not-allowed' : 'pointer',
-          fontFamily: 'var(--font-sans)',
-          transition: 'opacity 0.15s',
-          opacity: checkingOut ? 0.7 : 1,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 8,
-        }}
-      >
-        {checkingOut ? (
-          <>
-            <span
-              style={{
-                width: 16,
-                height: 16,
-                border: '2px solid #fff',
-                borderTopColor: 'transparent',
-                borderRadius: '50%',
-                animation: 'spin 0.8s linear infinite',
-                display: 'inline-block',
-              }}
-            />
-            Processing...
-          </>
-        ) : (
-          'Proceed to checkout'
-        )}
-      </button>
-
-      {/* Buyer Protection Panel */}
-      <BuyerProtectionPanel
-        open={protectionOpen}
-        setOpen={setProtectionOpen}
-      />
     </div>
   );
 }

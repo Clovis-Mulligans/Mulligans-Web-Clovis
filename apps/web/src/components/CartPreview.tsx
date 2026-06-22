@@ -54,11 +54,6 @@ function fp(n: number) {
   return `£${n.toFixed(2)}`;
 }
 
-function buyerPriceFor(item: CartLineItem): number {
-  const raw = Number(item.offer_price ?? item.price);
-  return raw * 1.075 + 0.99;
-}
-
 function sellerDisplayName(seller: CartSellerGroup): string {
   if (seller.is_pro_store && seller.pro_store_name) return seller.pro_store_name;
   return seller.seller_name || 'Seller';
@@ -139,19 +134,10 @@ export function CartPreview({ open, onClose, onMouseEnter, onMouseLeave, onCount
 
   if (!open) return null;
 
-  // ─── Compute totals ──────────────────────────────────────
+  // ─── Compute totals (per-seller £0.99, matching backend) ──
   const allItems = sellers.flatMap((s) => s.items);
   const itemCount = allItems.reduce((sum, i) => sum + (i.quantity || 1), 0);
-  const subtotal = allItems.reduce((sum, item) => {
-    const raw = Number(item.offer_price ?? item.price);
-    return sum + raw * (item.quantity || 1);
-  }, 0);
-  const fees = allItems.reduce((sum, item) => {
-    const raw = Number(item.offer_price ?? item.price);
-    return sum + (raw * 0.075 + 0.99) * (item.quantity || 1);
-  }, 0);
-  const shipping = sellers.reduce((sum, s) => sum + (s.shipping_cost || 0), 0);
-  const total = subtotal + fees + shipping;
+  const sellerCount = sellers.length;
 
   const isEmpty = !loading && sellers.length === 0;
 
@@ -299,7 +285,7 @@ export function CartPreview({ open, onClose, onMouseEnter, onMouseLeave, onCount
 
                 {/* Items */}
                 {seller.items.map((item) => {
-                  const buyerPrice = buyerPriceFor(item);
+                  const raw = Number(item.offer_price ?? item.price);
                   const hasOffer =
                     item.offer_price !== null && item.offer_price !== undefined && Number(item.offer_price) !== Number(item.price);
                   const isUnavailable = item.is_available === false;
@@ -359,7 +345,7 @@ export function CartPreview({ open, onClose, onMouseEnter, onMouseLeave, onCount
                         </Link>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
                           <span style={{ fontSize: 13, fontWeight: 700, color: BRAND_GREEN }}>
-                            {fp(buyerPrice)}
+                            {fp(raw * (item.quantity || 1))}
                           </span>
                           {hasOffer && (
                             <span style={{ fontSize: 11, fontWeight: 600, color: '#7C5CBF', backgroundColor: 'rgba(124,92,191,0.10)', padding: '2px 6px', borderRadius: 4 }}>
@@ -410,21 +396,15 @@ export function CartPreview({ open, onClose, onMouseEnter, onMouseLeave, onCount
         )}
       </div>
 
-      {/* Footer with total + actions */}
+      {/* Footer — item count + view bag */}
       {!loading && !error && !isEmpty && (
         <div style={{ padding: '14px 22px 16px', borderTop: `1px solid ${CARD_BORDER}`, backgroundColor: '#FFFFFF' }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 4 }}>
-            <span style={{ fontSize: 14, fontWeight: 700, color: TEXT_PRIMARY }}>Total</span>
-            <span style={{ fontSize: 18, fontWeight: 700, color: BRAND_GREEN, letterSpacing: '-0.01em' }}>
-              {fp(total)}
-            </span>
-          </div>
-          <p style={{ fontSize: 11, fontWeight: 500, color: TEXT_MUTED, textAlign: 'right', marginBottom: 12 }}>
-            incl. fees & shipping
+          <p style={{ fontSize: 13, fontWeight: 600, color: TEXT_BODY, textAlign: 'center', marginBottom: 12 }}>
+            {itemCount} item{itemCount !== 1 ? 's' : ''} from {sellerCount} seller{sellerCount !== 1 ? 's' : ''}
           </p>
 
           <Link
-            href="/checkout"
+            href="/cart"
             onClick={onClose}
             style={{
               display: 'block',
@@ -437,24 +417,6 @@ export function CartPreview({ open, onClose, onMouseEnter, onMouseLeave, onCount
               padding: '12px 16px',
               borderRadius: 10,
               letterSpacing: '0.01em',
-              marginBottom: 8,
-              textDecoration: 'none',
-            }}
-          >
-            Checkout
-          </Link>
-          <Link
-            href="/cart"
-            onClick={onClose}
-            style={{
-              display: 'block',
-              width: '100%',
-              textAlign: 'center',
-              fontSize: 13,
-              fontWeight: 600,
-              color: '#1C4670',
-              padding: '8px',
-              borderRadius: 8,
               textDecoration: 'none',
             }}
           >

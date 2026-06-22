@@ -123,6 +123,13 @@ export async function createCartCheckout(): Promise<CheckoutSession> {
   return authFetch('/api/stripe/create-cart-checkout', { method: 'POST' });
 }
 
+export async function createSellerCheckout(sellerId: string): Promise<CheckoutSession> {
+  return authFetch('/api/stripe/create-seller-checkout', {
+    method: 'POST',
+    body: JSON.stringify({ seller_id: sellerId }),
+  });
+}
+
 // ─── Orders (for confirmation page) ──────────────────
 
 export async function getMyRecentPurchases(): Promise<any> {

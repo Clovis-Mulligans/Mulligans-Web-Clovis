@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
-import { getMyRecentPurchases } from '@/lib/cart-api';
+import { getMyRecentPurchases, getCart } from '@/lib/cart-api';
 
 function formatPrice(n: number) { return `£${n.toFixed(2)}`; }
 
@@ -11,15 +11,21 @@ export default function OrderConfirmationPage() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [remainingSellerCount, setRemainingSellerCount] = useState(0);
 
   useEffect(() => {
     if (!isAuthenticated || isLoading) return;
     (async () => {
       try {
-        const data = await getMyRecentPurchases();
-        // Show the most recent orders (just placed)
-        const recent = (data.orders || []).slice(0, 5);
+        const [purchaseData, cartData] = await Promise.all([
+          getMyRecentPurchases(),
+          getCart().catch(() => null),
+        ]);
+        const recent = (purchaseData.orders || []).slice(0, 5);
         setOrders(recent);
+        if (cartData?.sellers?.length) {
+          setRemainingSellerCount(cartData.sellers.length);
+        }
       } catch (err) {
         console.error('Failed to load orders:', err);
       } finally {
@@ -111,6 +117,16 @@ export default function OrderConfirmationPage() {
           <a href="/help" className="font-semibold hover:underline" style={{ color: '#1DC690' }}>Learn more about Buyer Protection</a>
         </p>
       </div>
+
+      {/* Return-to-bag banner (other sellers still in cart) */}
+      {remainingSellerCount > 0 && (
+        <div className="rounded-xl p-4 mb-6" style={{ backgroundColor: 'rgba(39,138,176,0.06)', border: '1px solid rgba(39,138,176,0.2)' }}>
+          <p className="text-sm" style={{ fontFamily: 'var(--font-sans)', color: '#1C4670', lineHeight: 1.6 }}>
+            You still have items from {remainingSellerCount} other seller{remainingSellerCount !== 1 ? 's' : ''} in your bag.{' '}
+            <Link href="/cart" className="font-semibold hover:underline" style={{ color: '#278AB0' }}>Return to bag</Link>
+          </p>
+        </div>
+      )}
 
       {/* Actions */}
       <div className="flex flex-col sm:flex-row gap-3">
