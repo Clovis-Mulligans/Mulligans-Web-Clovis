@@ -8,6 +8,8 @@ import {
   bulkUpdateListings,
   bulkDeleteListings,
   deleteListing,
+  markListingOffSale,
+  relistListing,
   type ListingWithImages,
   type ListingStatus,
   type GetMyListingsParams,
@@ -30,6 +32,7 @@ const STATUS_MAP: Record<string, { bg: string; text: string }> = {
   draft: { bg: 'rgba(107,107,107,0.15)', text: '#6B6B6B' },
   paused: { bg: 'rgba(245,158,11,0.15)', text: '#F59E0B' },
   sold: { bg: 'rgba(239,68,68,0.12)', text: '#E53E3E' },
+  off_sale: { bg: 'rgba(124,92,191,0.15)', text: '#7C5CBF' },
 };
 
 function formatRelativeDate(dateStr: string): string {
@@ -734,6 +737,28 @@ maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
     }
   }
 
+  async function handleRowMarkOffSale(id: string) {
+    setOpenMenuId(null);
+    try {
+      await markListingOffSale(id);
+      await fetchListings();
+    } catch (err: any) {
+      const message = err?.response?.data?.error || err?.message || 'Failed to mark as off-sale';
+      alert(message);
+    }
+  }
+
+  async function handleRowRelist(id: string) {
+    setOpenMenuId(null);
+    try {
+      await relistListing(id);
+      await fetchListings();
+    } catch (err: any) {
+      const message = err?.response?.data?.error || err?.message || 'Failed to relist';
+      alert(message);
+    }
+  }
+
   // Pagination range
   function getPageNumbers(): number[] {
     const range: number[] = [];
@@ -771,7 +796,7 @@ maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
 
       {/* ── Status Quick-Filter Pills ── */}
       <div className="flex items-center gap-2 mt-5 flex-wrap">
-        {['all', 'active', 'draft', 'paused', 'sold'].map((s) => (
+        {['all', 'active', 'draft', 'paused', 'sold', 'off_sale'].map((s) => (
           <button
             key={s}
             onClick={() => { setStatusFilter(s); setPage(1); }}
@@ -781,7 +806,7 @@ maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
                 : 'bg-white border border-[#E0E0D8] text-[#6B6B6B] rounded-full px-4 py-1.5 text-[0.8rem] font-semibold cursor-pointer hover:border-[#1DC690] transition'
             }
           >
-            {s === 'all' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}
+            {s === 'all' ? 'All' : s === 'off_sale' ? 'Off Sale' : s.charAt(0).toUpperCase() + s.slice(1)}
           </button>
         ))}
       </div>
@@ -1009,7 +1034,7 @@ maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
                           className="rounded-full px-2.5 py-0.5 text-[0.7rem] font-semibold inline-block"
                           style={{ backgroundColor: statusInfo.bg, color: statusInfo.text }}
                         >
-                          {listing.status.charAt(0).toUpperCase() + listing.status.slice(1)}
+                          {listing.status === 'off_sale' ? 'Off Sale' : listing.status.charAt(0).toUpperCase() + listing.status.slice(1)}
                         </span>
                       </td>
 
@@ -1070,7 +1095,7 @@ maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
                               )}
 
                               {/* Mark as Sold */}
-                              {listing.status !== 'sold' && (
+                              {listing.status !== 'sold' && listing.status !== 'off_sale' && (
                                 <button
                                   onClick={() => handleRowMarkSold(listing.id)}
                                   className="w-full flex items-center gap-2 px-3 py-2 text-[0.85rem] text-[#0D0D0D] hover:bg-[#F4F4F0] cursor-pointer text-left"
@@ -1079,6 +1104,32 @@ maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
                                     <polyline points="20 6 9 17 4 12" />
                                   </svg>
                                   Mark as Sold
+                                </button>
+                              )}
+
+                              {/* Mark sold elsewhere (off-sale) */}
+                              {listing.status === 'active' && (
+                                <button
+                                  onClick={() => handleRowMarkOffSale(listing.id)}
+                                  className="w-full flex items-center gap-2 px-3 py-2 text-[0.85rem] text-[#7C5CBF] hover:bg-[#F4F4F0] cursor-pointer text-left"
+                                >
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M18 6L6 18" /><path d="M6 6l12 12" />
+                                  </svg>
+                                  Mark sold elsewhere
+                                </button>
+                              )}
+
+                              {/* Relist (from off_sale) */}
+                              {listing.status === 'off_sale' && (
+                                <button
+                                  onClick={() => handleRowRelist(listing.id)}
+                                  className="w-full flex items-center gap-2 px-3 py-2 text-[0.85rem] text-[#1DC690] hover:bg-[#F4F4F0] cursor-pointer text-left"
+                                >
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="23 4 23 10 17 10" /><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                                  </svg>
+                                  Relist
                                 </button>
                               )}
 

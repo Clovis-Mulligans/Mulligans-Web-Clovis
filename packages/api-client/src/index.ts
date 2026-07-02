@@ -80,6 +80,8 @@ export {
   deleteListingImage,
   bulkUpdateListings,
   bulkDeleteListings,
+  markListingOffSale,
+  relistListing,
 } from './endpoints/listings';
 
 // Types — Orders (endpoints)

@@ -56,4 +56,4 @@ export interface ListingAttribute {
   created_at: string;
 }
 
-export type ListingStatus = 'active' | 'draft' | 'paused' | 'sold' | 'suspended' | 'inactive';
+export type ListingStatus = 'active' | 'draft' | 'paused' | 'sold' | 'suspended' | 'inactive' | 'off_sale';

@@ -173,6 +173,14 @@ export async function deleteListingImage(
   );
 }
 
+export async function markListingOffSale(id: string): Promise<Listing> {
+  return apiClient.put<Listing>(`/api/listings/${id}/off-sale`, {});
+}
+
+export async function relistListing(id: string): Promise<Listing> {
+  return apiClient.put<Listing>(`/api/listings/${id}/relist`, {});
+}
+
 // --- BULK OPERATIONS ---
 // TODO: These endpoints do not exist in the backend yet.
 // HS needs to add PATCH /api/listings/bulk and DELETE /api/listings/bulk.
