@@ -12,6 +12,14 @@ export type {
   ListingImage,
   ListingAttribute,
   ListingStatus,
+  ImportListingsResponse,
+  ImportCreatedItem,
+  ImportUpdatedItem,
+  ImportSkippedItem,
+  ImportFailedItem,
+  PublishListingResponse,
+  PublishListingsBulkResponse,
+  PublishBulkSkippedItem,
 } from './types/listing';
 
 // Types — Pro Store
@@ -318,7 +326,7 @@ export { createOffer, getOffer, getOfferStatus, getMyOffer } from './endpoints/o
 export { createConversation } from './endpoints/messages';
 
 // Endpoints — Listings (additions)
-export { getSellerListings } from './endpoints/listings';
+export { getSellerListings, importListingsCsv, publishListing, publishListingsBulk } from './endpoints/listings';
 
 // Types — Notification
 export type {

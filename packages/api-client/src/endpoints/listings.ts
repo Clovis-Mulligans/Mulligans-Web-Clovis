@@ -1,5 +1,12 @@
 import { apiClient } from '../client';
-import type { Listing, ListingWithImages, ListingStatus } from '../types/listing';
+import type {
+  Listing,
+  ListingWithImages,
+  ListingStatus,
+  ImportListingsResponse,
+  PublishListingResponse,
+  PublishListingsBulkResponse,
+} from '../types/listing';
 import type { ListingWithSeller } from '../types/search';
 
 // --- Request/Response Types ---
@@ -198,6 +205,62 @@ export async function bulkDeleteListings(
 ): Promise<{ deleted: number }> {
   return apiClient.post<{ deleted: number }>('/api/listings/bulk-delete', {
     ids,
+  });
+}
+
+/**
+ * Import listings from a CSV file via the backend pipeline.
+ * Backend route: POST /api/listings/import (multipart, field name 'file')
+ */
+export async function importListingsCsv(
+  file: File
+): Promise<ImportListingsResponse> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const baseUrl =
+    typeof window !== 'undefined'
+      ? process.env.NEXT_PUBLIC_API_URL || 'https://api.mulligans.uk.com'
+      : 'https://api.mulligans.uk.com';
+
+  const token =
+    typeof window !== 'undefined'
+      ? localStorage.getItem('mulligans_auth_token')
+      : null;
+
+  const response = await fetch(`${baseUrl}/api/listings/import`, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+  });
+
+  if (!response.ok) {
+    let data: unknown;
+    try { data = await response.json(); } catch { /* not JSON */ }
+    const { ApiError } = await import('../client');
+    throw new ApiError(response.status, response.statusText, data);
+  }
+
+  return response.json();
+}
+
+/**
+ * Publish a single draft listing.
+ * Backend route: PUT /api/listings/:id/publish
+ */
+export async function publishListing(id: string): Promise<PublishListingResponse> {
+  return apiClient.put<PublishListingResponse>(`/api/listings/${id}/publish`, {});
+}
+
+/**
+ * Bulk-publish draft listings (≤500).
+ * Backend route: PUT /api/listings/publish-bulk
+ */
+export async function publishListingsBulk(
+  listing_ids: string[]
+): Promise<PublishListingsBulkResponse> {
+  return apiClient.put<PublishListingsBulkResponse>('/api/listings/publish-bulk', {
+    listing_ids,
   });
 }
 

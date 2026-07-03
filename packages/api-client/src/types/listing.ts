@@ -57,3 +57,55 @@ export interface ListingAttribute {
 }
 
 export type ListingStatus = 'active' | 'draft' | 'paused' | 'sold' | 'suspended' | 'inactive' | 'off_sale';
+
+// --- Import Pipeline (I-06 response shape) ---
+
+export interface ImportCreatedItem {
+  id: string;
+  title: string;
+  external_id: string;
+}
+
+export interface ImportUpdatedItem {
+  id: string;
+  title: string;
+  external_id: string;
+  changed_fields: string[];
+  reactivated?: boolean;
+}
+
+export interface ImportSkippedItem {
+  row: number;
+  external_id: string;
+  reason: string;
+}
+
+export interface ImportFailedItem {
+  row: number;
+  reason: string;
+}
+
+export interface ImportListingsResponse {
+  created: ImportCreatedItem[];
+  updated: ImportUpdatedItem[];
+  skipped: ImportSkippedItem[];
+  failed: ImportFailedItem[];
+  warnings: string[];
+}
+
+// --- Publish (I-02b response shapes) ---
+
+export interface PublishListingResponse {
+  id: string;
+  status: string;
+}
+
+export interface PublishBulkSkippedItem {
+  id: string;
+  reason: string;
+}
+
+export interface PublishListingsBulkResponse {
+  published: string[];
+  skipped: PublishBulkSkippedItem[];
+}

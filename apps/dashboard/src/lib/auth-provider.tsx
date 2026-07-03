@@ -38,24 +38,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isProStore: null,
   });
 
-  // Read backend custom JWT from localStorage
-  setTokenProvider(async () => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('mulligans_auth_token');
-    }
-    return null;
-  });
-
   useEffect(() => {
     async function checkAuth() {
       try {
         const user = await getCurrentUser();
         if (user) {
+          // Prevent zombie state: Cognito session exists but backend JWT is absent
+          if (typeof window !== 'undefined' && !localStorage.getItem('mulligans_auth_token')) {
+            setState({
+              isAuthenticated: false,
+              isLoading: false,
+              userId: null,
+              isProStore: null,
+            });
+            return;
+          }
           setState({
             isAuthenticated: true,
             isLoading: false,
             userId: user.userId,
-            isProStore: null, // Fetched from API after auth
+            isProStore: null,
           });
         } else {
           setState({

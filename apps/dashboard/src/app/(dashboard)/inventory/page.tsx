@@ -10,6 +10,8 @@ import {
   deleteListing,
   markListingOffSale,
   relistListing,
+  publishListing,
+  publishListingsBulk,
   type ListingWithImages,
   type ListingStatus,
   type GetMyListingsParams,
@@ -479,8 +481,12 @@ function DiscountModal({
 export default function InventoryPage() {
   const router = useRouter();
 
-  // Filter state
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  // Filter state — initialise from URL ?status= if present
+  const [statusFilter, setStatusFilter] = useState<string>(() => {
+    if (typeof window === 'undefined') return 'all';
+    const urlStatus = new URLSearchParams(window.location.search).get('status');
+    return urlStatus && ['active', 'draft', 'paused', 'sold', 'off_sale'].includes(urlStatus) ? urlStatus : 'all';
+  });
   const [categoryFilter, setCategoryFilter] = useState<string>('');
   const [conditionFilter, setConditionFilter] = useState<string>('');
   const [minPrice, setMinPrice] = useState<string>('');
@@ -756,6 +762,43 @@ maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
     } catch (err: any) {
       const message = err?.response?.data?.error || err?.message || 'Failed to relist';
       alert(message);
+    }
+  }
+
+  async function handleRowPublish(id: string) {
+    setOpenMenuId(null);
+    try {
+      await publishListing(id);
+      await fetchListings();
+    } catch (err: any) {
+      const message = err?.data?.error || err?.message || 'Failed to publish';
+      alert(message);
+    }
+  }
+
+  async function handleBulkPublish() {
+    setActionLoading(true);
+    try {
+      const ids = Array.from(selectedIds);
+      const result = await publishListingsBulk(ids);
+      const published = result.published.length;
+      const skipped = result.skipped.length;
+      if (skipped > 0) {
+        const reasons = result.skipped
+          .map((s) => `• ${s.reason}`)
+          .slice(0, 5)
+          .join('\n');
+        alert(
+          `Published ${published} listing${published !== 1 ? 's' : ''}. ${skipped} skipped:\n${reasons}${result.skipped.length > 5 ? `\n…and ${result.skipped.length - 5} more` : ''}`
+        );
+      }
+      setSelectedIds(new Set());
+      await fetchListings();
+    } catch (err: any) {
+      const message = err?.data?.error || err?.message || 'Bulk publish failed';
+      alert(message);
+    } finally {
+      setActionLoading(false);
     }
   }
 
@@ -1070,6 +1113,19 @@ maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
                                 Edit
                               </Link>
 
+                              {/* Publish (draft only) */}
+                              {listing.status === 'draft' && (
+                                <button
+                                  onClick={() => handleRowPublish(listing.id)}
+                                  className="w-full flex items-center gap-2 px-3 py-2 text-[0.85rem] text-[#1DC690] hover:bg-[#F4F4F0] cursor-pointer text-left"
+                                >
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M22 2L11 13" /><path d="M22 2l-7 20-4-9-9-4 20-7z" />
+                                  </svg>
+                                  Publish
+                                </button>
+                              )}
+
                               {/* Pause / Resume */}
                               {listing.status === 'active' && (
                                 <button
@@ -1278,6 +1334,15 @@ maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
               </button>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
+              {statusFilter === 'draft' && (
+                <button
+                  onClick={handleBulkPublish}
+                  disabled={actionLoading}
+                  className="bg-[#1DC690] text-white rounded-lg px-4 py-2 text-[0.85rem] font-medium hover:bg-[#19B07F] transition disabled:opacity-50"
+                >
+                  Publish Selected
+                </button>
+              )}
               <button
                 onClick={handleBulkPause}
                 disabled={actionLoading}
