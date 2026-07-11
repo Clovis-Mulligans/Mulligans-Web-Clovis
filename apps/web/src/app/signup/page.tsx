@@ -36,6 +36,7 @@ export default function SignupPage() {
           email: email.trim().toLowerCase(),
           password,
           display_name: displayName.trim(),
+          signup_platform: 'web',
         }),
       });
 

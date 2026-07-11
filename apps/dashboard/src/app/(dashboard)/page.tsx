@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { getOrderCounts, getOfferCounts, getMessageCounts, getMyListings } from '@mulligans/api-client';
+import { getOrderCounts, getOfferCounts, getMessageCounts, getMyListings, getPlatformStats } from '@mulligans/api-client';
+import type { PlatformStats } from '@mulligans/api-client';
 
 interface StatCard {
   title: string;
@@ -27,6 +28,10 @@ export default function OverviewPage() {
   loading: true,
 });
 
+  const [platformStats, setPlatformStats] = useState<PlatformStats & { loading: boolean }>({
+    ios: 0, android: 0, web: 0, unknown: 0, loading: true,
+  });
+
   useEffect(() => {
     async function fetchStats() {
       try {
@@ -48,7 +53,18 @@ export default function OverviewPage() {
         setStats(s => ({ ...s, loading: false }));
       }
     }
+
+    async function fetchPlatformStats() {
+      try {
+        const data = await getPlatformStats();
+        setPlatformStats({ ...data, loading: false });
+      } catch {
+        setPlatformStats(s => ({ ...s, loading: false }));
+      }
+    }
+
     fetchStats();
+    fetchPlatformStats();
   }, []);
 
   const SECTIONS = [
@@ -111,6 +127,54 @@ export default function OverviewPage() {
             </div>
           </Link>
         ))}
+      </div>
+
+      <div>
+        <h2
+          className="text-lg font-semibold mb-3"
+          style={{ color: '#0D0D0D', fontFamily: 'Montserrat, sans-serif' }}
+        >
+          Users by Platform
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {([
+            { label: 'iOS', key: 'ios' as const },
+            { label: 'Android', key: 'android' as const },
+            { label: 'Web', key: 'web' as const },
+            { label: 'Unknown', key: 'unknown' as const },
+          ] as const).map((item) => (
+            <div
+              key={item.key}
+              className="rounded-xl p-5"
+              style={{
+                backgroundColor: '#FFFFFF',
+                border: '1px solid #E0E0D8',
+                borderRadius: '12px',
+              }}
+            >
+              <p
+                className="text-sm font-semibold mb-3"
+                style={{ color: '#0D0D0D', fontFamily: 'Montserrat, sans-serif' }}
+              >
+                {item.label}
+              </p>
+              <p
+                className="text-3xl font-bold"
+                style={{
+                  color: '#1DC690',
+                  fontFamily: 'Montserrat, sans-serif',
+                  minHeight: '2.25rem',
+                }}
+              >
+                {platformStats.loading ? (
+                  <span className="inline-block h-8 w-12 rounded bg-[#F4F4F0] animate-pulse" />
+                ) : (
+                  platformStats[item.key]
+                )}
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -58,7 +58,9 @@ export {
   getProStoreApplications,
   getProStoreApplication,
   reviewProStoreApplication,
+  getPlatformStats,
 } from './endpoints/admin';
+export type { PlatformStats } from './endpoints/admin';
 
 // Types — Listings (endpoints)
 export type {
