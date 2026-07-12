@@ -18,6 +18,7 @@ export interface RegisterData {
   email: string;
   password: string;
   display_name: string;
+  signup_platform?: string;
 }
 
 export interface RegisterResponse {

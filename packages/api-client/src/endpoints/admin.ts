@@ -36,6 +36,18 @@ export async function getProStoreApplication(
   );
 }
 
+export interface PlatformStats {
+  ios: number;
+  android: number;
+  web: number;
+  unknown: number;
+}
+
+/** Get aggregate user signup platform counts (admin only) */
+export async function getPlatformStats(): Promise<PlatformStats> {
+  return apiClient.get<PlatformStats>('/admin/platform-stats');
+}
+
 /** Review (approve/reject/request info) a pro store application (admin only) */
 export async function reviewProStoreApplication(
   id: string,
