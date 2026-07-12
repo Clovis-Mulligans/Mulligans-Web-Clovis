@@ -43,9 +43,9 @@ export interface PlatformStats {
   unknown: number;
 }
 
-/** Get aggregate user signup platform counts */
+/** Get aggregate user signup platform counts (admin only) */
 export async function getPlatformStats(): Promise<PlatformStats> {
-  return apiClient.get<PlatformStats>('/api/auth/platform-stats');
+  return apiClient.get<PlatformStats>('/admin/platform-stats');
 }
 
 /** Review (approve/reject/request info) a pro store application (admin only) */
