@@ -99,7 +99,8 @@ export async function getMyListings(
  * Backend route: GET /api/listings/:id
  */
 export async function getListing(id: string): Promise<ListingWithImages> {
-  return apiClient.get<ListingWithImages>(`/api/listings/${id}`);
+  const res = await apiClient.get<{ listing: ListingWithImages }>(`/api/listings/${id}`);
+  return res.listing;
 }
 
 /**
@@ -107,7 +108,8 @@ export async function getListing(id: string): Promise<ListingWithImages> {
  * Backend route: POST /api/listings
  */
 export async function createListing(data: CreateListingData): Promise<Listing> {
-  return apiClient.post<Listing>('/api/listings', data);
+  const res = await apiClient.post<{ listing: Listing }>('/api/listings', data);
+  return res.listing;
 }
 
 /**
@@ -118,7 +120,8 @@ export async function updateListing(
   id: string,
   data: UpdateListingData
 ): Promise<Listing> {
-  return apiClient.put<Listing>(`/api/listings/${id}`, data);
+  const res = await apiClient.put<{ listing: Listing }>(`/api/listings/${id}`, data);
+  return res.listing;
 }
 
 /**
