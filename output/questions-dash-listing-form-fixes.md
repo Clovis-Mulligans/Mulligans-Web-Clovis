@@ -27,16 +27,27 @@ The brief asked to grep the api-client listings file for other endpoints whose d
 | `deleteListing` | `void` | `res.json({ message: 'Listing deleted successfully' })` | Acceptable (void ignores the body) |
 | `deleteListingImage` | `void` | `res.json({ message: 'Image deleted successfully' })` | Acceptable |
 
-### Potentially mismatched (out of scope — flagged only)
+### Endpoints with no matching backend handler
 
-| Function | Route | Declared return | Concern |
-|----------|-------|-----------------|---------|
-| `markListingOffSale` | `PUT /api/listings/:id/off-sale` | `Listing` | **Route does not exist in backend** (`listingRoutes.ts` has no `/off-sale` path). This would 404. If the route is added later, need to check whether it wraps in `{ listing: ... }`. |
-| `relistListing` | `PUT /api/listings/:id/relist` | `Listing` | **Route does not exist in backend.** Same concern as above. |
-| `publishListing` | `PUT /api/listings/:id/publish` | `PublishListingResponse` | **Route does not exist in backend.** Added in I-05 brief but no corresponding backend route found. |
-| `publishListingsBulk` | `PUT /api/listings/publish-bulk` | `PublishListingsBulkResponse` | **Route does not exist in backend.** Same as above. |
+**Correction (2026-07-14, `task/dash-listing-form-fixes-2`):** The original table below was verified by re-reading the backend. The claim that these four routes do not exist **was correct all along**, despite the follow-up brief (§1) asserting otherwise. Here is what was verified and how:
 
-**Note:** These four functions were added in previous briefs (I-04, I-05) as client stubs for planned backend endpoints. They are not called in any critical flow today. When the backend routes are added, the response envelope shape must be verified and unwrapping applied if needed.
+**Verification method:**
+1. Fetched `Mulligans-Backend` repo, checked out `feature/pro-store-foundation` (the active backend branch).
+2. Read `src/controllers/listingController.ts` in full (1342 lines). Searched for `markOffSale`, `relist`, `publishListing`, `publishListingsBulk` — no handler functions found.
+3. Read `src/routes/listingRoutes.ts` in full — no `/off-sale`, `/relist`, `/publish`, or `/publish-bulk` routes.
+4. Switched to `main` branch and re-read `listingController.ts` (1405 lines) — still no handlers.
+5. Ran `grep -r 'markOffSale\|relistListing\|publishListing\|publishListingsBulk' src/` across the entire backend `src/` — zero matches.
+
+**Conclusion:** These four functions exist in `packages/api-client/src/endpoints/listings.ts` as client stubs, but the corresponding backend handlers and routes have not been implemented on any branch. The line numbers cited in the follow-up brief (1288, 1355, 1402, 1456) do not correspond to these handlers on either `feature/pro-store-foundation` or `main`.
+
+| Function | Route | Declared return | Status |
+|----------|-------|-----------------|--------|
+| `markListingOffSale` | `PUT /api/listings/:id/off-sale` | `Listing` | **No backend handler.** Client stub only. |
+| `relistListing` | `PUT /api/listings/:id/relist` | `Listing` | **No backend handler.** Client stub only. |
+| `publishListing` | `PUT /api/listings/:id/publish` | `PublishListingResponse` | **No backend handler.** Client stub only. |
+| `publishListingsBulk` | `PUT /api/listings/publish-bulk` | `PublishListingsBulkResponse` | **No backend handler.** Client stub only. |
+
+**Call sites:** These four functions ARE imported and called in `apps/dashboard/src/app/(dashboard)/inventory/page.tsx` (lines 11-14, 749, 760, 771, 783). These calls would produce 404 errors at runtime. When the backend routes are added, the response envelope shape must be verified and unwrapping applied if needed.
 
 ---
 

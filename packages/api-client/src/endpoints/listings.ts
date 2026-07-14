@@ -164,7 +164,10 @@ export async function uploadListingImage(
   });
 
   if (!response.ok) {
-    throw new Error(`Image upload failed: ${response.statusText}`);
+    let data: unknown;
+    try { data = await response.json(); } catch { /* not JSON */ }
+    const { ApiError } = await import('../client');
+    throw new ApiError(response.status, response.statusText, data);
   }
 
   return response.json();

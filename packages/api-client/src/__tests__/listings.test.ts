@@ -95,4 +95,27 @@ describe('listing endpoint unwrapping', () => {
       expect((result as Record<string, unknown>).listing).toBeUndefined();
     });
   });
+
+  describe('uploadListingImage', () => {
+    it('throws ApiError with status code on non-ok response', async () => {
+      fetchSpy.mockResolvedValueOnce({
+        ok: false,
+        status: 413,
+        statusText: 'Payload Too Large',
+        json: () => Promise.resolve({ message: 'File too large' }),
+      });
+
+      const { uploadListingImage } = await import('../endpoints/listings');
+      const file = new File(['x'], 'big.jpg', { type: 'image/jpeg' });
+
+      try {
+        await uploadListingImage('lst_test', file);
+        expect.fail('Should have thrown');
+      } catch (err: unknown) {
+        expect(err).toBeInstanceOf(Error);
+        expect((err as { status: number }).status).toBe(413);
+        expect((err as { statusText: string }).statusText).toBe('Payload Too Large');
+      }
+    });
+  });
 });

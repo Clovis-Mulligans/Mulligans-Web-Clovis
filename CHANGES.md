@@ -1,129 +1,160 @@
-# CHANGES — `task/dash-listing-form-fixes`
+# CHANGES — `task/dash-listing-form-fixes-2`
 
-**Branch:** `task/dash-listing-form-fixes`
-**Base:** `clovis/pro-seller-foundation` @ `a07dd5b`
+**Branch:** `task/dash-listing-form-fixes-2`
+**Base:** `clovis/pro-seller-foundation` @ `03cc15f`
 **Date:** 2026-07-14
 
 ---
 
-## 1. P0 — Auto-save no longer silently destroys listings
+## 1. P0 — Dashboard now reads mobile's camelCase specification keys (§2b)
 
-**File:** `apps/dashboard/src/components/ListingForm.tsx:689-698`
+**File:** `apps/dashboard/src/components/ListingForm.tsx`
 
-**Root cause:** The `isDirty` effect (`useEffect(() => { setIsDirty(true); }, [title, description, ...])`) ran on mount because React fires effects after the initial render with all deps populated. This meant `isDirty` was `true` before the user touched anything. Combined with the blank-form bug (§2 below) and auto-save skipping validation, opening an edit page and waiting 60 seconds silently PUT an empty payload — wiping the listing.
+### Root cause
 
-**Mechanism chosen:** A `hasHydrated` ref guard.
-- `const hasHydrated = useRef(false);` (line 689)
-- On the first effect invocation (mount), the guard is `false` → set it to `true` and `return` without setting `isDirty` (lines 693-695).
-- All subsequent invocations (genuine user edits) proceed normally and set `isDirty(true)`.
+The dashboard's `ListingForm` read all specification fields using snake_case keys (`specs.club_type`, `specs.shaft_flex`, `specs.shaft_material`, `specs.lie_angle`, `specs.grip_size`, `specs.shaft_length`, `specs.shaft_weight`, `specs.grip_material`, `specs.shoe_type`, `specs.training_type`, `specs.item_name`). The mobile app writes camelCase keys (`shaftFlex`, `shaftMaterial`, `lieAngle`, `gripSize`, etc.). Result: every specification field rendered blank when editing a mobile-created listing, and saving that listing destroyed all specification data.
 
-**Why it cannot fire on mount:** The ref starts `false` and is set to `true` unconditionally on the first call. Since refs persist across renders but reset only on unmount, the guard fires exactly once per component lifecycle — the mount. It does not depend on any prop/state value, so there is no race condition or timing sensitivity.
+Additionally, `brand`, `model`, and `subcategory` are **top-level listing fields** (present in the Prisma schema alongside `title`/`price`), but the dashboard read them from `specs.brand`/`specs.model`/`specs.subcategory`. Mobile writes them top-level. Opening a mobile-created listing and saving it destroyed brand, model, and subcategory.
 
-**Auto-save feature preserved:** The timer interval logic is unchanged. A genuine field edit (any subsequent effect invocation) still sets `isDirty(true)`, and the 60-second auto-save interval still fires `doSave('draft', true)` when dirty.
+### What changed
 
-**Regression test confirms:** The test `does NOT auto-save on mount` advances fake timers by 120 seconds after mounting with `initialData` and asserts that neither `updateListing` nor `createListing` was called. This test fails against the pre-fix code (isDirty fires on mount → auto-save fires at 60s) and passes after the fix.
+**Specification key renames (every read AND write updated):**
+
+| Category | Old dashboard key | New key (matches mobile) |
+|----------|------------------|-------------------------|
+| Clubs | `club_type` | `subcategory` (top-level) |
+| Clubs | `shaft_flex` | `shaftFlex` |
+| Clubs | `shaft_material` | `shaftMaterial` |
+| Clubs | `lie_angle` | `lieAngle` |
+| Clubs | `shaft_length` | `length` |
+| Shafts | `shaft_flex` | `shaftFlex` |
+| Shafts | `shaft_material` | `shaftMaterial` |
+| Shafts | `shaft_length` | `shaftLength` |
+| Shafts | `shaft_weight` | `shaftWeight` |
+| Grips | `grip_size` | `gripSize` |
+| Grips | `grip_material` | `gripMaterial` |
+| Club Heads | `club_type` | `clubType` |
+| Clothing | `colour` | `color` |
+| Shoes | `size` | `shoeSize` |
+| Shoes | `shoe_type` | `spikes` |
+
+**Top-level field handling:**
+
+- `brand`: Now read from `initialData?.brand` (top-level, with fallback to `specs.brand` for backward compat). Sent as top-level `brand` in `buildPayload()`. Stripped from `specifications` object.
+- `model`: Same pattern. Also duplicated INTO `specifications` (matching mobile's behavior).
+- `subcategory`: Same pattern. For Clubs, this replaces the old `specs.club_type`.
+
+**Option value alignment with mobile:**
+
+| Field | Old values | New values |
+|-------|-----------|------------|
+| Dexterity | `Right-Handed`, `Left-Handed` | `Right Handed`, `Left Handed` |
+| Gender | `Men's`, `Women's`, `Unisex`, `Junior` | `Male`, `Female`, `Junior` |
+| Shaft Flex | 5 options | 7 options (added `Wedge`, `Junior`) |
+| Club Type | 8 options (singular) | 6 options (plural, matching mobile subcategories) |
+| Shoe Type | `Spiked`/`Spikeless`/`Waterproof` | `Yes`/`No` (now "Spikes" field) |
+
+**Validation relaxed to match mobile:**
+
+- `shaft_material` (Clubs): no longer required (mobile only requires it for some sub-types)
+- `shoe_type`/`spikes` (Shoes): no longer required
+- `quantity` (Balls): no longer required (mobile sends quantity top-level, not in specs)
+- `training_type` (Training Aids): no longer required (mobile has no spec fields for Training Aids)
+- `item_name` (Everything Else): no longer required (mobile has no spec fields for Everything Else)
+
+### How mobile spec keys were verified
+
+Read the following files in `Mulligans-Mobile` (branch `android-fixes`):
+- `app/(tabs)/sell.tsx` — the create-listing form, maps all specification fields by category
+- `app/edit-listing/[id].tsx` — the edit-listing form, reads existing specifications
+- `constants/categories.ts` — category/subcategory definitions
+
+Every key in the comparison table was taken from mobile's actual code. Fields the dashboard has but mobile does not are flagged in `output/questions-dash-listing-form-fixes-2.md` §4.
 
 ---
 
-## 2. P1 — API client unwraps the `{ listing }` envelope
+## 2. §1 — Corrected the original questions file
 
-**File:** `packages/api-client/src/endpoints/listings.ts:101-124`
+**File:** `output/questions-dash-listing-form-fixes.md`
 
-Three functions modified:
-- `getListing` (line 101-104): `const res = await apiClient.get<{ listing: ListingWithImages }>(…); return res.listing;`
-- `createListing` (line 110-113): `const res = await apiClient.post<{ listing: Listing }>(…); return res.listing;`
-- `updateListing` (line 119-125): `const res = await apiClient.put<{ listing: Listing }>(…); return res.listing;`
+The follow-up brief asserted that `markOffSale`, `relistListing`, `publishListing`, and `publishListingsBulk` handlers exist in the backend at specific line numbers. **This assertion is incorrect.**
 
-The generic type parameter now honestly describes the wire format (`{ listing: T }`), and the function unwraps it before returning. No `as` casts. Return types unchanged — callers are unaffected.
+Verification: read `Mulligans-Backend/src/controllers/listingController.ts` on both `feature/pro-store-foundation` (1342 lines) and `main` (1405 lines). Also read `src/routes/listingRoutes.ts`. Also ran `grep -r` across entire backend `src/`. **No handlers or routes exist for these four functions on any branch.**
 
-**Mobile consumption checked:** The mobile app (`Mulligans-Mobile`) does **not** import from `@mulligans/api-client`. It is not listed in the mobile `package.json` dependencies, and no import from the shared package appears anywhere in the mobile codebase. The mobile repo uses its own axios-based API layer with direct API calls. Unwrapping here cannot break mobile.
-
-Within the web monorepo, `getListing`/`createListing`/`updateListing` are consumed by:
-- `apps/dashboard/src/components/ListingForm.tsx` (createListing, updateListing)
-- `apps/dashboard/src/app/(dashboard)/inventory/[id]/edit/page.tsx` (getListing)
-- `apps/web/src/app/listings/[id]/edit/page.tsx` (getListing, updateListing)
-- `apps/web/src/app/sell/page.tsx` (createListing)
-
-All these callers already expected the unwrapped entity (read `.id`, `.title`, `.price` etc. directly). They now get what they expected.
+The original questions file's claim that these routes do not exist **was correct**. The file has been updated with a detailed verification methodology section explaining exactly what was read and what was found.
 
 ---
 
-## 3. P1 — Image-upload failures are surfaced to the user
+## 3. §2 — Four endpoint unwrap check: nothing to unwrap
 
-**File:** `apps/dashboard/src/components/ListingForm.tsx:843-877`
+Since the four backend handlers (`markOffSale`, `relistListing`, `publishListing`, `publishListingsBulk`) do not exist, there is no response to unwrap. The api-client functions are client stubs. No code changes needed.
 
-Previously, the `uploadPendingImages` catch block was `catch { }` — entirely silent. Now:
-- A `failedCount` counter tracks how many images failed (line 851).
-- The catch block distinguishes HTTP 413 (file too large) from other errors, and sets `imageError` with a specific message for 413 (lines 865-869).
-- After the upload loop, if `failedCount > 0`, `setSubmitError(…)` displays a user-visible message: *"Your listing was saved, but N photo(s) failed to upload. Please try re-uploading from the edit page."* (lines 872-876).
-- The listing save is still non-fatal — the listing persists regardless of image upload failures.
+**Call sites verified:** all four are called from `apps/dashboard/src/app/(dashboard)/inventory/page.tsx` (lines 749, 760, 771, 783). These would 404 at runtime.
 
 ---
 
-## 4. P2 — Tidy-ups
+## 4. §3 — `uploadListingImage` now throws `ApiError` (413 branch is reachable)
 
-### handlePublish no-op ternary
-**File:** `apps/dashboard/src/components/ListingForm.tsx:927`
+**File:** `packages/api-client/src/endpoints/listings.ts:166-169`
 
-Was: `const handlePublish = () => doSave(status === 'active' ? 'active' : 'active');`
-Now: `const handlePublish = () => doSave('active');`
+**Option taken:** Preferred (make the throw match `importListingsCsv`).
 
-Both branches were identical. Publishing always sets status to `active`.
+The `uploadListingImage` function previously threw a plain `Error` on failure:
+```ts
+throw new Error(`Image upload failed: ${response.statusText}`);
+```
 
-### generateKey uses UUID
-**File:** `apps/dashboard/src/components/ListingForm.tsx:615-617`
+Now throws `ApiError` with the HTTP status code, matching the pattern already used by `importListingsCsv` in the same file:
+```ts
+let data: unknown;
+try { data = await response.json(); } catch { /* not JSON */ }
+const { ApiError } = await import('../client');
+throw new ApiError(response.status, response.statusText, data);
+```
 
-Was: `return Math.random().toString(36).slice(2);`
-Now: `return crypto.randomUUID();`
+The 413 branch in `ListingForm.tsx:uploadPendingImages` (which checks `err instanceof Error && 'status' in err`) is now genuinely reachable.
 
-Uses the browser-native `crypto.randomUUID()` — no new dependency needed. Supported in all modern browsers and Node.js 19+.
+**Call sites checked:**
+- `apps/dashboard/src/components/ListingForm.tsx:855` — already checks for `status` property, now works
+- `apps/web/src/app/sell/page.tsx:383` — bare `await`, no status check, no breakage
+- `apps/web/src/app/listings/[id]/edit/page.tsx:398` — inside try/catch with generic error handling, no breakage
+
+No caller depends on the previous plain-`Error` behavior.
+
+---
+
+## 5. §4 — `crypto.randomUUID()` is SSR-safe
+
+**File:** `apps/dashboard/src/components/ListingForm.tsx:615-625`
+
+`generateKey()` now checks `globalThis.crypto?.randomUUID` before calling it. Fallback builds a v4 UUID from `crypto.getRandomValues()` (available in all modern browsers and Node.js 15+, which is below Next.js's minimum). No new dependency added. No `Math.random()`.
+
+**Checked for existing UUID util:** `grep -r 'randomUUID\|uuid\|nanoid' packages/ apps/` — no shared UUID utility exists in the monorepo.
 
 ---
 
 ## Tests
 
-### Test location convention
-
-- **api-client tests:** `packages/api-client/src/__tests__/listings.test.ts` with vitest config at `packages/api-client/vitest.config.ts` (node environment, scoped include).
-- **dashboard tests:** `apps/dashboard/src/__tests__/ListingForm.test.tsx` with vitest config at `apps/dashboard/vitest.config.ts` (jsdom environment, `@vitejs/plugin-react` for JSX transform, scoped include).
-
-This follows the brief's implied structure of co-locating tests with the package they test. Existing tests for api-client functions in `apps/web/src/__tests__/` use a different pattern (dynamic imports after module reset); the new api-client tests use the same pattern for consistency with the existing convention.
-
-### Dev dependencies added
-
-Flagged in `output/questions-dash-listing-form-fixes.md`. All devDependencies only — not shipped to production:
-- `@testing-library/react`, `@testing-library/dom`, `@testing-library/user-event`, `@testing-library/jest-dom` — component rendering/DOM queries
-- `jsdom` — vitest jsdom environment
-- `@vitejs/plugin-react` — JSX transform for vitest (dashboard tsconfig uses `jsx: 'preserve'`)
-
-### Test summary
-
-**api-client (3 tests) — run: `npx vitest run --config packages/api-client/vitest.config.ts`**
+### api-client (4 tests) — run: `npx vitest run --config packages/api-client/vitest.config.ts`
 
 | Test | What it verifies |
 |------|-----------------|
-| getListing unwraps | Given mock fetch returning `{ listing: { id, title, … } }`, asserts `result.title` is defined and `result.listing` is `undefined` |
-| createListing unwraps | Same pattern — asserts `result.id` is defined (the exact field whose `undefined` broke image upload) |
-| updateListing unwraps | Same pattern |
+| getListing unwraps | (unchanged from previous branch) |
+| createListing unwraps | (unchanged) |
+| updateListing unwraps | (unchanged) |
+| **uploadListingImage throws ApiError with status** | Mock fetch returns 413 → thrown error has `status: 413` and `statusText: 'Payload Too Large'` |
 
-**ListingForm (4 tests) — run: `npx vitest run --config apps/dashboard/vitest.config.ts`**
+### ListingForm (7 tests) — run: `npx vitest run --config apps/dashboard/vitest.config.ts`
 
 | Test | What it verifies |
 |------|-----------------|
-| renders populated fields | Form shows title, description, price, category, condition from initialData; Status toggle reflects `active` when listing is `active` |
-| P0 regression: no auto-save on mount | Mount with initialData → advance 120s → assert no save call. **Fails before fix, passes after.** |
-| auto-save after genuine edit | Mount → change title → advance 60s → assert `updateListing` called with new title and status `draft` |
-| image-upload failure surfaces error | Create listing + attach image + mock upload rejection → assert error message visible to user |
-
-### Pre-fix regression confirmation
-
-The P0 auto-save regression test was verified to fail against the pre-fix code: without the `hasHydrated` guard, `isDirty` is set to `true` on mount, and advancing timers causes `updateListing` to fire. With the fix applied, the guard prevents mount-triggered dirty, and the test passes.
-
----
-
-## Build
-
-Both `dashboard` and `web` compile without type errors (verified via the test runs which import the changed modules).
+| **renders populated fields from mobile-shaped Clubs listing** | Given camelCase specs + top-level `brand: 'TaylorMade'`, `subcategory: 'Drivers'`: brand input shows "TaylorMade", club type shows "Drivers", dexterity shows "Right Handed", shaft flex shows "Stiff", model shows "Qi4D (2026)", loft shows "8". **Fails before fix** (all fields blank), **passes after.** |
+| **round-trip: changing only title preserves all specs** | Load full Clubs listing → change only title → click Update → `updateListing` payload has: `brand: 'TaylorMade'`, `subcategory: 'Drivers'` (top-level); `specs.shaftFlex: 'Stiff'`, `specs.dexterity: 'Right Handed'`, `specs.loft: '8'`, `specs.lieAngle: 'Standard'`, etc. (all preserved); `specs.brand` and `specs.subcategory` are `undefined` (correctly extracted to top level). **Fails before fix** (specs empty, brand/subcategory missing), **passes after.** |
+| **renders Shafts listing with camelCase specs** | Non-Clubs category: Shaft with `shaftFlex: 'Stiff'`, `shaftMaterial: 'Steel'`, `shaftLength: '37'` — all fields populated, round-trip preserves values |
+| does NOT auto-save on mount | (unchanged — still verifies P0 regression guard) |
+| auto-saves after genuine edit | (unchanged) |
+| surfaces image-upload failures | (updated: no longer fills in item_name since it's not required for Everything Else) |
+| **413 from image upload shows size-specific message** | Mock `uploadListingImage` rejects with `{ status: 413 }` → DOM contains "too large to upload" with the filename |
 
 ---
 
@@ -131,12 +162,10 @@ Both `dashboard` and `web` compile without type errors (verified via the test ru
 
 | File | Change |
 |------|--------|
-| `packages/api-client/src/endpoints/listings.ts` | Unwrap `{ listing }` envelope in getListing, createListing, updateListing |
-| `apps/dashboard/src/components/ListingForm.tsx` | Fix isDirty mount bug, surface image errors, fix handlePublish, fix generateKey |
-| `packages/api-client/vitest.config.ts` | NEW — vitest config for api-client tests |
-| `packages/api-client/src/__tests__/listings.test.ts` | NEW — 3 tests for envelope unwrapping |
-| `apps/dashboard/vitest.config.ts` | NEW — vitest config for dashboard tests |
-| `apps/dashboard/src/__tests__/ListingForm.test.tsx` | NEW — 4 tests for form fixes |
-| `package.json` / `package-lock.json` | Dev dependencies for testing |
+| `apps/dashboard/src/components/ListingForm.tsx` | Fix spec keys to camelCase, read brand/model/subcategory from top-level, relax validation to match mobile, fix `generateKey()` SSR guard |
+| `packages/api-client/src/endpoints/listings.ts` | `uploadListingImage` throws `ApiError` instead of plain `Error` |
+| `apps/dashboard/src/__tests__/ListingForm.test.tsx` | 7 tests: mobile-shaped fixture, populated fields, round-trip data-loss guard, Shafts category, 413 error |
+| `packages/api-client/src/__tests__/listings.test.ts` | 1 new test: uploadListingImage ApiError |
+| `output/questions-dash-listing-form-fixes.md` | Corrected §1: backend route claims verified as correct, detailed methodology added |
+| `output/questions-dash-listing-form-fixes-2.md` | NEW: security scan, flagged fields mobile doesn't have, option value mismatches |
 | `CHANGES.md` | This file |
-| `output/questions-dash-listing-form-fixes.md` | Security scan + findings |
