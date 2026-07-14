@@ -613,7 +613,7 @@ function EverythingElseFields({ specs, onSpecChange, errors }: { specs: Specs; o
 // ---------------------------------------------------------------------------
 
 function generateKey() {
-  return Math.random().toString(36).slice(2);
+  return crypto.randomUUID();
 }
 
 function conditionValueToNumber(cond: string): number {
@@ -686,9 +686,16 @@ export default function ListingForm({ initialData, isEditing = false }: ListingF
 
   const autoSaveTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const draftFadeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasHydrated = useRef(false);
 
-  // Mark dirty on any field change
-  useEffect(() => { setIsDirty(true); }, [title, description, category, condition, price, acceptOffers, autoDeclineBelow, parcelSize, specs]);
+  // Mark dirty only on genuine user edits, not initial mount/hydration
+  useEffect(() => {
+    if (!hasHydrated.current) {
+      hasHydrated.current = true;
+      return;
+    }
+    setIsDirty(true);
+  }, [title, description, category, condition, price, acceptOffers, autoDeclineBelow, parcelSize, specs]);
 
   // Auto-save every 60s if dirty
   useEffect(() => {
@@ -841,10 +848,11 @@ export default function ListingForm({ initialData, isEditing = false }: ListingF
   // ---- Upload pending images ----
   const uploadPendingImages = async (listingId: string) => {
     const pending = images.filter((s) => s.file);
+    let failedCount = 0;
     for (const slot of pending) {
       if (!slot.file) continue;
       try {
-        const result = await uploadListingImage(listingId, slot.file);
+        await uploadListingImage(listingId, slot.file);
         setImages((prev) =>
           prev.map((s) =>
             s.key === slot.key
@@ -853,9 +861,18 @@ export default function ListingForm({ initialData, isEditing = false }: ListingF
           )
         );
         if (slot.preview) URL.revokeObjectURL(slot.preview);
-      } catch {
-        // Non-fatal image upload failure — listing still created
+      } catch (err: unknown) {
+        failedCount++;
+        const status = err instanceof Error && 'status' in err ? (err as { status: number }).status : undefined;
+        if (status === 413) {
+          setImageError(`Photo "${slot.file.name}" is too large to upload.`);
+        }
       }
+    }
+    if (failedCount > 0) {
+      setSubmitError(
+        `Your listing was saved, but ${failedCount} photo${failedCount > 1 ? 's' : ''} failed to upload. Please try re-uploading from the edit page.`
+      );
     }
   };
 
@@ -907,7 +924,7 @@ export default function ListingForm({ initialData, isEditing = false }: ListingF
   };
 
   const handleSaveDraft = () => doSave('draft');
-  const handlePublish = () => doSave(status === 'active' ? 'active' : 'active');
+  const handlePublish = () => doSave('active');
   const handleUpdate = () => doSave(status);
 
   // ---- Render category-specific fields ----
