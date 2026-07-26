@@ -1,142 +1,100 @@
-# CHANGES — `task/dash-listing-form-fixes`
+# CHANGES — task/web-auth-ui-fixes
 
-**Branch:** `task/dash-listing-form-fixes`
-**Base:** `clovis/pro-seller-foundation` @ `a07dd5b`
-**Date:** 2026-07-14
-
----
-
-## 1. P0 — Auto-save no longer silently destroys listings
-
-**File:** `apps/dashboard/src/components/ListingForm.tsx:689-698`
-
-**Root cause:** The `isDirty` effect (`useEffect(() => { setIsDirty(true); }, [title, description, ...])`) ran on mount because React fires effects after the initial render with all deps populated. This meant `isDirty` was `true` before the user touched anything. Combined with the blank-form bug (§2 below) and auto-save skipping validation, opening an edit page and waiting 60 seconds silently PUT an empty payload — wiping the listing.
-
-**Mechanism chosen:** A `hasHydrated` ref guard.
-- `const hasHydrated = useRef(false);` (line 689)
-- On the first effect invocation (mount), the guard is `false` → set it to `true` and `return` without setting `isDirty` (lines 693-695).
-- All subsequent invocations (genuine user edits) proceed normally and set `isDirty(true)`.
-
-**Why it cannot fire on mount:** The ref starts `false` and is set to `true` unconditionally on the first call. Since refs persist across renders but reset only on unmount, the guard fires exactly once per component lifecycle — the mount. It does not depend on any prop/state value, so there is no race condition or timing sensitivity.
-
-**Auto-save feature preserved:** The timer interval logic is unchanged. A genuine field edit (any subsequent effect invocation) still sets `isDirty(true)`, and the 60-second auto-save interval still fires `doSave('draft', true)` when dirty.
-
-**Regression test confirms:** The test `does NOT auto-save on mount` advances fake timers by 120 seconds after mounting with `initialData` and asserts that neither `updateListing` nor `createListing` was called. This test fails against the pre-fix code (isDirty fires on mount → auto-save fires at 60s) and passes after the fix.
+**Branch:** `task/web-auth-ui-fixes`
+**Base:** `upstream/pro-seller-foundation` @ `03cc15f`
+**Date:** 2026-07-26
 
 ---
 
-## 2. P1 — API client unwraps the `{ listing }` envelope
+## Item 1 — Email verification dead-ends signup
 
-**File:** `packages/api-client/src/endpoints/listings.ts:101-124`
+**Verdict: REAL (critical)**
 
-Three functions modified:
-- `getListing` (line 101-104): `const res = await apiClient.get<{ listing: ListingWithImages }>(…); return res.listing;`
-- `createListing` (line 110-113): `const res = await apiClient.post<{ listing: Listing }>(…); return res.listing;`
-- `updateListing` (line 119-125): `const res = await apiClient.put<{ listing: Listing }>(…); return res.listing;`
+**Evidence:**
+- `apps/web/src/app/verify-email/page.tsx` (original): Says "We've sent a verification link... Click the link to activate your account" — no code input field, no submit handler.
+- Backend `POST /api/auth/verify-email` (authRoutes.ts:203): Expects `{ email, code }`, validates a 6-digit code stored in DB.
+- Email template `src/email-templates/verification-email.html`: Sends a 6-digit `{{code}}` with text "Enter this code in the app to verify your account." No clickable link.
+- Result: every web signup user sees "click the link" but receives a code. Dead-end confirmed.
 
-The generic type parameter now honestly describes the wire format (`{ listing: T }`), and the function unwraps it before returning. No `as` casts. Return types unchanged — callers are unaffected.
-
-**Mobile consumption checked:** The mobile app (`Mulligans-Mobile`) does **not** import from `@mulligans/api-client`. It is not listed in the mobile `package.json` dependencies, and no import from the shared package appears anywhere in the mobile codebase. The mobile repo uses its own axios-based API layer with direct API calls. Unwrapping here cannot break mobile.
-
-Within the web monorepo, `getListing`/`createListing`/`updateListing` are consumed by:
-- `apps/dashboard/src/components/ListingForm.tsx` (createListing, updateListing)
-- `apps/dashboard/src/app/(dashboard)/inventory/[id]/edit/page.tsx` (getListing)
-- `apps/web/src/app/listings/[id]/edit/page.tsx` (getListing, updateListing)
-- `apps/web/src/app/sell/page.tsx` (createListing)
-
-All these callers already expected the unwrapped entity (read `.id`, `.title`, `.price` etc. directly). They now get what they expected.
-
----
-
-## 3. P1 — Image-upload failures are surfaced to the user
-
-**File:** `apps/dashboard/src/components/ListingForm.tsx:843-877`
-
-Previously, the `uploadPendingImages` catch block was `catch { }` — entirely silent. Now:
-- A `failedCount` counter tracks how many images failed (line 851).
-- The catch block distinguishes HTTP 413 (file too large) from other errors, and sets `imageError` with a specific message for 413 (lines 865-869).
-- After the upload loop, if `failedCount > 0`, `setSubmitError(…)` displays a user-visible message: *"Your listing was saved, but N photo(s) failed to upload. Please try re-uploading from the edit page."* (lines 872-876).
-- The listing save is still non-fatal — the listing persists regardless of image upload failures.
+**What changed:**
+- Rewrote `apps/web/src/app/verify-email/page.tsx`:
+  - Added code input field (6-char, numeric inputMode, centered, tracking-widest)
+  - Submit handler calls `POST /api/auth/verify-email` with `{ email, code }`
+  - On success: stores returned `accessToken` in localStorage, shows success state with checkmark, redirects to `/` after 1.5s
+  - On error: displays backend error message (invalid/expired code)
+  - Kept existing "Resend Code" button (calls `POST /api/auth/resend-verification`)
+  - Updated copy from "verification link" to "verification code"
+  - All styling matches existing brand palette (#1DC690 primary, #1C4670 dark blue, var(--font-sans), max weight 600)
 
 ---
 
-## 4. P2 — Tidy-ups
+## Item 2 — Other auth-flow frontend gaps
 
-### handlePublish no-op ternary
-**File:** `apps/dashboard/src/components/ListingForm.tsx:927`
+### Login page (`apps/web/src/app/login/page.tsx`)
 
-Was: `const handlePublish = () => doSave(status === 'active' ? 'active' : 'active');`
-Now: `const handlePublish = () => doSave('active');`
+**Verdict: FALSE**
 
-Both branches were identical. Publishing always sets status to `active`.
+No dead buttons or missing fields. Calls `POST /api/auth/login` (exists at authRoutes.ts). Handles `requires_verification` by redirecting to verify-email. Stores JWT in localStorage (security concern noted in questions.md — out of scope for this brief).
 
-### generateKey uses UUID
-**File:** `apps/dashboard/src/components/ListingForm.tsx:615-617`
+### Signup page (`apps/web/src/app/signup/page.tsx`)
 
-Was: `return Math.random().toString(36).slice(2);`
-Now: `return crypto.randomUUID();`
+**Verdict: FALSE**
 
-Uses the browser-native `crypto.randomUUID()` — no new dependency needed. Supported in all modern browsers and Node.js 19+.
+Functional. All fields present (display name, email, password, confirm, T&C checkbox). Calls `POST /api/auth/register` (exists). Redirects to `/verify-email?email=...` on success.
 
----
+### Forgot-password page (`apps/web/src/app/forgot-password/page.tsx`)
 
-## Tests
+**Verdict: REAL (same pattern as Item 1)**
 
-### Test location convention
+- Backend `POST /api/auth/forgot-password` (authRoutes.ts:357) sends a 6-digit code via email template `password-reset.html` showing `{{code}}` as "Your reset code".
+- Original page: after submitting email, showed static "we've sent a password reset link" with only a "Back to Sign In" link. No way for a web user to enter the received code.
+- The `/reset-password` page exists and expects URL params `?email=...&token=CODE`, but nothing navigated users there with those params.
+- Result: web password reset was a dead-end (user received code by email but had no place to enter it).
 
-- **api-client tests:** `packages/api-client/src/__tests__/listings.test.ts` with vitest config at `packages/api-client/vitest.config.ts` (node environment, scoped include).
-- **dashboard tests:** `apps/dashboard/src/__tests__/ListingForm.test.tsx` with vitest config at `apps/dashboard/vitest.config.ts` (jsdom environment, `@vitejs/plugin-react` for JSX transform, scoped include).
+**What changed:**
+- Rewrote `apps/web/src/app/forgot-password/page.tsx`:
+  - After email is sent, shows code-entry field with "Enter the code below to continue"
+  - On code submit: navigates to `/reset-password?email=...&token=CODE`
+  - Updated copy from "reset link" to "reset code"
+  - Same visual style as other auth pages
 
-This follows the brief's implied structure of co-locating tests with the package they test. Existing tests for api-client functions in `apps/web/src/__tests__/` use a different pattern (dynamic imports after module reset); the new api-client tests use the same pattern for consistency with the existing convention.
+### Reset-password page (`apps/web/src/app/reset-password/page.tsx`)
 
-### Dev dependencies added
+**Verdict: FALSE**
 
-Flagged in `output/questions-dash-listing-form-fixes.md`. All devDependencies only — not shipped to production:
-- `@testing-library/react`, `@testing-library/dom`, `@testing-library/user-event`, `@testing-library/jest-dom` — component rendering/DOM queries
-- `jsdom` — vitest jsdom environment
-- `@vitejs/plugin-react` — JSX transform for vitest (dashboard tsconfig uses `jsx: 'preserve'`)
+Functional once reached with correct URL params. Sends `POST /api/auth/reset-password` with `{ email, code, password }` (exists at authRoutes.ts:413). The dead-end was upstream in the forgot-password flow, not in this page.
 
-### Test summary
+### `src/lib/auth.ts` (Amplify/Cognito config)
 
-**api-client (3 tests) — run: `npx vitest run --config packages/api-client/vitest.config.ts`**
+**Verdict: FALSE (not a UI gap)**
 
-| Test | What it verifies |
-|------|-----------------|
-| getListing unwraps | Given mock fetch returning `{ listing: { id, title, … } }`, asserts `result.title` is defined and `result.listing` is `undefined` |
-| createListing unwraps | Same pattern — asserts `result.id` is defined (the exact field whose `undefined` broke image upload) |
-| updateListing unwraps | Same pattern |
-
-**ListingForm (4 tests) — run: `npx vitest run --config apps/dashboard/vitest.config.ts`**
-
-| Test | What it verifies |
-|------|-----------------|
-| renders populated fields | Form shows title, description, price, category, condition from initialData; Status toggle reflects `active` when listing is `active` |
-| P0 regression: no auto-save on mount | Mount with initialData → advance 120s → assert no save call. **Fails before fix, passes after.** |
-| auto-save after genuine edit | Mount → change title → advance 60s → assert `updateListing` called with new title and status `draft` |
-| image-upload failure surfaces error | Create listing + attach image + mock upload rejection → assert error message visible to user |
-
-### Pre-fix regression confirmation
-
-The P0 auto-save regression test was verified to fail against the pre-fix code: without the `hasHydrated` guard, `isDirty` is set to `true` on mount, and advancing timers causes `updateListing` to fire. With the fix applied, the guard prevents mount-triggered dirty, and the test passes.
+Configures AWS Amplify for Cognito but auth pages use direct fetch to backend JWT endpoints. This is unused infrastructure — not a dead button or missing field. No UI impact.
 
 ---
 
-## Build
+## Item 4 — Tests
 
-Both `dashboard` and `web` compile without type errors (verified via the test runs which import the changed modules).
+**What was added:**
+- `apps/web/src/__tests__/verifyEmail.test.ts`: 5 tests covering the verify-email page
+  1. Renders code input and verify button
+  2. Displays user email from URL search params
+  3. Submits code to `/api/auth/verify-email` and stores token on success
+  4. Shows error message on invalid code
+  5. Calls `/api/auth/resend-verification` on resend click
+
+- Updated `apps/web/vitest.config.ts`: added `@vitejs/plugin-react` plugin to support JSX component tests (dependency already in workspace root package.json)
+
+**Test run:** All 18 tests pass (3 files: verifyEmail + 2 existing).
 
 ---
 
 ## Files changed
 
-| File | Change |
+| File | Action |
 |------|--------|
-| `packages/api-client/src/endpoints/listings.ts` | Unwrap `{ listing }` envelope in getListing, createListing, updateListing |
-| `apps/dashboard/src/components/ListingForm.tsx` | Fix isDirty mount bug, surface image errors, fix handlePublish, fix generateKey |
-| `packages/api-client/vitest.config.ts` | NEW — vitest config for api-client tests |
-| `packages/api-client/src/__tests__/listings.test.ts` | NEW — 3 tests for envelope unwrapping |
-| `apps/dashboard/vitest.config.ts` | NEW — vitest config for dashboard tests |
-| `apps/dashboard/src/__tests__/ListingForm.test.tsx` | NEW — 4 tests for form fixes |
-| `package.json` / `package-lock.json` | Dev dependencies for testing |
+| `apps/web/src/app/verify-email/page.tsx` | Rewritten — added code entry + verify flow |
+| `apps/web/src/app/forgot-password/page.tsx` | Rewritten — added code entry step after email submit |
+| `apps/web/src/__tests__/verifyEmail.test.ts` | New — 5 component tests for verify-email |
+| `apps/web/vitest.config.ts` | Updated — added React plugin for JSX in tests |
 | `CHANGES.md` | This file |
-| `output/questions-dash-listing-form-fixes.md` | Security scan + findings |
+| `questions.md` | Endpoint contracts confirmed, deferred concerns |
