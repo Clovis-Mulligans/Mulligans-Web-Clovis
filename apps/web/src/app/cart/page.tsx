@@ -24,6 +24,7 @@ import {
   type CartResponse,
   type CartSeller,
   type CartItem,
+  type CartSummary,
 } from '@/lib/cart-api';
 import { CardSkeletonGrid } from '@/components/LoadingSkeleton';
 import PageHeader from '@/components/PageHeader';
@@ -211,6 +212,9 @@ export default function CartPage() {
                 />
               ))}
 
+              {/* Cart-level order summary (fees + total from server) */}
+              <OrderSummary summary={cart!.summary} />
+
               {/* Buyer Protection Panel */}
               <BuyerProtectionPanel
                 open={protectionOpen}
@@ -305,8 +309,6 @@ function EmptyState() {
 }
 
 /* == SELLER CARD =========================================== */
-
-const INSURANCE_RATE = 0.0125;
 
 function SellerCard({
   seller,
@@ -498,10 +500,6 @@ function SellerBreakdown({
     return sum + price * item.quantity;
   }, 0);
   const sellerBaseShipping = seller.shipping_cost ?? 0;
-  const sellerInsurance = sellerItemsTotal * INSURANCE_RATE;
-  const sellerInsuredShipping = sellerBaseShipping + sellerInsurance;
-  const sellerProtectionFee = sellerItemsTotal * 0.075 + 0.99;
-  const sellerTotal = sellerItemsTotal + sellerInsuredShipping + sellerProtectionFee;
 
   return (
     <div
@@ -516,88 +514,10 @@ function SellerBreakdown({
           label={`Items (${sellerItemCount})`}
           value={fp(sellerItemsTotal)}
         />
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span
-            style={{
-              fontFamily: 'var(--font-sans)',
-              fontSize: 14,
-              color: '#6B7280',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-            }}
-          >
-            <ShieldCheck size={15} color="#1DC690" />
-            Buyer Protection
-          </span>
-          <span
-            style={{
-              fontFamily: 'var(--font-sans)',
-              fontSize: 14,
-              fontWeight: 700,
-              color: '#1DC690',
-            }}
-          >
-            {fp(sellerProtectionFee)}
-          </span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span
-            style={{
-              fontFamily: 'var(--font-sans)',
-              fontSize: 14,
-              color: '#6B7280',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-            }}
-          >
-            <ShieldCheck size={15} color="#278AB0" />
-            Insured Shipping
-          </span>
-          <span
-            style={{
-              fontFamily: 'var(--font-sans)',
-              fontSize: 14,
-              fontWeight: 700,
-              color: '#06070A',
-            }}
-          >
-            {sellerInsuredShipping > 0 ? fp(sellerInsuredShipping) : 'Free'}
-          </span>
-        </div>
-      </div>
-
-      <div style={{ borderTop: '1px solid #E5E7EB', margin: '12px 0' }} />
-
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'baseline',
-        }}
-      >
-        <span
-          style={{
-            fontFamily: 'var(--font-sans)',
-            fontSize: 16,
-            fontWeight: 700,
-            color: '#06070A',
-          }}
-        >
-          Total
-        </span>
-        <span
-          style={{
-            fontFamily: 'var(--font-sans)',
-            fontSize: 22,
-            fontWeight: 700,
-            color: '#1DC690',
-            lineHeight: 1.1,
-          }}
-        >
-          {fp(sellerTotal)}
-        </span>
+        <SummaryRow
+          label="Shipping"
+          value={sellerBaseShipping > 0 ? fp(sellerBaseShipping) : 'Free'}
+        />
       </div>
 
       <button
@@ -954,6 +874,131 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
       >
         {value}
       </span>
+    </div>
+  );
+}
+
+/* == ORDER SUMMARY (cart-level, from server) =============== */
+
+function OrderSummary({ summary }: { summary: CartSummary }) {
+  return (
+    <div
+      style={{
+        backgroundColor: '#FFFFFF',
+        borderRadius: 16,
+        border: '1px solid #E5E7EB',
+        boxShadow: CARD_SHADOW,
+        padding: '20px 22px',
+      }}
+    >
+      <div
+        style={{
+          fontSize: 12,
+          fontWeight: 600,
+          color: '#278AB0',
+          textTransform: 'uppercase' as const,
+          letterSpacing: '0.10em',
+          marginBottom: 16,
+          fontFamily: 'var(--font-sans)',
+        }}
+      >
+        Order Summary
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <SummaryRow
+          label={`Items (${summary.item_count})`}
+          value={fp(summary.items_total)}
+        />
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span
+            style={{
+              fontFamily: 'var(--font-sans)',
+              fontSize: 14,
+              color: '#6B7280',
+              fontWeight: 500,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            <ShieldCheck size={15} color="#1DC690" />
+            Buyer Protection
+          </span>
+          <span
+            style={{
+              fontFamily: 'var(--font-sans)',
+              fontSize: 14,
+              fontWeight: 700,
+              color: '#1DC690',
+            }}
+          >
+            {fp(summary.buyer_protection_fee)}
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span
+            style={{
+              fontFamily: 'var(--font-sans)',
+              fontSize: 14,
+              color: '#6B7280',
+              fontWeight: 500,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            <ShieldCheck size={15} color="#278AB0" />
+            Insured Shipping
+          </span>
+          <span
+            style={{
+              fontFamily: 'var(--font-sans)',
+              fontSize: 14,
+              fontWeight: 700,
+              color: '#06070A',
+            }}
+          >
+            {summary.insured_shipping_total > 0 ? fp(summary.insured_shipping_total) : 'Free'}
+          </span>
+        </div>
+      </div>
+
+      <div
+        style={{
+          borderTop: '1px solid #E5E7EB',
+          paddingTop: 14,
+          marginTop: 6,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'baseline',
+        }}
+      >
+        <span
+          style={{
+            fontFamily: 'var(--font-sans)',
+            fontSize: 16,
+            fontWeight: 700,
+            color: '#06070A',
+          }}
+        >
+          Total
+        </span>
+        <span
+          style={{
+            fontFamily: 'var(--font-sans)',
+            fontSize: 22,
+            fontWeight: 700,
+            color: '#1DC690',
+            letterSpacing: '-0.01em',
+            lineHeight: 1.1,
+          }}
+        >
+          {fp(summary.grand_total)}
+        </span>
+      </div>
     </div>
   );
 }

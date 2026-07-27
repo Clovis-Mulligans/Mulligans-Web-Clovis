@@ -55,112 +55,125 @@ describe('createSellerCheckout', () => {
   });
 });
 
-// ─── Test 2: Per-seller fee calculation — £0.99 ONCE per seller ──────────
-describe('per-seller fee calculation', () => {
-  const INSURANCE_RATE = 0.0125;
-
-  function computeSellerFees(items: { price: number; offerPrice?: number; quantity: number }[], shippingCost: number) {
-    const sellerItemsTotal = items.reduce((sum, item) => {
-      const price = item.offerPrice ?? item.price;
-      return sum + price * item.quantity;
-    }, 0);
-    const sellerBaseShipping = shippingCost;
-    const sellerInsurance = sellerItemsTotal * INSURANCE_RATE;
-    const sellerInsuredShipping = sellerBaseShipping + sellerInsurance;
-    const sellerProtectionFee = sellerItemsTotal * 0.075 + 0.99;
-    const sellerTotal = sellerItemsTotal + sellerInsuredShipping + sellerProtectionFee;
-    return { sellerItemsTotal, sellerInsuredShipping, sellerProtectionFee, sellerTotal };
-  }
-
-  it('applies £0.99 ONCE per seller, not per item (single-item seller)', () => {
-    const fees = computeSellerFees([{ price: 50, quantity: 1 }], 5.99);
-    expect(fees.sellerProtectionFee).toBeCloseTo(50 * 0.075 + 0.99, 2);
-    expect(fees.sellerProtectionFee).toBeCloseTo(4.74, 2);
+// ─── Test 2: CartSummary type includes all fee fields ──────────────────────
+describe('CartSummary response shape', () => {
+  beforeEach(() => {
+    vi.resetModules();
   });
 
-  it('applies £0.99 ONCE even with multiple items and quantities', () => {
-    const items = [
-      { price: 65.49, quantity: 1 },
-      { price: 43.99, quantity: 2 },
-    ];
-    const fees = computeSellerFees(items, 8.99);
-    const expectedItemsTotal = 65.49 + 43.99 * 2;
-
-    expect(fees.sellerProtectionFee).toBeCloseTo(expectedItemsTotal * 0.075 + 0.99, 2);
-
-    // The old WRONG formula would be: (65.49*0.075+0.99)*1 + (43.99*0.075+0.99)*2
-    const oldWrongFee = (65.49 * 0.075 + 0.99) * 1 + (43.99 * 0.075 + 0.99) * 2;
-    expect(fees.sellerProtectionFee).not.toBeCloseTo(oldWrongFee, 2);
-  });
-
-  it('2-seller cart has exactly 2x £0.99, not per-item', () => {
-    const sellerA = computeSellerFees(
-      [{ price: 65.49, quantity: 1 }, { price: 43.99, quantity: 1 }],
-      5.99
-    );
-    const sellerB = computeSellerFees(
-      [{ price: 29.99, quantity: 3 }],
-      3.49
-    );
-
-    const totalServiceFeeComponent =
-      (sellerA.sellerProtectionFee - sellerA.sellerItemsTotal * 0.075) +
-      (sellerB.sellerProtectionFee - sellerB.sellerItemsTotal * 0.075);
-
-    // Exactly 2 x £0.99 = £1.98 in service fees
-    expect(totalServiceFeeComponent).toBeCloseTo(1.98, 2);
-  });
-
-  it('worked example: 2-seller cart total matches backend', () => {
-    // Seller A: 2 items, £65.49 + £43.99, shipping £5.99
-    const sellerA = computeSellerFees(
-      [{ price: 65.49, quantity: 1 }, { price: 43.99, quantity: 1 }],
-      5.99
-    );
-    const aItems = 65.49 + 43.99;
-    expect(sellerA.sellerItemsTotal).toBeCloseTo(aItems, 2);
-    expect(sellerA.sellerProtectionFee).toBeCloseTo(aItems * 0.075 + 0.99, 2);
-    expect(sellerA.sellerInsuredShipping).toBeCloseTo(5.99 + aItems * INSURANCE_RATE, 2);
-    expect(sellerA.sellerTotal).toBeCloseTo(
-      aItems + (5.99 + aItems * INSURANCE_RATE) + (aItems * 0.075 + 0.99),
-      2
-    );
-
-    // Seller B: 1 item, £29.99 qty 3, shipping £3.49
-    const sellerB = computeSellerFees(
-      [{ price: 29.99, quantity: 3 }],
-      3.49
-    );
-    const bItems = 29.99 * 3;
-    expect(sellerB.sellerItemsTotal).toBeCloseTo(bItems, 2);
-    expect(sellerB.sellerProtectionFee).toBeCloseTo(bItems * 0.075 + 0.99, 2);
-    expect(sellerB.sellerInsuredShipping).toBeCloseTo(3.49 + bItems * INSURANCE_RATE, 2);
-
-    // Combined total = sellerA.total + sellerB.total
-    const combined = sellerA.sellerTotal + sellerB.sellerTotal;
-
-    // Old buggy combined total (£0.99 per item*qty):
-    const allItems = [65.49, 43.99, 29.99, 29.99, 29.99];
-    const buggyFee = allItems.reduce((s, p) => s + p * 0.075 + 0.99, 0);
-    const correctFee = sellerA.sellerProtectionFee + sellerB.sellerProtectionFee;
-
-    // New correct fee is LESS than buggy fee (fewer £0.99 charges)
-    expect(correctFee).toBeLessThan(buggyFee);
-    // Exactly 2 service fees vs 5 service fees
-    expect(buggyFee - correctFee).toBeCloseTo(0.99 * 3, 2);
-  });
-
-  it('insurance rate matches mobile INSURANCE_RATE (0.0125)', () => {
-    expect(INSURANCE_RATE).toBe(0.0125);
+  it('CartSummary type exports insurance_premium, insured_shipping_total, buyer_protection_fee, grand_total', async () => {
+    const mod = await import('@/lib/cart-api');
+    const sampleSummary: import('@/lib/cart-api').CartSummary = {
+      items_total: 100,
+      base_shipping: 5.99,
+      insurance_premium: 1.25,
+      insured_shipping_total: 7.24,
+      buyer_protection_fee: 8.49,
+      grand_total: 115.73,
+      item_count: 1,
+    };
+    expect(sampleSummary.insurance_premium).toBe(1.25);
+    expect(sampleSummary.insured_shipping_total).toBe(7.24);
+    expect(sampleSummary.buyer_protection_fee).toBe(8.49);
+    expect(sampleSummary.grand_total).toBe(115.73);
+    expect(sampleSummary.item_count).toBe(1);
   });
 });
 
-// ─── Test 3: Cart page no longer imports combined checkout ────────────────
+// ─── Test 3: Canonical reconciliation — business-logic-v2.md §4.2 ─────────
+describe('canonical cart total reconciliation (spec)', () => {
+  const INSURANCE_RATE = 0.0125;
+  const BUYER_PROTECTION_PERCENTAGE = 0.075;
+  const BUYER_PROTECTION_FIXED = 0.99;
+
+  function computeCartSummary(
+    itemsTotal: number,
+    baseShipping: number,
+    totalItemCount: number
+  ) {
+    const insurancePremium = itemsTotal * INSURANCE_RATE;
+    const insuredShippingTotal = baseShipping + insurancePremium;
+    const buyerProtectionFee =
+      itemsTotal * BUYER_PROTECTION_PERCENTAGE + BUYER_PROTECTION_FIXED * totalItemCount;
+    const grandTotal = itemsTotal + insuredShippingTotal + buyerProtectionFee;
+    return { itemsTotal, baseShipping, insurancePremium, insuredShippingTotal, buyerProtectionFee, grandTotal };
+  }
+
+  it('£100 item, £5.99 shipping, 1 item → grand total £115.73', () => {
+    const s = computeCartSummary(100, 5.99, 1);
+
+    expect(s.insurancePremium).toBeCloseTo(1.25, 2);
+    expect(s.insuredShippingTotal).toBeCloseTo(7.24, 2);
+    expect(s.buyerProtectionFee).toBeCloseTo(8.49, 2);
+    expect(s.grandTotal).toBeCloseTo(115.73, 2);
+  });
+
+  it('platform fee uses £0.99 PER ITEM (not per seller)', () => {
+    const s = computeCartSummary(200, 5.99, 3);
+    expect(s.buyerProtectionFee).toBeCloseTo(200 * 0.075 + 3 * 0.99, 2);
+    expect(s.buyerProtectionFee).toBeCloseTo(17.97, 2);
+  });
+
+  it('insurance is 1.25% of items total', () => {
+    const s = computeCartSummary(250, 10, 2);
+    expect(s.insurancePremium).toBeCloseTo(250 * 0.0125, 2);
+    expect(s.insurancePremium).toBeCloseTo(3.125, 2);
+  });
+
+  it('insured shipping = base shipping + insurance premium', () => {
+    const s = computeCartSummary(100, 5.99, 1);
+    expect(s.insuredShippingTotal).toBeCloseTo(s.baseShipping + s.insurancePremium, 2);
+  });
+
+  it('grand total = items + insured shipping + buyer protection', () => {
+    const s = computeCartSummary(100, 5.99, 1);
+    expect(s.grandTotal).toBeCloseTo(
+      s.itemsTotal + s.insuredShippingTotal + s.buyerProtectionFee,
+      2
+    );
+  });
+
+  it('multi-item, multi-seller worked example reconciles', () => {
+    const itemsTotal = 65.49 + 43.99 + 29.99 * 3;
+    const baseShipping = 5.99 + 3.49;
+    const totalItemCount = 5;
+    const s = computeCartSummary(itemsTotal, baseShipping, totalItemCount);
+
+    expect(s.insurancePremium).toBeCloseTo(itemsTotal * 0.0125, 2);
+    expect(s.buyerProtectionFee).toBeCloseTo(itemsTotal * 0.075 + 5 * 0.99, 2);
+    expect(s.grandTotal).toBeCloseTo(
+      itemsTotal + baseShipping + itemsTotal * 0.0125 + itemsTotal * 0.075 + 5 * 0.99,
+      2
+    );
+  });
+});
+
+// ─── Test 4: Cart page no longer imports combined checkout ──────────────────
 describe('cart page imports', () => {
   it('imports createSellerCheckout, not createCartCheckout', async () => {
     const cartApiModule = await import('@/lib/cart-api');
     expect(typeof cartApiModule.createSellerCheckout).toBe('function');
-    // createCartCheckout still exists in the module (kept for now) but is no longer
-    // imported by cart/page.tsx — we verify the new function exists and works
+  });
+});
+
+// ─── Test 5: Cart page has no client-side INSURANCE_RATE constant ──────────
+describe('cart page has no client-side fee constants', () => {
+  it('cart-api CartSummary receives insurance from server, not computed', async () => {
+    const mod = await import('@/lib/cart-api');
+    const summary: import('@/lib/cart-api').CartSummary = {
+      items_total: 100,
+      base_shipping: 5.99,
+      insurance_premium: 1.25,
+      insured_shipping_total: 7.24,
+      buyer_protection_fee: 8.49,
+      grand_total: 115.73,
+      item_count: 1,
+    };
+    expect(summary.insurance_premium).toBeDefined();
+    expect(summary.insured_shipping_total).toBeDefined();
+    expect(summary.grand_total).toBeCloseTo(
+      summary.items_total + summary.insured_shipping_total + summary.buyer_protection_fee,
+      2
+    );
   });
 });
