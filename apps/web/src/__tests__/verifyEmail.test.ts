@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import React from 'react';
 
 vi.mock('next/navigation', () => ({
@@ -26,6 +26,8 @@ describe('VerifyEmailPage', () => {
     });
   });
 
+  afterEach(cleanup);
+
   async function renderPage() {
     const mod = await import('../app/verify-email/page');
     const Page = mod.default;
@@ -34,16 +36,13 @@ describe('VerifyEmailPage', () => {
 
   it('renders code input field and verify button', async () => {
     await renderPage();
-    const inputs = screen.getAllByPlaceholderText('Enter verification code');
-    expect(inputs.length).toBeGreaterThanOrEqual(1);
-    const buttons = screen.getAllByRole('button', { name: 'Verify Email' });
-    expect(buttons.length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByPlaceholderText('Enter verification code')).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Verify Email' })).toBeDefined();
   });
 
   it('displays the user email from search params', async () => {
     await renderPage();
-    const emailElements = screen.getAllByText('test@example.com');
-    expect(emailElements.length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText('test@example.com')).toBeDefined();
   });
 
   it('submits code to verify-email endpoint and stores token on success', async () => {
@@ -58,11 +57,8 @@ describe('VerifyEmailPage', () => {
 
     await renderPage();
 
-    const inputs = screen.getAllByPlaceholderText('Enter verification code');
-    fireEvent.change(inputs[0], { target: { value: '123456' } });
-
-    const buttons = screen.getAllByRole('button', { name: 'Verify Email' });
-    fireEvent.click(buttons[0]);
+    fireEvent.change(screen.getByPlaceholderText('Enter verification code'), { target: { value: '123456' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Verify Email' }));
 
     await waitFor(() => {
       expect(fetchSpy).toHaveBeenCalledWith(
@@ -80,6 +76,22 @@ describe('VerifyEmailPage', () => {
     });
   });
 
+  it('shows error when verification succeeds but no token is returned', async () => {
+    fetchSpy.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ message: 'Email verified successfully!' }),
+    });
+
+    await renderPage();
+
+    fireEvent.change(screen.getByPlaceholderText('Enter verification code'), { target: { value: '123456' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Verify Email' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Verification succeeded but no session was returned. Please sign in manually.')).toBeDefined();
+    });
+  });
+
   it('displays error message on invalid code', async () => {
     fetchSpy.mockResolvedValueOnce({
       ok: false,
@@ -88,14 +100,11 @@ describe('VerifyEmailPage', () => {
 
     await renderPage();
 
-    const inputs = screen.getAllByPlaceholderText('Enter verification code');
-    fireEvent.change(inputs[0], { target: { value: '000000' } });
-
-    const buttons = screen.getAllByRole('button', { name: 'Verify Email' });
-    fireEvent.click(buttons[0]);
+    fireEvent.change(screen.getByPlaceholderText('Enter verification code'), { target: { value: '000000' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Verify Email' }));
 
     await waitFor(() => {
-      expect(screen.getAllByText('Invalid verification code. Please check and try again.').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText('Invalid verification code. Please check and try again.')).toBeDefined();
     });
   });
 
@@ -104,8 +113,7 @@ describe('VerifyEmailPage', () => {
 
     await renderPage();
 
-    const resendButtons = screen.getAllByRole('button', { name: 'Resend Code' });
-    fireEvent.click(resendButtons[0]);
+    fireEvent.click(screen.getByRole('button', { name: 'Resend Code' }));
 
     await waitFor(() => {
       expect(fetchSpy).toHaveBeenCalledWith(

@@ -39,7 +39,9 @@ export default function ForgotPasswordPage() {
   function handleSubmitCode(e: React.FormEvent) {
     e.preventDefault();
     if (!code.trim()) return;
-    router.push(`/reset-password?email=${encodeURIComponent(email.trim().toLowerCase())}&token=${encodeURIComponent(code.trim())}`);
+    sessionStorage.setItem('mulligans_reset_email', email.trim().toLowerCase());
+    sessionStorage.setItem('mulligans_reset_code', code.trim());
+    router.push('/reset-password');
   }
 
   const inputStyle = { fontFamily: 'var(--font-sans)', height: '44px', borderColor: '#E0E0D8', color: '#0D0D0D', backgroundColor: '#FFFFFF' };
@@ -47,7 +49,7 @@ export default function ForgotPasswordPage() {
   const blurHandler = (e: React.FocusEvent<HTMLInputElement>) => { e.target.style.borderColor = '#E0E0D8'; e.target.style.boxShadow = 'none'; };
 
   return (
-    <div className="flex min-h-[80vh] items-center justify-center px-4 py-12" style={{ backgroundColor: '#EAEAE0' }}>
+    <div className="flex min-h-[80vh] items-center justify-center px-4 py-12" style={{ backgroundColor: '#FFFFFF' }}>
       <div className="w-full max-w-[440px]">
         <div className="mb-8 text-center">
           <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '1.8rem', color: '#1DC690', letterSpacing: '3px' }}>MULLIGANS</span>
@@ -64,12 +66,6 @@ export default function ForgotPasswordPage() {
                 If an account exists with <strong style={{ color: '#1DC690' }}>{email}</strong>, we&apos;ve sent a password reset code.
                 Enter the code below to continue.
               </p>
-
-              {error && (
-                <div className="mt-4 rounded-lg p-3 text-sm" style={{ backgroundColor: 'rgba(229,62,62,0.08)', color: '#E53E3E', fontFamily: 'var(--font-sans)' }}>
-                  {error}
-                </div>
-              )}
 
               <form onSubmit={handleSubmitCode} className="mt-6">
                 <input

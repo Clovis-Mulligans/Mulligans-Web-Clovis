@@ -1,16 +1,15 @@
 'use client';
 
-import React, { useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.mulligans.uk.com';
 
 function ResetPasswordPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const token = searchParams.get('token') || '';
-  const emailParam = searchParams.get('email') || '';
+  const token = typeof window !== 'undefined' ? sessionStorage.getItem('mulligans_reset_code') || '' : '';
+  const emailParam = typeof window !== 'undefined' ? sessionStorage.getItem('mulligans_reset_email') || '' : '';
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -38,6 +37,8 @@ function ResetPasswordPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to reset password');
 
+      sessionStorage.removeItem('mulligans_reset_email');
+      sessionStorage.removeItem('mulligans_reset_code');
       router.push('/login?reset=success');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
@@ -51,14 +52,14 @@ function ResetPasswordPage() {
   const blurHandler = (e: React.FocusEvent<HTMLInputElement>) => { e.target.style.borderColor = '#E0E0D8'; e.target.style.boxShadow = 'none'; };
 
   return (
-    <div className="flex min-h-[80vh] items-center justify-center px-4 py-12" style={{ backgroundColor: '#EAEAE0' }}>
+    <div className="flex min-h-[80vh] items-center justify-center px-4 py-12" style={{ backgroundColor: '#FFFFFF' }}>
       <div className="w-full max-w-[440px]">
         <div className="mb-8 text-center">
-          <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '1.8rem', color: '#1DC690', letterSpacing: '3px' }}>MULLIGANS</span>
+          <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '1.8rem', color: '#1DC690', letterSpacing: '3px' }}>MULLIGANS</span>
         </div>
 
         <div className="rounded-2xl bg-white p-8" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.1)' }}>
-          <h1 style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, fontSize: '1.5rem', color: '#0D0D0D' }}>Set new password</h1>
+          <h1 style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '1.5rem', color: '#0D0D0D' }}>Set new password</h1>
           <p className="mt-1" style={{ fontFamily: 'var(--font-sans)', fontSize: '0.9rem', color: '#6B6B6B' }}>
             Choose a strong password for your account
           </p>
@@ -79,7 +80,7 @@ function ResetPasswordPage() {
                 <p className="mt-1 text-xs" style={{ color: '#E53E3E', fontFamily: 'var(--font-sans)' }}>Passwords do not match</p>
               )}
             </div>
-            <button type="submit" disabled={loading} className="w-full rounded-[10px] text-sm font-bold text-white transition-colors hover:opacity-90 disabled:opacity-50" style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, height: '48px', backgroundColor: '#1DC690' }}>
+            <button type="submit" disabled={loading} className="w-full rounded-[10px] text-sm text-white transition-colors hover:opacity-90 disabled:opacity-50" style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, height: '48px', backgroundColor: '#1DC690' }}>
               {loading ? 'Updating...' : 'Update Password'}
             </button>
           </form>
@@ -94,9 +95,5 @@ function ResetPasswordPage() {
 }
 
 export default function ResetPasswordPageWrapper() {
-  return (
-    <Suspense>
-      <ResetPasswordPage />
-    </Suspense>
-  );
+  return <ResetPasswordPage />;
 }

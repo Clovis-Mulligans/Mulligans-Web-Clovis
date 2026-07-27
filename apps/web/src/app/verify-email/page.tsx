@@ -30,9 +30,13 @@ function VerifyEmailPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Verification failed');
 
-      if (data.accessToken) {
-        localStorage.setItem('mulligans_auth_token', data.accessToken);
+      if (!data.accessToken) {
+        throw new Error('Verification succeeded but no session was returned. Please sign in manually.');
       }
+      // Full page reload via window.location.href is required here — localStorage.setItem
+      // bypasses the React auth context (setTokenProvider in AuthProvider.tsx), so only a
+      // full reload re-initialises the provider. Do not replace with router.push.
+      localStorage.setItem('mulligans_auth_token', data.accessToken);
       setSuccess(true);
       setTimeout(() => {
         window.location.href = '/';
@@ -65,7 +69,7 @@ function VerifyEmailPage() {
   const blurHandler = (e: React.FocusEvent<HTMLInputElement>) => { e.target.style.borderColor = '#E0E0D8'; e.target.style.boxShadow = 'none'; };
 
   return (
-    <div className="flex min-h-[80vh] items-center justify-center px-4 py-12" style={{ backgroundColor: '#EAEAE0' }}>
+    <div className="flex min-h-[80vh] items-center justify-center px-4 py-12" style={{ backgroundColor: '#FFFFFF' }}>
       <div className="w-full max-w-[440px]">
         <div className="mb-8 text-center">
           <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '1.8rem', color: '#1DC690', letterSpacing: '3px' }}>MULLIGANS</span>
