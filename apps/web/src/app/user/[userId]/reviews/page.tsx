@@ -237,7 +237,7 @@ export default function ReviewsPage() {
                   {/* Header */}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                     <Link
-                      href={`/profile/${review.reviewer.id}`}
+                      href={`/user/${review.reviewer.id}`}
                       style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}
                     >
                       {reviewerAvatar ? (

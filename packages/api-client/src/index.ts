@@ -362,3 +362,20 @@ export {
   getTrackingInfo,
   getParcelSizes,
 } from './endpoints/shipping';
+
+// Types — Returns
+export type {
+  ReturnData,
+  ReturnShippingRate,
+  ReturnRatesResponse,
+  PurchaseLabelResponse,
+} from './endpoints/returns';
+
+// Endpoints — Returns
+export {
+  getReturnRequest,
+  getReturnShippingRates,
+  purchaseReturnLabelBuyer,
+  purchaseReturnLabelSeller,
+  markReturnShipped,
+} from './endpoints/returns';

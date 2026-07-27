@@ -431,7 +431,7 @@ export default function OrderDetailPage() {
       const conversation = res?.conversation || res;
       const conversationId = conversation?.id || res?.conversation_id;
       if (conversationId) {
-        router.push(`/messages/${conversationId}`);
+        router.push(`/messages?id=${conversationId}`);
       }
     } catch (err) {
       // Non-fatal: surface a message near the button
@@ -1080,7 +1080,7 @@ export default function OrderDetailPage() {
             <div style={cardBase}>
               <h3 style={sectionTitle}>Item</h3>
               <Link
-                href={`/listing/${order.listing_id}`}
+                href={`/listings/${order.listing_id}`}
                 style={{
                   display: 'flex',
                   gap: 14,
@@ -1490,7 +1490,7 @@ export default function OrderDetailPage() {
                 <MessageCircle size={18} color={BRAND_GREEN} />
               </button>
               <Link
-                href={`/profile/${counterparty.id}`}
+                href={`/user/${counterparty.id}`}
                 style={{
                   fontFamily: 'var(--font-sans)',
                   fontSize: 13,
