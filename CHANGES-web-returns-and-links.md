@@ -147,3 +147,18 @@ $ npx vitest run apps/web/src/__tests__/ --config apps/web/vitest.config.ts
 | `questions-web-returns-and-links.md` | Mobile contract + QR finding + security scan |
 
 No backend files changed. No dashboard files changed.
+
+---
+
+## ADDENDUM: Seller-Pays Investigation (2026-07-27)
+
+### Step 1 finding — STOPPED AT DECISION GATE
+
+Seller-pays return labels are broken on **both** platforms, not just web:
+
+- **Backend** (`returnController.ts:768`) requires a real Stripe `paymentMethodId` — charges seller immediately via `stripe.paymentIntents.create` with `confirm: true`
+- **Web** (`return/[id]/page.tsx:258`) passes empty string `''` — Stripe rejects it
+- **Mobile** (`return/[id].tsx:215`) doesn't send `paymentMethodId` at all — arrives as `undefined`, Stripe rejects it
+- **No fallback** in the backend — no Connect balance, no saved card lookup, no deduct-from-payout
+
+**No code changes made.** Full findings and three options written to `questions-web-returns-and-links.md`. Waiting for Harry's direction before proceeding.

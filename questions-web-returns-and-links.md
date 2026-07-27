@@ -75,6 +75,87 @@ All verified against `returnRoutes.ts` — every endpoint exists and is wired wi
 
 1. **`who_pays_return` field**: Mobile accesses `returnData.who_pays_return` but the backend schema column is `paid_by`. The web page checks both to be safe.
 
-2. **Seller label purchase**: The seller endpoint requires a `paymentMethodId` (Stripe payment method). Mobile presumably collects this; the web wizard currently passes an empty string for seller-pays flows. This needs a payment method selector if seller-pays return labels are used on web. Currently buyer-pays is the common path.
+2. **`durationTerms` field**: Backend rates response doesn't include this field (mobile type has it as optional). No impact — mobile handles its absence too.
 
-3. **`durationTerms` field**: Backend rates response doesn't include this field (mobile type has it as optional). No impact — mobile handles its absence too.
+---
+
+## ADDENDUM: Seller-Pays Returns — Step 1 Investigation (2026-07-27)
+
+### 1a. Backend seller-label handler findings
+
+**File:** `Mulligans-Backend/src/controllers/returnController.ts:693-909`
+**Route:** `POST /api/returns/purchase-label/seller` (returnRoutes.ts:35, behind `authenticateToken`)
+
+**Is `paymentMethodId` required?**
+Yes — functionally required. The handler destructures `{ returnId, rateId, paymentMethodId }` from `req.body` (line 695) but only validates `returnId` and `rateId` are present (lines 697-701). `paymentMethodId` is never checked. It is passed directly to:
+
+```
+stripe.paymentIntents.create({
+  amount: labelCostPence,
+  currency: 'gbp',
+  payment_method: paymentMethodId,   // <-- must be a real pm_xxx ID
+  confirm: true,
+  automatic_payment_methods: { enabled: true, allow_redirects: 'never' },
+  metadata: { type: 'return_label', return_id, order_id, paid_by: 'seller' },
+});
+```
+(Lines 768-783)
+
+**What does it do with `paymentMethodId`?**
+Charges the seller immediately — `confirm: true` means the PaymentIntent is created and confirmed in one step. No separate confirmation flow. The charge goes against the **platform Stripe account** (no `stripeAccount` or `transfer_data` parameter), not the seller's Connect account.
+
+**What happens with empty string or undefined?**
+- Empty string `""`: Stripe rejects it as an invalid payment method ID
+- `undefined` (missing from body): Stripe cannot confirm without a payment method (no `customer` field to fall back on)
+- Both cases: the Stripe error bubbles to the generic catch-all (lines 905-908), returning a raw 500 with the Stripe error message
+
+**What does it return on success?**
+HTTP 200: `{ success: true, data: { trackingNumber, trackingUrl, labelUrl, carrier, labelCost, paidBy: 'seller', message } }`
+
+**No fallback mechanism exists.** No Connect balance deduction, no saved default card lookup, no deduct-from-payout. A valid `pm_xxx` Stripe payment method ID is the only path.
+
+### 1b. How mobile handles seller-pays returns
+
+**File:** `Mulligans-Mobile/app/orders/return/[id].tsx:203-246`
+
+**Mobile does NOT collect a payment method for seller-pays returns.**
+
+The `handlePurchaseLabel` function (line 203) selects the endpoint based on `returnData.who_pays_return` (line 211), but sends **identical bodies** for both buyer and seller paths:
+
+```
+const response = await api.post(endpoint, {
+  returnId: id,
+  rateId: selectedRate.id,
+});
+```
+(Lines 215-217)
+
+No `paymentMethodId` field is included. There is no Stripe PaymentSheet, no saved card selector, no payment method collection UI anywhere in the mobile return flow. The only Stripe payment UI in the mobile app is in the checkout flow (cart.tsx / ListingDetail.tsx), using `PlatformPayButton` for Apple Pay/Google Pay — none of which is wired into returns.
+
+The seller enters the flow from the sold-order detail screen (`app/orders/sold/[id].tsx:523`), which navigates to the same return wizard. The wizard shows "Seller Pays" UI copy but never prompts for payment details.
+
+### Decision gate: STOPPED
+
+**Neither decision-gate branch from the brief applies cleanly.** The brief anticipated two cases:
+
+1. "Backend doesn't need a card" → small fix, send what mobile sends
+2. "Backend needs a card, mobile uses Stripe sheet" → web needs Stripe Elements, stop and report
+
+**The actual situation is a third case: the backend requires a real `paymentMethodId`, but mobile doesn't collect or send one either.** Seller-pays return labels are broken on **both** platforms. The flow will fail at the Stripe API level with either an "invalid payment method" or "cannot confirm without payment method" error.
+
+**This is not a web-only gap — it's a platform-wide incomplete feature.**
+
+### Options for Harry
+
+**Option A — Backend fix (smallest scope):**
+Change the backend seller handler to charge the seller via their Stripe Connect account balance or default payment method, removing the need for the client to collect and send a `paymentMethodId`. This would fix both mobile and web simultaneously with zero frontend changes. Whether this is viable depends on how seller Stripe Connect accounts are set up (do they have a default payment method? Can we charge their Connect balance?).
+
+**Option B — Collect payment method on both platforms:**
+Add Stripe payment collection UI to both mobile (React Native Stripe PaymentSheet) and web (Stripe Elements). This is significant new work on both platforms — estimated medium-large scope for web (new Stripe Elements integration on a single page), plus equivalent mobile work.
+
+**Option C — Defer seller-pays returns:**
+If seller-pays returns are not yet needed (no real orders have triggered this path), leave the flow as-is and prioritise it when needed. The buyer-pays path works correctly on both platforms.
+
+**My recommendation:** Option A if architecturally feasible (one backend change, both platforms fixed). Otherwise Option C unless seller-pays returns are actively needed. Option B is the most work and touches the most code across both repos.
+
+**Waiting for direction before writing any code.**
