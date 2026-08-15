@@ -228,10 +228,17 @@ function ClubFields({
   const isPutter = clubType === 'Putters';
   const lengthOptions = isPutter ? PUTTER_LENGTH_OPTIONS : CLUB_LENGTH_OPTIONS;
 
+  const dexterity = normalizeDexterity((readSpec(specs, 'dexterity') as string) ?? '');
+  const shaftFlex = (readSpec(specs, 'shaftFlex', 'shaft_flex') as string) ?? '';
+  const shaftMaterial = (readSpec(specs, 'shaftMaterial', 'shaft_material') as string) ?? '';
+  const lieAngle = (readSpec(specs, 'lieAngle', 'lie_angle') as string) ?? '';
+  const length = (readSpec(specs, 'length', 'shaft_length') as string) ?? '';
+  const gripSize = (readSpec(specs, 'gripSize', 'grip') as string) ?? '';
+
   return (
     <div className="space-y-4 mt-4 pt-4 border-t border-[#F0F0EA]">
       {/* Club Type */}
-      <div>
+      <div data-field="specs.clubType">
         <label className={labelClass}>Club Type <RequiredAsterisk /></label>
         <SelectWrapper>
           <select
@@ -240,8 +247,8 @@ function ClubFields({
             onChange={(e) => onClubTypeChange(e.target.value)}
           >
             <option value="">Select club type</option>
-            {CLUB_TYPE_OPTIONS.map((t) => (
-              <option key={t} value={t}>{t}</option>
+            {optionsWithCurrent(CLUB_TYPE_OPTIONS, clubType).map((t) => (
+              <option key={t} value={t}>{CLUB_TYPE_OPTIONS.includes(t) ? t : `${t} (existing)`}</option>
             ))}
           </select>
         </SelectWrapper>
@@ -250,12 +257,12 @@ function ClubFields({
 
       {/* Brand + Model */}
       <div className="grid grid-cols-2 gap-4">
-        <div>
+        <div data-field="specs.brand">
           <label className={labelClass}>Brand <RequiredAsterisk /></label>
           <input className={inputClass} placeholder="e.g. Titleist" value={(readSpec(specs, 'brand') as string) ?? ''} onChange={(e) => onSpecChange('brand', e.target.value)} />
           <FieldError msg={errors['specs.brand']} />
         </div>
-        <div>
+        <div data-field="specs.model">
           <label className={labelClass}>Model <RequiredAsterisk /></label>
           <input className={inputClass} placeholder="e.g. TSR2" value={(readSpec(specs, 'model') as string) ?? ''} onChange={(e) => onSpecChange('model', e.target.value)} />
           <FieldError msg={errors['specs.model']} />
@@ -263,12 +270,12 @@ function ClubFields({
       </div>
 
       {/* Dexterity */}
-      <div>
+      <div data-field="specs.dexterity">
         <label className={labelClass}>Dexterity <RequiredAsterisk /></label>
         <SelectWrapper>
-          <select className={selectClass} value={(readSpec(specs, 'dexterity') as string) ?? ''} onChange={(e) => onSpecChange('dexterity', e.target.value)}>
+          <select className={selectClass} value={dexterity} onChange={(e) => onSpecChange('dexterity', e.target.value)}>
             <option value="">Select dexterity</option>
-            {DEXTERITY_OPTIONS.map((d) => <option key={d} value={d}>{d}</option>)}
+            {optionsWithCurrent(DEXTERITY_OPTIONS, dexterity).map((d) => <option key={d} value={d}>{DEXTERITY_OPTIONS.includes(d) ? d : `${d} (existing)`}</option>)}
           </select>
         </SelectWrapper>
         <FieldError msg={errors['specs.dexterity']} />
@@ -276,7 +283,7 @@ function ClubFields({
 
       {/* Loft */}
       {showLoft && (
-        <div>
+        <div data-field="specs.loft">
           <label className={labelClass}>Loft (°)</label>
           <input className={inputClass} type="number" min="0" max="90" step="0.5" placeholder="e.g. 10.5" value={(readSpec(specs, 'loft') as string) ?? ''} onChange={(e) => onSpecChange('loft', e.target.value)} />
         </div>
@@ -284,13 +291,13 @@ function ClubFields({
 
       {/* Lie Angle */}
       {showLieAngle && (
-        <div>
+        <div data-field="specs.lieAngle">
           <label className={labelClass}>Lie Angle</label>
           <SelectWrapper>
-            <select className={selectClass} value={(readSpec(specs, 'lieAngle', 'lie_angle') as string) ?? ''} onChange={(e) => onSpecChange('lieAngle', e.target.value)}>
+            <select className={selectClass} value={lieAngle} onChange={(e) => onSpecChange('lieAngle', e.target.value)}>
               <option value="">Select lie angle</option>
-              {LIE_ANGLE_OPTIONS.map((a) => (
-                <option key={a} value={a}>{a === 'Standard' ? a : `${a}°`}</option>
+              {optionsWithCurrent(LIE_ANGLE_OPTIONS, lieAngle).map((a) => (
+                <option key={a} value={a}>{a === 'Standard' || !LIE_ANGLE_OPTIONS.includes(a) ? (LIE_ANGLE_OPTIONS.includes(a) ? a : `${a} (existing)`) : `${a}°`}</option>
               ))}
             </select>
           </SelectWrapper>
@@ -299,22 +306,22 @@ function ClubFields({
 
       {/* Shaft Flex + Material */}
       <div className="grid grid-cols-2 gap-4">
-        <div>
+        <div data-field="specs.shaftFlex">
           <label className={labelClass}>Shaft Flex <RequiredAsterisk /></label>
           <SelectWrapper>
-            <select className={selectClass} value={(readSpec(specs, 'shaftFlex', 'shaft_flex') as string) ?? ''} onChange={(e) => onSpecChange('shaftFlex', e.target.value)}>
+            <select className={selectClass} value={shaftFlex} onChange={(e) => onSpecChange('shaftFlex', e.target.value)}>
               <option value="">Select flex</option>
-              {SHAFT_FLEX_OPTIONS.map((f) => <option key={f} value={f}>{f}</option>)}
+              {optionsWithCurrent(SHAFT_FLEX_OPTIONS, shaftFlex).map((f) => <option key={f} value={f}>{SHAFT_FLEX_OPTIONS.includes(f) ? f : `${f} (existing)`}</option>)}
             </select>
           </SelectWrapper>
           <FieldError msg={errors['specs.shaftFlex']} />
         </div>
-        <div>
+        <div data-field="specs.shaftMaterial">
           <label className={labelClass}>Shaft Material <RequiredAsterisk /></label>
           <SelectWrapper>
-            <select className={selectClass} value={(readSpec(specs, 'shaftMaterial', 'shaft_material') as string) ?? ''} onChange={(e) => onSpecChange('shaftMaterial', e.target.value)}>
+            <select className={selectClass} value={shaftMaterial} onChange={(e) => onSpecChange('shaftMaterial', e.target.value)}>
               <option value="">Select material</option>
-              {SHAFT_MATERIAL_OPTIONS.map((m) => <option key={m} value={m}>{m}</option>)}
+              {optionsWithCurrent(SHAFT_MATERIAL_OPTIONS, shaftMaterial).map((m) => <option key={m} value={m}>{SHAFT_MATERIAL_OPTIONS.includes(m) ? m : `${m} (existing)`}</option>)}
             </select>
           </SelectWrapper>
           <FieldError msg={errors['specs.shaftMaterial']} />
@@ -323,25 +330,25 @@ function ClubFields({
 
       {/* Optional: Length, Grip, Year */}
       <div className="grid grid-cols-3 gap-4">
-        <div>
+        <div data-field="specs.length">
           <label className={labelClass}>Length</label>
           <SelectWrapper>
-            <select className={selectClass} value={(readSpec(specs, 'length', 'shaft_length') as string) ?? ''} onChange={(e) => onSpecChange('length', e.target.value)}>
+            <select className={selectClass} value={length} onChange={(e) => onSpecChange('length', e.target.value)}>
               <option value="">Select length</option>
-              {lengthOptions.map((l) => <option key={l} value={l}>{l}</option>)}
+              {optionsWithCurrent(lengthOptions, length).map((l) => <option key={l} value={l}>{lengthOptions.includes(l) ? l : `${l} (existing)`}</option>)}
             </select>
           </SelectWrapper>
         </div>
-        <div>
+        <div data-field="specs.gripSize">
           <label className={labelClass}>Grip Size</label>
           <SelectWrapper>
-            <select className={selectClass} value={(readSpec(specs, 'gripSize', 'grip') as string) ?? ''} onChange={(e) => onSpecChange('gripSize', e.target.value)}>
+            <select className={selectClass} value={gripSize} onChange={(e) => onSpecChange('gripSize', e.target.value)}>
               <option value="">Select grip size</option>
-              {GRIP_SIZE_OPTIONS.map((g) => <option key={g} value={g}>{g}</option>)}
+              {optionsWithCurrent(GRIP_SIZE_OPTIONS, gripSize).map((g) => <option key={g} value={g}>{GRIP_SIZE_OPTIONS.includes(g) ? g : `${g} (existing)`}</option>)}
             </select>
           </SelectWrapper>
         </div>
-        <div>
+        <div data-field="specs.year">
           <label className={labelClass}>Year</label>
           <input className={inputClass} type="number" min="1980" max={new Date().getFullYear() + 1} placeholder="e.g. 2023" value={(readSpec(specs, 'year') as string) ?? ''} onChange={(e) => onSpecChange('year', e.target.value)} />
         </div>
@@ -360,27 +367,32 @@ function ShaftGripHeadFields({
   errors: FormErrors;
 }) {
   const sub = (readSpec(specs, 'subcategory') as string) ?? '';
+  const shaftFlex = (readSpec(specs, 'shaftFlex', 'shaft_flex') as string) ?? '';
+  const shaftMaterial = (readSpec(specs, 'shaftMaterial', 'shaft_material') as string) ?? '';
+  const shaftLength = (readSpec(specs, 'shaftLength', 'shaft_length') as string) ?? '';
+  const gripSize = (readSpec(specs, 'gripSize', 'grip_size') as string) ?? '';
+  const clubType = (readSpec(specs, 'clubType', 'club_type') as string) ?? '';
 
   return (
     <div className="space-y-4 mt-4 pt-4 border-t border-[#F0F0EA]">
-      <div>
+      <div data-field="specs.subcategory">
         <label className={labelClass}>Sub-category <RequiredAsterisk /></label>
         <SelectWrapper>
           <select className={selectClass} value={sub} onChange={(e) => onSpecChange('subcategory', e.target.value)}>
             <option value="">Select sub-category</option>
-            {['Shaft', 'Grip', 'Club Head'].map((s) => <option key={s} value={s}>{s}</option>)}
+            {optionsWithCurrent(['Shaft', 'Grip', 'Club Head'], sub).map((s) => <option key={s} value={s}>{['Shaft', 'Grip', 'Club Head'].includes(s) ? s : `${s} (existing)`}</option>)}
           </select>
         </SelectWrapper>
         <FieldError msg={errors['specs.subcategory']} />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <div>
+        <div data-field="specs.brand">
           <label className={labelClass}>Brand <RequiredAsterisk /></label>
           <input className={inputClass} placeholder="e.g. KBS" value={(readSpec(specs, 'brand') as string) ?? ''} onChange={(e) => onSpecChange('brand', e.target.value)} />
           <FieldError msg={errors['specs.brand']} />
         </div>
-        <div>
+        <div data-field="specs.model">
           <label className={labelClass}>Model <RequiredAsterisk /></label>
           <input className={inputClass} placeholder="e.g. Tour 90" value={(readSpec(specs, 'model') as string) ?? ''} onChange={(e) => onSpecChange('model', e.target.value)} />
           <FieldError msg={errors['specs.model']} />
@@ -390,36 +402,36 @@ function ShaftGripHeadFields({
       {sub === 'Shaft' && (
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div>
+            <div data-field="specs.shaftFlex">
               <label className={labelClass}>Flex</label>
               <SelectWrapper>
-                <select className={selectClass} value={(readSpec(specs, 'shaftFlex', 'shaft_flex') as string) ?? ''} onChange={(e) => onSpecChange('shaftFlex', e.target.value)}>
+                <select className={selectClass} value={shaftFlex} onChange={(e) => onSpecChange('shaftFlex', e.target.value)}>
                   <option value="">Select flex</option>
-                  {SHAFT_FLEX_OPTIONS.map((f) => <option key={f} value={f}>{f}</option>)}
+                  {optionsWithCurrent(SHAFT_FLEX_OPTIONS, shaftFlex).map((f) => <option key={f} value={f}>{SHAFT_FLEX_OPTIONS.includes(f) ? f : `${f} (existing)`}</option>)}
                 </select>
               </SelectWrapper>
             </div>
-            <div>
+            <div data-field="specs.shaftMaterial">
               <label className={labelClass}>Material</label>
               <SelectWrapper>
-                <select className={selectClass} value={(readSpec(specs, 'shaftMaterial', 'shaft_material') as string) ?? ''} onChange={(e) => onSpecChange('shaftMaterial', e.target.value)}>
+                <select className={selectClass} value={shaftMaterial} onChange={(e) => onSpecChange('shaftMaterial', e.target.value)}>
                   <option value="">Select material</option>
-                  {SHAFT_MATERIAL_OPTIONS.map((m) => <option key={m} value={m}>{m}</option>)}
+                  {optionsWithCurrent(SHAFT_MATERIAL_OPTIONS, shaftMaterial).map((m) => <option key={m} value={m}>{SHAFT_MATERIAL_OPTIONS.includes(m) ? m : `${m} (existing)`}</option>)}
                 </select>
               </SelectWrapper>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div>
+            <div data-field="specs.shaftLength">
               <label className={labelClass}>Length</label>
               <SelectWrapper>
-                <select className={selectClass} value={(readSpec(specs, 'shaftLength', 'shaft_length') as string) ?? ''} onChange={(e) => onSpecChange('shaftLength', e.target.value)}>
+                <select className={selectClass} value={shaftLength} onChange={(e) => onSpecChange('shaftLength', e.target.value)}>
                   <option value="">Select length</option>
-                  {CLUB_LENGTH_OPTIONS.map((l) => <option key={l} value={l}>{l}</option>)}
+                  {optionsWithCurrent(CLUB_LENGTH_OPTIONS, shaftLength).map((l) => <option key={l} value={l}>{CLUB_LENGTH_OPTIONS.includes(l) ? l : `${l} (existing)`}</option>)}
                 </select>
               </SelectWrapper>
             </div>
-            <div>
+            <div data-field="specs.shaftWeight">
               <label className={labelClass}>Weight (g)</label>
               <input className={inputClass} type="number" placeholder="e.g. 95" value={(readSpec(specs, 'shaftWeight', 'shaft_weight') as string) ?? ''} onChange={(e) => onSpecChange('shaftWeight', e.target.value)} />
             </div>
@@ -429,16 +441,16 @@ function ShaftGripHeadFields({
 
       {sub === 'Grip' && (
         <div className="grid grid-cols-2 gap-4">
-          <div>
+          <div data-field="specs.gripSize">
             <label className={labelClass}>Grip Size</label>
             <SelectWrapper>
-              <select className={selectClass} value={(readSpec(specs, 'gripSize', 'grip_size') as string) ?? ''} onChange={(e) => onSpecChange('gripSize', e.target.value)}>
+              <select className={selectClass} value={gripSize} onChange={(e) => onSpecChange('gripSize', e.target.value)}>
                 <option value="">Select size</option>
-                {GRIP_SIZE_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
+                {optionsWithCurrent(GRIP_SIZE_OPTIONS, gripSize).map((s) => <option key={s} value={s}>{GRIP_SIZE_OPTIONS.includes(s) ? s : `${s} (existing)`}</option>)}
               </select>
             </SelectWrapper>
           </div>
-          <div>
+          <div data-field="specs.gripMaterial">
             <label className={labelClass}>Material</label>
             <input className={inputClass} placeholder="e.g. Rubber" value={(readSpec(specs, 'gripMaterial', 'grip_material') as string) ?? ''} onChange={(e) => onSpecChange('gripMaterial', e.target.value)} />
           </div>
@@ -446,12 +458,12 @@ function ShaftGripHeadFields({
       )}
 
       {sub === 'Club Head' && (
-        <div>
+        <div data-field="specs.clubType">
           <label className={labelClass}>Club Type</label>
           <SelectWrapper>
-            <select className={selectClass} value={(readSpec(specs, 'clubType', 'club_type') as string) ?? ''} onChange={(e) => onSpecChange('clubType', e.target.value)}>
+            <select className={selectClass} value={clubType} onChange={(e) => onSpecChange('clubType', e.target.value)}>
               <option value="">Select club type</option>
-              {HEAD_CLUB_TYPE_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
+              {optionsWithCurrent(HEAD_CLUB_TYPE_OPTIONS, clubType).map((t) => <option key={t} value={t}>{HEAD_CLUB_TYPE_OPTIONS.includes(t) ? t : `${t} (existing)`}</option>)}
             </select>
           </SelectWrapper>
         </div>
@@ -461,42 +473,45 @@ function ShaftGripHeadFields({
 }
 
 function ClothingFields({ specs, onSpecChange, errors }: { specs: Specs; onSpecChange: (k: string, v: string) => void; errors: FormErrors }) {
+  const subcategory = (readSpec(specs, 'subcategory') as string) ?? '';
+  const gender = (readSpec(specs, 'gender') as string) ?? '';
+
   return (
     <div className="space-y-4 mt-4 pt-4 border-t border-[#F0F0EA]">
-      <div>
+      <div data-field="specs.subcategory">
         <label className={labelClass}>Sub-category <RequiredAsterisk /></label>
         <SelectWrapper>
-          <select className={selectClass} value={(readSpec(specs, 'subcategory') as string) ?? ''} onChange={(e) => onSpecChange('subcategory', e.target.value)}>
+          <select className={selectClass} value={subcategory} onChange={(e) => onSpecChange('subcategory', e.target.value)}>
             <option value="">Select sub-category</option>
-            {CLOTHING_SUBCATEGORY_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
+            {optionsWithCurrent(CLOTHING_SUBCATEGORY_OPTIONS, subcategory).map((s) => <option key={s} value={s}>{CLOTHING_SUBCATEGORY_OPTIONS.includes(s) ? s : `${s} (existing)`}</option>)}
           </select>
         </SelectWrapper>
         <FieldError msg={errors['specs.subcategory']} />
       </div>
       <div className="grid grid-cols-2 gap-4">
-        <div>
+        <div data-field="specs.brand">
           <label className={labelClass}>Brand <RequiredAsterisk /></label>
           <input className={inputClass} placeholder="e.g. FootJoy" value={(readSpec(specs, 'brand') as string) ?? ''} onChange={(e) => onSpecChange('brand', e.target.value)} />
           <FieldError msg={errors['specs.brand']} />
         </div>
-        <div>
+        <div data-field="specs.size">
           <label className={labelClass}>Size <RequiredAsterisk /></label>
           <input className={inputClass} placeholder="e.g. M, L, XL" value={(readSpec(specs, 'size') as string) ?? ''} onChange={(e) => onSpecChange('size', e.target.value)} />
           <FieldError msg={errors['specs.size']} />
         </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
-        <div>
+        <div data-field="specs.gender">
           <label className={labelClass}>Gender <RequiredAsterisk /></label>
           <SelectWrapper>
-            <select className={selectClass} value={(readSpec(specs, 'gender') as string) ?? ''} onChange={(e) => onSpecChange('gender', e.target.value)}>
+            <select className={selectClass} value={gender} onChange={(e) => onSpecChange('gender', e.target.value)}>
               <option value="">Select gender</option>
-              {GENDER_OPTIONS_MOBILE.map((g) => <option key={g} value={g}>{g}</option>)}
+              {optionsWithCurrent(GENDER_OPTIONS_MOBILE, gender).map((g) => <option key={g} value={g}>{GENDER_OPTIONS_MOBILE.includes(g) ? g : `${g} (existing)`}</option>)}
             </select>
           </SelectWrapper>
           <FieldError msg={errors['specs.gender']} />
         </div>
-        <div>
+        <div data-field="specs.color">
           <label className={labelClass}>Colour</label>
           <input className={inputClass} placeholder="e.g. Navy Blue" value={(readSpec(specs, 'color', 'colour') as string) ?? ''} onChange={(e) => onSpecChange('color', e.target.value)} />
         </div>
@@ -506,51 +521,56 @@ function ClothingFields({ specs, onSpecChange, errors }: { specs: Specs; onSpecC
 }
 
 function ShoesFields({ specs, onSpecChange, errors }: { specs: Specs; onSpecChange: (k: string, v: string) => void; errors: FormErrors }) {
+  const shoeSize = (readSpec(specs, 'shoeSize', 'size') as string) ?? '';
+  const spikes = (readSpec(specs, 'spikes', 'shoe_type') as string) ?? '';
+  const gender = (readSpec(specs, 'gender') as string) ?? '';
+  const width = (readSpec(specs, 'width') as string) ?? '';
+
   return (
     <div className="space-y-4 mt-4 pt-4 border-t border-[#F0F0EA]">
       <div className="grid grid-cols-2 gap-4">
-        <div>
+        <div data-field="specs.brand">
           <label className={labelClass}>Brand <RequiredAsterisk /></label>
           <input className={inputClass} placeholder="e.g. FootJoy" value={(readSpec(specs, 'brand') as string) ?? ''} onChange={(e) => onSpecChange('brand', e.target.value)} />
           <FieldError msg={errors['specs.brand']} />
         </div>
-        <div>
+        <div data-field="specs.shoeSize">
           <label className={labelClass}>Size (UK) <RequiredAsterisk /></label>
           <SelectWrapper>
-            <select className={selectClass} value={(readSpec(specs, 'shoeSize', 'size') as string) ?? ''} onChange={(e) => onSpecChange('shoeSize', e.target.value)}>
+            <select className={selectClass} value={shoeSize} onChange={(e) => onSpecChange('shoeSize', e.target.value)}>
               <option value="">Select size</option>
-              {SHOE_SIZE_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
+              {optionsWithCurrent(SHOE_SIZE_OPTIONS, shoeSize).map((s) => <option key={s} value={s}>{SHOE_SIZE_OPTIONS.includes(s) ? s : `${s} (existing)`}</option>)}
             </select>
           </SelectWrapper>
           <FieldError msg={errors['specs.shoeSize']} />
         </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
-        <div>
+        <div data-field="specs.width">
           <label className={labelClass}>Width</label>
           <SelectWrapper>
-            <select className={selectClass} value={(readSpec(specs, 'width') as string) ?? ''} onChange={(e) => onSpecChange('width', e.target.value)}>
+            <select className={selectClass} value={width} onChange={(e) => onSpecChange('width', e.target.value)}>
               <option value="">Select width</option>
-              {['Standard', 'Wide', 'Narrow'].map((w) => <option key={w} value={w}>{w}</option>)}
+              {optionsWithCurrent(['Standard', 'Wide', 'Narrow'], width).map((w) => <option key={w} value={w}>{['Standard', 'Wide', 'Narrow'].includes(w) ? w : `${w} (existing)`}</option>)}
             </select>
           </SelectWrapper>
         </div>
-        <div>
+        <div data-field="specs.spikes">
           <label className={labelClass}>Spikes</label>
           <SelectWrapper>
-            <select className={selectClass} value={(readSpec(specs, 'spikes', 'shoe_type') as string) ?? ''} onChange={(e) => onSpecChange('spikes', e.target.value)}>
+            <select className={selectClass} value={spikes} onChange={(e) => onSpecChange('spikes', e.target.value)}>
               <option value="">Select</option>
-              {SPIKES_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
+              {optionsWithCurrent(SPIKES_OPTIONS, spikes).map((t) => <option key={t} value={t}>{SPIKES_OPTIONS.includes(t) ? t : `${t} (existing)`}</option>)}
             </select>
           </SelectWrapper>
         </div>
       </div>
-      <div>
+      <div data-field="specs.gender">
         <label className={labelClass}>Gender <RequiredAsterisk /></label>
         <SelectWrapper>
-          <select className={selectClass} value={(readSpec(specs, 'gender') as string) ?? ''} onChange={(e) => onSpecChange('gender', e.target.value)}>
+          <select className={selectClass} value={gender} onChange={(e) => onSpecChange('gender', e.target.value)}>
             <option value="">Select gender</option>
-            {GENDER_OPTIONS_MOBILE.map((g) => <option key={g} value={g}>{g}</option>)}
+            {optionsWithCurrent(GENDER_OPTIONS_MOBILE, gender).map((g) => <option key={g} value={g}>{GENDER_OPTIONS_MOBILE.includes(g) ? g : `${g} (existing)`}</option>)}
           </select>
         </SelectWrapper>
         <FieldError msg={errors['specs.gender']} />
@@ -560,25 +580,28 @@ function ShoesFields({ specs, onSpecChange, errors }: { specs: Specs; onSpecChan
 }
 
 function AccessoriesFields({ specs, onSpecChange, errors }: { specs: Specs; onSpecChange: (k: string, v: string) => void; errors: FormErrors }) {
+  const ACCESSORY_SUBCATS = ['Bag', 'Trolley', 'Rangefinder', 'GPS Device', 'Umbrella', 'Headcover', 'Towel', 'Tees', 'Other'];
+  const subcategory = (readSpec(specs, 'subcategory') as string) ?? '';
+
   return (
     <div className="space-y-4 mt-4 pt-4 border-t border-[#F0F0EA]">
-      <div>
+      <div data-field="specs.subcategory">
         <label className={labelClass}>Sub-category <RequiredAsterisk /></label>
         <SelectWrapper>
-          <select className={selectClass} value={(readSpec(specs, 'subcategory') as string) ?? ''} onChange={(e) => onSpecChange('subcategory', e.target.value)}>
+          <select className={selectClass} value={subcategory} onChange={(e) => onSpecChange('subcategory', e.target.value)}>
             <option value="">Select sub-category</option>
-            {['Bag', 'Trolley', 'Rangefinder', 'GPS Device', 'Umbrella', 'Headcover', 'Towel', 'Tees', 'Other'].map((s) => <option key={s} value={s}>{s}</option>)}
+            {optionsWithCurrent(ACCESSORY_SUBCATS, subcategory).map((s) => <option key={s} value={s}>{ACCESSORY_SUBCATS.includes(s) ? s : `${s} (existing)`}</option>)}
           </select>
         </SelectWrapper>
         <FieldError msg={errors['specs.subcategory']} />
       </div>
       <div className="grid grid-cols-2 gap-4">
-        <div>
+        <div data-field="specs.brand">
           <label className={labelClass}>Brand <RequiredAsterisk /></label>
           <input className={inputClass} placeholder="e.g. Callaway" value={(readSpec(specs, 'brand') as string) ?? ''} onChange={(e) => onSpecChange('brand', e.target.value)} />
           <FieldError msg={errors['specs.brand']} />
         </div>
-        <div>
+        <div data-field="specs.model">
           <label className={labelClass}>Model</label>
           <input className={inputClass} placeholder="Optional" value={(readSpec(specs, 'model') as string) ?? ''} onChange={(e) => onSpecChange('model', e.target.value)} />
         </div>
@@ -591,45 +614,42 @@ function BallsFields({
   specs,
   onSpecChange,
   errors,
-  quantity,
-  onQuantityChange,
 }: {
   specs: Specs;
-  onSpecChange: (k: string, v: string) => void;
+  onSpecChange: (k: string, v: string | number) => void;
   errors: FormErrors;
-  quantity: number;
-  onQuantityChange: (v: number) => void;
 }) {
+  const packSize = readSpec(specs, 'packSize', 'quantity');
   return (
     <div className="space-y-4 mt-4 pt-4 border-t border-[#F0F0EA]">
       <div className="grid grid-cols-2 gap-4">
-        <div>
+        <div data-field="specs.brand">
           <label className={labelClass}>Brand <RequiredAsterisk /></label>
           <input className={inputClass} placeholder="e.g. Titleist" value={(readSpec(specs, 'brand') as string) ?? ''} onChange={(e) => onSpecChange('brand', e.target.value)} />
           <FieldError msg={errors['specs.brand']} />
         </div>
-        <div>
+        <div data-field="specs.model">
           <label className={labelClass}>Model <RequiredAsterisk /></label>
           <input className={inputClass} placeholder="e.g. Pro V1" value={(readSpec(specs, 'model') as string) ?? ''} onChange={(e) => onSpecChange('model', e.target.value)} />
           <FieldError msg={errors['specs.model']} />
         </div>
       </div>
-      <div>
+      <div data-field="specs.packSize">
         <label className={labelClass}>Quantity <RequiredAsterisk /></label>
         <SelectWrapper>
           <select
             className={selectClass}
-            value={String(quantity || '')}
+            value={String(packSize ?? '')}
             onChange={(e) => {
               const num = parseInt(e.target.value, 10);
-              if (!isNaN(num)) onQuantityChange(num);
+              if (!isNaN(num)) onSpecChange('packSize', num);
             }}
           >
             <option value="">Select quantity</option>
             {BALLS_QUANTITY_OPTIONS.map((q) => <option key={q.value} value={q.value}>{q.label}</option>)}
           </select>
         </SelectWrapper>
-        <FieldError msg={errors.quantity} />
+        <FieldError msg={errors['specs.packSize']} />
       </div>
     </div>
   );
@@ -639,17 +659,17 @@ function TrainingAidsFields({ specs, onSpecChange, errors }: { specs: Specs; onS
   return (
     <div className="space-y-4 mt-4 pt-4 border-t border-[#F0F0EA]">
       <div className="grid grid-cols-2 gap-4">
-        <div>
+        <div data-field="specs.brand">
           <label className={labelClass}>Brand <RequiredAsterisk /></label>
           <input className={inputClass} placeholder="e.g. Arccos" value={(readSpec(specs, 'brand') as string) ?? ''} onChange={(e) => onSpecChange('brand', e.target.value)} />
           <FieldError msg={errors['specs.brand']} />
         </div>
-        <div>
+        <div data-field="specs.trainingType">
           <label className={labelClass}>Type</label>
           <input className={inputClass} placeholder="e.g. Swing Trainer" value={(readSpec(specs, 'trainingType', 'training_type') as string) ?? ''} onChange={(e) => onSpecChange('trainingType', e.target.value)} />
         </div>
       </div>
-      <div>
+      <div data-field="specs.model">
         <label className={labelClass}>Model</label>
         <input className={inputClass} placeholder="Optional" value={(readSpec(specs, 'model') as string) ?? ''} onChange={(e) => onSpecChange('model', e.target.value)} />
       </div>
@@ -660,11 +680,11 @@ function TrainingAidsFields({ specs, onSpecChange, errors }: { specs: Specs; onS
 function EverythingElseFields({ specs, onSpecChange }: { specs: Specs; onSpecChange: (k: string, v: string) => void }) {
   return (
     <div className="space-y-4 mt-4 pt-4 border-t border-[#F0F0EA]">
-      <div>
+      <div data-field="specs.itemName">
         <label className={labelClass}>Item Name</label>
         <input className={inputClass} placeholder="Describe the item" value={(readSpec(specs, 'itemName', 'item_name') as string) ?? ''} onChange={(e) => onSpecChange('itemName', e.target.value)} />
       </div>
-      <div>
+      <div data-field="specs.brand">
         <label className={labelClass}>Brand</label>
         <input className={inputClass} placeholder="Optional" value={(readSpec(specs, 'brand') as string) ?? ''} onChange={(e) => onSpecChange('brand', e.target.value)} />
       </div>
@@ -690,24 +710,47 @@ export function readSpec(
   return undefined;
 }
 
-const SPEC_KEY_MAP: Array<[string, string]> = [
-  ['shaftFlex', 'shaft_flex'],
-  ['shaftMaterial', 'shaft_material'],
-  ['lieAngle', 'lie_angle'],
-  ['length', 'shaft_length'],
-  ['gripSize', 'grip'],
-  ['clubType', 'club_type'],
-  ['shaftLength', 'shaft_length'],
-  ['shoeSize', 'size'],
-  ['spikes', 'shoe_type'],
-  ['color', 'colour'],
-  ['shaftWeight', 'shaft_weight'],
-  ['gripMaterial', 'grip_material'],
-];
+const SPEC_KEY_MAP_BY_CATEGORY: Record<string, Array<[string, string]>> = {
+  'Clubs': [
+    ['shaftFlex', 'shaft_flex'],
+    ['shaftMaterial', 'shaft_material'],
+    ['lieAngle', 'lie_angle'],
+    ['length', 'shaft_length'],
+    ['gripSize', 'grip'],
+    ['clubType', 'club_type'],
+  ],
+  'Shafts, Grips & Heads': [
+    ['shaftFlex', 'shaft_flex'],
+    ['shaftMaterial', 'shaft_material'],
+    ['shaftLength', 'shaft_length'],
+    ['shaftWeight', 'shaft_weight'],
+    ['gripSize', 'grip_size'],
+    ['gripMaterial', 'grip_material'],
+    ['clubType', 'club_type'],
+  ],
+  'Clothing': [
+    ['color', 'colour'],
+  ],
+  'Shoes': [
+    ['shoeSize', 'size'],
+    ['color', 'colour'],
+  ],
+  'Balls': [
+    ['packSize', 'quantity'],
+  ],
+  'Training Aids': [
+    ['trainingType', 'training_type'],
+  ],
+  'Everything Else': [
+    ['itemName', 'item_name'],
+  ],
+};
 
-function specsToCanonical(specs: Specs): Specs {
+function specsToCanonical(specs: Specs, category: string): Specs {
   const result: Specs = {};
-  const snakeToCamel = new Map(SPEC_KEY_MAP.map(([c, s]) => [s, c]));
+  const keyMap = SPEC_KEY_MAP_BY_CATEGORY[category] ?? [];
+  const snakeToCamel = new Map(keyMap.map(([c, s]) => [s, c]));
+
   for (const [key, value] of Object.entries(specs)) {
     if (value === undefined || value === '') continue;
     const canonical = snakeToCamel.get(key) ?? key;
@@ -715,19 +758,50 @@ function specsToCanonical(specs: Specs): Specs {
       result[canonical] = value;
     }
   }
-  for (const [camel, snake] of SPEC_KEY_MAP) {
-    const val = specs[camel] ?? specs[snake];
-    if (val !== undefined && val !== '' && val !== null) {
-      result[camel] = val;
+
+  for (const [camel, snake] of keyMap) {
+    if (specs[camel] !== undefined && specs[camel] !== '' && specs[camel] !== null) {
+      result[camel] = specs[camel];
     }
     delete result[snake];
   }
+
+  // Shoes: map shoe_type → spikes only for Spiked/Spikeless
+  if (category === 'Shoes' && result['shoe_type'] !== undefined && !result['spikes']) {
+    const val = String(result['shoe_type']);
+    if (val === 'Spiked') {
+      result['spikes'] = 'Yes';
+      delete result['shoe_type'];
+    } else if (val === 'Spikeless') {
+      result['spikes'] = 'No';
+      delete result['shoe_type'];
+    }
+  } else if (category === 'Shoes' && result['spikes'] && result['shoe_type']) {
+    delete result['shoe_type'];
+  }
+
+  // Normalize dexterity on write
+  if (result['dexterity']) {
+    result['dexterity'] = normalizeDexterity(String(result['dexterity']));
+  }
+
   return result;
 }
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+export function optionsWithCurrent(options: string[], current?: string): string[] {
+  if (!current || options.includes(current)) return options;
+  return [current, ...options];
+}
+
+export function normalizeDexterity(raw: string): string {
+  if (raw === 'Right Hand') return 'Right Handed';
+  if (raw === 'Left Hand') return 'Left Handed';
+  return raw;
+}
 
 const SINGULAR_TO_PLURAL_CLUB: Record<string, string> = {
   'Driver': 'Drivers',
@@ -788,6 +862,12 @@ export default function ListingForm({ initialData, isEditing = false }: ListingF
     const s = (initialData?.specifications as Specs) ?? {};
     const { auto_decline_below: _adb, ...rest } = s;
     void _adb;
+    if (initialData?.category === 'Balls' && !rest.packSize && !rest.quantity) {
+      const topQty = initialData?.quantity;
+      if (typeof topQty === 'number' && topQty > 0) {
+        rest.packSize = topQty;
+      }
+    }
     return rest;
   });
   const [clubType, setClubType] = useState(() => {
@@ -799,15 +879,6 @@ export default function ListingForm({ initialData, isEditing = false }: ListingF
       return normalizeClubType(raw);
     }
     return '';
-  });
-  const [quantity, setQuantity] = useState(() => {
-    if (initialData?.category === 'Balls') {
-      const topLevel = initialData?.quantity;
-      if (typeof topLevel === 'number' && topLevel > 0) return topLevel;
-      const specQty = (initialData?.specifications as Specs)?.quantity;
-      if (typeof specQty === 'number') return specQty;
-    }
-    return 0;
   });
   const firstErrorRef = useRef<string | null>(null);
 
@@ -961,7 +1032,7 @@ export default function ListingForm({ initialData, isEditing = false }: ListingF
     if (category === 'Balls') {
       if (!readSpec(specs, 'brand')) errs['specs.brand'] = 'Brand is required.';
       if (!readSpec(specs, 'model')) errs['specs.model'] = 'Model is required.';
-      if (!quantity || quantity <= 0) errs.quantity = 'Quantity is required.';
+      if (!readSpec(specs, 'packSize', 'quantity')) errs['specs.packSize'] = 'Quantity is required.';
     }
     if (category === 'Training Aids') {
       if (!readSpec(specs, 'brand')) errs['specs.brand'] = 'Brand is required.';
@@ -969,14 +1040,24 @@ export default function ListingForm({ initialData, isEditing = false }: ListingF
 
     setErrors(errs);
     if (Object.keys(errs).length > 0) {
-      firstErrorRef.current = Object.keys(errs)[0];
+      const allFields = document.querySelectorAll('[data-field]');
+      for (const el of allFields) {
+        const key = el.getAttribute('data-field');
+        if (key && errs[key]) {
+          firstErrorRef.current = key;
+          break;
+        }
+      }
+      if (!firstErrorRef.current) {
+        firstErrorRef.current = Object.keys(errs)[0];
+      }
     }
     return Object.keys(errs).length === 0;
   };
 
   // ---- Build payload ----
   const buildPayload = (overrideStatus?: 'draft' | 'active') => {
-    const canonical = specsToCanonical(specs);
+    const canonical = specsToCanonical(specs, category);
     if (acceptOffers && autoDeclineBelow) {
       canonical.auto_decline_below = parseFloat(autoDeclineBelow);
     }
@@ -997,7 +1078,6 @@ export default function ListingForm({ initialData, isEditing = false }: ListingF
       is_negotiable: acceptOffers,
       parcel_size: parcelSize || undefined,
       subcategory: subcategoryValue,
-      quantity: category === 'Balls' ? (quantity || 1) : undefined,
       specifications: canonical,
       status: overrideStatus ?? status,
     };
@@ -1116,7 +1196,7 @@ export default function ListingForm({ initialData, isEditing = false }: ListingF
       case 'Accessories':
         return <AccessoriesFields specs={specs} onSpecChange={handleSpecChange} errors={errors} />;
       case 'Balls':
-        return <BallsFields specs={specs} onSpecChange={handleSpecChange} errors={errors} quantity={quantity} onQuantityChange={(v) => { setQuantity(v); setIsDirty(true); }} />;
+        return <BallsFields specs={specs} onSpecChange={handleSpecChange} errors={errors} />;
       case 'Training Aids':
         return <TrainingAidsFields specs={specs} onSpecChange={handleSpecChange} errors={errors} />;
       case 'Everything Else':

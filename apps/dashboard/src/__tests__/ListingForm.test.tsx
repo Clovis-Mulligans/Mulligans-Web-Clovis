@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import React from 'react';
 import { render, screen, act, fireEvent, cleanup } from '@testing-library/react';
-import { readSpec } from '@/components/ListingForm';
+import { readSpec, optionsWithCurrent, normalizeDexterity } from '@/components/ListingForm';
 
 // ---- Mocks ----
 
@@ -143,6 +143,92 @@ function makeIncompleteListing() {
   } as any;
 }
 
+function makeClothingListing() {
+  return {
+    id: 'lst_clothing_001',
+    title: 'Nike Polo — M — Like New',
+    description: 'Great polo.',
+    category: 'Clothing',
+    subcategory: '',
+    condition_overall: 4,
+    price: '29.99',
+    is_negotiable: false,
+    parcel_size: 'small',
+    status: 'active',
+    quantity: 1,
+    specifications: {
+      brand: 'Nike',
+      subcategory: 'Polo Shirts',
+      size: 'M',
+      gender: 'Male',
+      color: 'Navy',
+    },
+    images: [],
+  } as any;
+}
+
+function makeCsvShoesListing() {
+  return {
+    id: 'lst_csv_shoes_001',
+    title: 'Adidas Spiked Shoes — Size 9',
+    description: 'Good condition.',
+    category: 'Shoes',
+    subcategory: '',
+    condition_overall: 3,
+    price: '49.99',
+    is_negotiable: false,
+    parcel_size: 'medium',
+    status: 'draft',
+    quantity: 1,
+    specifications: {
+      brand: 'Adidas',
+      size: '9',
+      gender: 'Male',
+      shoe_type: 'Spiked',
+      colour: 'White',
+    },
+    images: [],
+  } as any;
+}
+
+function makeGripsListing() {
+  return {
+    id: 'lst_grips_001',
+    title: 'Golf Pride Grip — Midsize',
+    description: 'Brand new.',
+    category: 'Shafts, Grips & Heads',
+    subcategory: '',
+    condition_overall: 5,
+    price: '12.99',
+    is_negotiable: false,
+    parcel_size: 'small',
+    status: 'active',
+    quantity: 1,
+    specifications: {
+      brand: 'Golf Pride',
+      model: 'MCC',
+      subcategory: 'Grip',
+      grip_size: 'Midsize',
+      grip_material: 'Rubber',
+    },
+    images: [],
+  } as any;
+}
+
+// ---- Helper to click Update and flush ----
+
+async function clickUpdate() {
+  const updateButtons = screen.getAllByText('Update Listing');
+  const updateButton = updateButtons.find((el) => el.tagName === 'BUTTON')!;
+  await act(async () => {
+    fireEvent.click(updateButton);
+    await Promise.resolve();
+    await Promise.resolve();
+    vi.advanceTimersByTime(0);
+    await Promise.resolve();
+  });
+}
+
 // ---- Tests ----
 
 describe('readSpec helper', () => {
@@ -174,6 +260,39 @@ describe('readSpec helper', () => {
   it('works without a snake_case key', () => {
     const specs = { brand: 'Callaway' };
     expect(readSpec(specs, 'brand')).toBe('Callaway');
+  });
+});
+
+describe('optionsWithCurrent', () => {
+  it('returns options unchanged when value is in the list', () => {
+    const opts = ['A', 'B', 'C'];
+    expect(optionsWithCurrent(opts, 'B')).toEqual(['A', 'B', 'C']);
+  });
+
+  it('prepends value when absent from the list', () => {
+    const opts = ['A', 'B', 'C'];
+    expect(optionsWithCurrent(opts, 'X')).toEqual(['X', 'A', 'B', 'C']);
+  });
+
+  it('returns options unchanged when value is empty', () => {
+    const opts = ['A', 'B'];
+    expect(optionsWithCurrent(opts, '')).toEqual(['A', 'B']);
+    expect(optionsWithCurrent(opts, undefined)).toEqual(['A', 'B']);
+  });
+});
+
+describe('normalizeDexterity', () => {
+  it('normalizes "Right Hand" to "Right Handed"', () => {
+    expect(normalizeDexterity('Right Hand')).toBe('Right Handed');
+  });
+
+  it('normalizes "Left Hand" to "Left Handed"', () => {
+    expect(normalizeDexterity('Left Hand')).toBe('Left Handed');
+  });
+
+  it('passes through already-canonical values', () => {
+    expect(normalizeDexterity('Right Handed')).toBe('Right Handed');
+    expect(normalizeDexterity('Left Handed')).toBe('Left Handed');
   });
 });
 
@@ -255,17 +374,7 @@ describe('ListingForm', () => {
     const listing = makeMobileClubListing();
     mockUpdateListing.mockResolvedValue({ id: listing.id });
     await renderForm({ initialData: listing, isEditing: true });
-
-    const updateButtons = screen.getAllByText('Update Listing');
-    const updateButton = updateButtons.find((el) => el.tagName === 'BUTTON')!;
-    await act(async () => {
-      fireEvent.click(updateButton);
-      await Promise.resolve();
-      await Promise.resolve();
-      vi.advanceTimersByTime(0);
-      await Promise.resolve();
-    });
-
+    await clickUpdate();
     expect(mockUpdateListing).toHaveBeenCalled();
   });
 
@@ -273,32 +382,14 @@ describe('ListingForm', () => {
     const listing = makeCsvClubListing();
     mockUpdateListing.mockResolvedValue({ id: listing.id });
     await renderForm({ initialData: listing, isEditing: true });
-
-    const updateButtons = screen.getAllByText('Update Listing');
-    const updateButton = updateButtons.find((el) => el.tagName === 'BUTTON')!;
-    await act(async () => {
-      fireEvent.click(updateButton);
-      await Promise.resolve();
-      await Promise.resolve();
-      vi.advanceTimersByTime(0);
-      await Promise.resolve();
-    });
-
+    await clickUpdate();
     expect(mockUpdateListing).toHaveBeenCalled();
   });
 
   it('validate() fails on genuinely incomplete listing and shows error banner', async () => {
     const listing = makeIncompleteListing();
     await renderForm({ initialData: listing, isEditing: true });
-
-    const updateButtons = screen.getAllByText('Update Listing');
-    const updateButton = updateButtons.find((el) => el.tagName === 'BUTTON')!;
-    await act(async () => {
-      fireEvent.click(updateButton);
-      await Promise.resolve();
-      vi.advanceTimersByTime(0);
-      await Promise.resolve();
-    });
+    await clickUpdate();
 
     expect(mockUpdateListing).not.toHaveBeenCalled();
     const errorBanner = screen.getByText(/Please fix the highlighted errors/i);
@@ -309,16 +400,7 @@ describe('ListingForm', () => {
     const listing = makeCsvClubListing();
     mockUpdateListing.mockResolvedValue({ id: listing.id });
     await renderForm({ initialData: listing, isEditing: true });
-
-    const updateButtons = screen.getAllByText('Update Listing');
-    const updateButton = updateButtons.find((el) => el.tagName === 'BUTTON')!;
-    await act(async () => {
-      fireEvent.click(updateButton);
-      await Promise.resolve();
-      await Promise.resolve();
-      vi.advanceTimersByTime(0);
-      await Promise.resolve();
-    });
+    await clickUpdate();
 
     expect(mockUpdateListing).toHaveBeenCalled();
     const [, payload] = mockUpdateListing.mock.calls[0];
@@ -333,55 +415,15 @@ describe('ListingForm', () => {
     const listing = makeMobileShoesListing();
     mockUpdateListing.mockResolvedValue({ id: listing.id });
     await renderForm({ initialData: listing, isEditing: true });
-
-    const updateButtons = screen.getAllByText('Update Listing');
-    const updateButton = updateButtons.find((el) => el.tagName === 'BUTTON')!;
-    await act(async () => {
-      fireEvent.click(updateButton);
-      await Promise.resolve();
-      await Promise.resolve();
-      vi.advanceTimersByTime(0);
-      await Promise.resolve();
-    });
-
+    await clickUpdate();
     expect(mockUpdateListing).toHaveBeenCalled();
-  });
-
-  it('balls listing writes quantity as top-level number', async () => {
-    const listing = makeMobileBallsListing();
-    mockUpdateListing.mockResolvedValue({ id: listing.id });
-    await renderForm({ initialData: listing, isEditing: true });
-
-    const updateButtons = screen.getAllByText('Update Listing');
-    const updateButton = updateButtons.find((el) => el.tagName === 'BUTTON')!;
-    await act(async () => {
-      fireEvent.click(updateButton);
-      await Promise.resolve();
-      await Promise.resolve();
-      vi.advanceTimersByTime(0);
-      await Promise.resolve();
-    });
-
-    expect(mockUpdateListing).toHaveBeenCalled();
-    const [, payload] = mockUpdateListing.mock.calls[0];
-    expect(payload.quantity).toBe(12);
-    expect(typeof payload.quantity).toBe('number');
   });
 
   it('clubs listing writes subcategory as top-level field', async () => {
     const listing = makeMobileClubListing();
     mockUpdateListing.mockResolvedValue({ id: listing.id });
     await renderForm({ initialData: listing, isEditing: true });
-
-    const updateButtons = screen.getAllByText('Update Listing');
-    const updateButton = updateButtons.find((el) => el.tagName === 'BUTTON')!;
-    await act(async () => {
-      fireEvent.click(updateButton);
-      await Promise.resolve();
-      await Promise.resolve();
-      vi.advanceTimersByTime(0);
-      await Promise.resolve();
-    });
+    await clickUpdate();
 
     expect(mockUpdateListing).toHaveBeenCalled();
     const [, payload] = mockUpdateListing.mock.calls[0];
@@ -439,5 +481,161 @@ describe('ListingForm', () => {
     expect(mockCreateListing).toHaveBeenCalled();
     const errorEl = screen.getByText(/failed to upload/i);
     expect(errorEl).toBeTruthy();
+  });
+
+  // ---- NEW TESTS (Brief A2 §5) ----
+
+  // Test 1: Clothing listing retains size, does NOT produce shoeSize (§4.1 regression)
+  it('clothing listing retains size in payload and does NOT produce shoeSize', async () => {
+    const listing = makeClothingListing();
+    mockUpdateListing.mockResolvedValue({ id: listing.id });
+    await renderForm({ initialData: listing, isEditing: true });
+    await clickUpdate();
+
+    expect(mockUpdateListing).toHaveBeenCalled();
+    const [, payload] = mockUpdateListing.mock.calls[0];
+    expect(payload.specifications.size).toBe('M');
+    expect(payload.specifications.shoeSize).toBeUndefined();
+  });
+
+  // Test 2: Shoes listing with size: "9" canonicalises to shoeSize
+  it('shoes listing with size canonicalises to shoeSize', async () => {
+    const listing = makeCsvShoesListing();
+    mockUpdateListing.mockResolvedValue({ id: listing.id });
+    await renderForm({ initialData: listing, isEditing: true });
+    await clickUpdate();
+
+    expect(mockUpdateListing).toHaveBeenCalled();
+    const [, payload] = mockUpdateListing.mock.calls[0];
+    expect(payload.specifications.shoeSize).toBe('9');
+    expect(payload.specifications.size).toBeUndefined();
+  });
+
+  // Test 3: shoe_type: "Spiked" → spikes: "Yes"; "Waterproof" stays as shoe_type
+  it('shoe_type "Spiked" maps to spikes "Yes"; "Waterproof" leaves shoe_type intact', async () => {
+    const spikedListing = makeCsvShoesListing();
+    mockUpdateListing.mockResolvedValue({ id: spikedListing.id });
+    await renderForm({ initialData: spikedListing, isEditing: true });
+    await clickUpdate();
+
+    expect(mockUpdateListing).toHaveBeenCalled();
+    const [, payload1] = mockUpdateListing.mock.calls[0];
+    expect(payload1.specifications.spikes).toBe('Yes');
+    expect(payload1.specifications.shoe_type).toBeUndefined();
+
+    cleanup();
+    mockUpdateListing.mockReset();
+    mockUpdateListing.mockResolvedValue({ id: 'lst_wp_001' });
+
+    const wpListing = {
+      ...makeCsvShoesListing(),
+      id: 'lst_wp_001',
+      specifications: {
+        ...makeCsvShoesListing().specifications,
+        shoe_type: 'Waterproof',
+      },
+    };
+    await renderForm({ initialData: wpListing, isEditing: true });
+    await clickUpdate();
+
+    expect(mockUpdateListing).toHaveBeenCalled();
+    const [, payload2] = mockUpdateListing.mock.calls[0];
+    expect(payload2.specifications.shoe_type).toBe('Waterproof');
+    expect(payload2.specifications.spikes).toBeUndefined();
+  });
+
+  // Test 4: Balls payload contains no top-level quantity, and specifications.packSize is set
+  it('balls payload contains no top-level quantity and specifications.packSize is set', async () => {
+    const listing = makeMobileBallsListing();
+    mockUpdateListing.mockResolvedValue({ id: listing.id });
+    await renderForm({ initialData: listing, isEditing: true });
+    await clickUpdate();
+
+    expect(mockUpdateListing).toHaveBeenCalled();
+    const [, payload] = mockUpdateListing.mock.calls[0];
+    expect(payload.quantity).toBeUndefined();
+    expect(payload.specifications.packSize).toBe(12);
+  });
+
+  // Test 5: Club listing produces length but NOT shaftLength
+  it('club listing produces length but NOT shaftLength', async () => {
+    const listing = makeMobileClubListing();
+    mockUpdateListing.mockResolvedValue({ id: listing.id });
+    await renderForm({ initialData: listing, isEditing: true });
+    await clickUpdate();
+
+    expect(mockUpdateListing).toHaveBeenCalled();
+    const [, payload] = mockUpdateListing.mock.calls[0];
+    expect(payload.specifications.length).toBe('Standard');
+    expect(payload.specifications.shaftLength).toBeUndefined();
+  });
+
+  // Test 6: Grips listing with grip_size canonicalises to gripSize
+  it('grips listing with grip_size canonicalises to gripSize', async () => {
+    const listing = makeGripsListing();
+    mockUpdateListing.mockResolvedValue({ id: listing.id });
+    await renderForm({ initialData: listing, isEditing: true });
+    await clickUpdate();
+
+    expect(mockUpdateListing).toHaveBeenCalled();
+    const [, payload] = mockUpdateListing.mock.calls[0];
+    expect(payload.specifications.gripSize).toBe('Midsize');
+    expect(payload.specifications.grip_size).toBeUndefined();
+  });
+
+  // Test 8: Listing with dexterity "Right Hand" displays "Right Handed"
+  it('listing with dexterity "Right Hand" displays "Right Handed" as selected', async () => {
+    const listing = makeMobileClubListing();
+    listing.specifications.dexterity = 'Right Hand';
+    await renderForm({ initialData: listing, isEditing: true });
+
+    const dexSelect = screen.getByDisplayValue('Right Handed') as HTMLSelectElement;
+    expect(dexSelect.value).toBe('Right Handed');
+  });
+
+  // Test 9: Listing with gender "Unisex" renders it as a selectable option and preserves on save
+  it('listing with gender "Unisex" renders as selectable and preserves on save', async () => {
+    const listing = makeClothingListing();
+    listing.specifications.gender = 'Unisex';
+    mockUpdateListing.mockResolvedValue({ id: listing.id });
+    await renderForm({ initialData: listing, isEditing: true });
+
+    const genderSelect = screen.getByDisplayValue('Unisex (existing)') as HTMLSelectElement;
+    expect(genderSelect.value).toBe('Unisex');
+
+    await clickUpdate();
+    expect(mockUpdateListing).toHaveBeenCalled();
+    const [, payload] = mockUpdateListing.mock.calls[0];
+    expect(payload.specifications.gender).toBe('Unisex');
+  });
+
+  // Test 10: Validation failing on spec-only field finds a [data-field] scroll target
+  it('validation failing on spec-only field finds a data-field scroll target', async () => {
+    const listing = {
+      ...makeMobileClubListing(),
+      specifications: {
+        brand: 'Titleist',
+        model: 'TSR2',
+        dexterity: 'Right Handed',
+        shaftFlex: '',
+        shaftMaterial: 'Graphite',
+        length: 'Standard',
+        gripSize: 'Standard',
+      },
+    };
+    await renderForm({ initialData: listing, isEditing: true });
+
+    const mockScrollIntoView = vi.fn();
+    const specField = document.querySelector('[data-field="specs.shaftFlex"]');
+    expect(specField).not.toBeNull();
+    if (specField) {
+      (specField as any).scrollIntoView = mockScrollIntoView;
+      const input = specField.querySelector('select');
+      if (input) (input as any).focus = vi.fn();
+    }
+
+    await clickUpdate();
+    expect(mockUpdateListing).not.toHaveBeenCalled();
+    expect(mockScrollIntoView).toHaveBeenCalled();
   });
 });
