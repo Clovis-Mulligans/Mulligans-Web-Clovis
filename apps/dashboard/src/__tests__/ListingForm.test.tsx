@@ -215,6 +215,29 @@ function makeGripsListing() {
   } as any;
 }
 
+function makeClubHeadListing() {
+  return {
+    id: 'lst_head_001',
+    title: 'TaylorMade Qi10 Driver Head',
+    description: 'Head only, no shaft.',
+    category: 'Shafts, Grips & Heads',
+    subcategory: '',
+    condition_overall: 4,
+    price: '149.99',
+    is_negotiable: false,
+    parcel_size: 'small',
+    status: 'active',
+    quantity: 1,
+    specifications: {
+      brand: 'TaylorMade',
+      model: 'Qi10',
+      subcategory: 'Club Head',
+      club_type: 'Driver',
+    },
+    images: [],
+  } as any;
+}
+
 // ---- Helper to click Update and flush ----
 
 async function clickUpdate() {
@@ -632,6 +655,99 @@ describe('ListingForm', () => {
       (specField as any).scrollIntoView = mockScrollIntoView;
       const input = specField.querySelector('select');
       if (input) (input as any).focus = vi.fn();
+    }
+
+    await clickUpdate();
+    expect(mockUpdateListing).not.toHaveBeenCalled();
+    expect(mockScrollIntoView).toHaveBeenCalled();
+  });
+
+  // ---- NEW TESTS (Brief A3 §4) ----
+
+  // A3 Test 1: CSV club listing saves with subcategory "Drivers" and no club-type key in specifications
+  it('CSV club listing saves with subcategory and no club-type key in specifications', async () => {
+    const listing = makeCsvClubListing();
+    mockUpdateListing.mockResolvedValue({ id: listing.id });
+    await renderForm({ initialData: listing, isEditing: true });
+    await clickUpdate();
+
+    expect(mockUpdateListing).toHaveBeenCalled();
+    const [, payload] = mockUpdateListing.mock.calls[0];
+    expect(payload.subcategory).toBe('Drivers');
+    expect(payload.specifications.clubType).toBeUndefined();
+    expect(payload.specifications.club_type).toBeUndefined();
+  });
+
+  // A3 Test 2: Mobile club listing saves with subcategory and no club-type key in specifications
+  it('mobile club listing saves with subcategory and no club-type key in specifications', async () => {
+    const listing = makeMobileClubListing();
+    mockUpdateListing.mockResolvedValue({ id: listing.id });
+    await renderForm({ initialData: listing, isEditing: true });
+    await clickUpdate();
+
+    expect(mockUpdateListing).toHaveBeenCalled();
+    const [, payload] = mockUpdateListing.mock.calls[0];
+    expect(payload.subcategory).toBe('Drivers');
+    expect(payload.specifications.clubType).toBeUndefined();
+    expect(payload.specifications.club_type).toBeUndefined();
+  });
+
+  // A3 Test 3: Club Head listing still canonicalises club_type → specifications.clubType
+  it('Club Head listing canonicalises club_type to specifications.clubType', async () => {
+    const listing = makeClubHeadListing();
+    mockUpdateListing.mockResolvedValue({ id: listing.id });
+    await renderForm({ initialData: listing, isEditing: true });
+    await clickUpdate();
+
+    expect(mockUpdateListing).toHaveBeenCalled();
+    const [, payload] = mockUpdateListing.mock.calls[0];
+    expect(payload.specifications.clubType).toBe('Driver');
+    expect(payload.specifications.club_type).toBeUndefined();
+  });
+
+  // A3 Test 4: Balls listing with packSize 5 renders "5 (existing)" and preserves on save
+  it('balls listing with packSize 5 renders existing option and preserves on save', async () => {
+    const listing = {
+      ...makeMobileBallsListing(),
+      quantity: 5,
+    };
+    mockUpdateListing.mockResolvedValue({ id: listing.id });
+    await renderForm({ initialData: listing, isEditing: true });
+
+    const option = screen.getByText('5 (existing)') as HTMLOptionElement;
+    expect(option).toBeTruthy();
+    expect(option.value).toBe('5');
+
+    await clickUpdate();
+    expect(mockUpdateListing).toHaveBeenCalled();
+    const [, payload] = mockUpdateListing.mock.calls[0];
+    expect(payload.specifications.packSize).toBe(5);
+  });
+
+  // A3 Test 5: Balls listing with packSize 12 renders normal "Dozen" option
+  it('balls listing with packSize 12 renders normal Dozen option without existing suffix', async () => {
+    const listing = makeMobileBallsListing();
+    await renderForm({ initialData: listing, isEditing: true });
+
+    const dozenOption = screen.getByText('Dozen') as HTMLOptionElement;
+    expect(dozenOption).toBeTruthy();
+    const existingOptions = screen.queryAllByText(/12 \(existing\)/);
+    expect(existingOptions).toHaveLength(0);
+  });
+
+  // A3 Test 6: Validation failing only on parcelSize finds a data-field scroll target
+  it('validation failing only on parcelSize finds a data-field scroll target', async () => {
+    const listing = {
+      ...makeMobileClubListing(),
+      parcel_size: '',
+    };
+    await renderForm({ initialData: listing, isEditing: true });
+
+    const mockScrollIntoView = vi.fn();
+    const parcelField = document.querySelector('[data-field="parcelSize"]');
+    expect(parcelField).not.toBeNull();
+    if (parcelField) {
+      (parcelField as any).scrollIntoView = mockScrollIntoView;
     }
 
     await clickUpdate();

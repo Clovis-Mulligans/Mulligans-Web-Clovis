@@ -620,6 +620,10 @@ function BallsFields({
   errors: FormErrors;
 }) {
   const packSize = readSpec(specs, 'packSize', 'quantity');
+  const packSizeNum = typeof packSize === 'number' ? packSize : (typeof packSize === 'string' ? parseInt(packSize, 10) : NaN);
+  const knownValues = BALLS_QUANTITY_OPTIONS.map((q) => q.value);
+  const isUnrecognised = !isNaN(packSizeNum) && packSizeNum > 0 && !knownValues.includes(packSizeNum);
+
   return (
     <div className="space-y-4 mt-4 pt-4 border-t border-[#F0F0EA]">
       <div className="grid grid-cols-2 gap-4">
@@ -646,6 +650,7 @@ function BallsFields({
             }}
           >
             <option value="">Select quantity</option>
+            {isUnrecognised && <option value={packSizeNum}>{packSizeNum} (existing)</option>}
             {BALLS_QUANTITY_OPTIONS.map((q) => <option key={q.value} value={q.value}>{q.label}</option>)}
           </select>
         </SelectWrapper>
@@ -711,13 +716,13 @@ export function readSpec(
 }
 
 const SPEC_KEY_MAP_BY_CATEGORY: Record<string, Array<[string, string]>> = {
+  // Clubs stores club type in top-level subcategory, not in specifications
   'Clubs': [
     ['shaftFlex', 'shaft_flex'],
     ['shaftMaterial', 'shaft_material'],
     ['lieAngle', 'lie_angle'],
     ['length', 'shaft_length'],
     ['gripSize', 'grip'],
-    ['clubType', 'club_type'],
   ],
   'Shafts, Grips & Heads': [
     ['shaftFlex', 'shaft_flex'],
@@ -764,6 +769,12 @@ function specsToCanonical(specs: Specs, category: string): Specs {
       result[camel] = specs[camel];
     }
     delete result[snake];
+  }
+
+  // Clubs: club type lives in top-level subcategory, strip from specs
+  if (category === 'Clubs') {
+    delete result['clubType'];
+    delete result['club_type'];
   }
 
   // Shoes: map shoe_type → spikes only for Spiked/Spikeless
@@ -1445,7 +1456,7 @@ export default function ListingForm({ initialData, isEditing = false }: ListingF
           </div>
 
           {/* SECTION 4 — Shipping */}
-          <div className={cardClass}>
+          <div className={cardClass} data-field="parcelSize">
             <h2 className="text-[0.95rem] font-bold text-[#0D0D0D] mb-4">Shipping</h2>
             <label className={`${labelClass} mb-3`}>Parcel Size <RequiredAsterisk /></label>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
